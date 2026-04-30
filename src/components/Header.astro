@@ -1,0 +1,204 @@
+---
+// Site header — used on every page. Self-contained: brings its own
+// styles + scroll-hide behavior. Uses CSS variables defined in each
+// page's stylesheet (--navy, --cream, --serif, --sans, --blue-lt,
+// --orange-lt).
+---
+
+<header class="site-header" id="siteHeader">
+  <a href="/" class="site-wordmark" aria-label="JVA Music — home">
+    <span class="wordmark-jva">JVA</span>
+    <span class="wordmark-music">Music</span>
+  </a>
+
+  <nav class="site-nav" aria-label="Primary">
+    <a href="/">Home</a>
+    <a href="/drum-lessons">Drum Lessons</a>
+    <a href="/group-classes">Group Classes</a>
+  </nav>
+</header>
+
+<style is:global>
+  /* ── HEADER ──────────────────────────────────────────
+     Fixed-position site header. Always visible at top of
+     page; auto-hides on scroll-down, reappears on scroll-up.
+     Pages should add `padding-top: 64px` (or the equivalent
+     CSS variable) to their first section so content isn't
+     covered when the page first loads. */
+
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 14px 32px;
+    background: rgba(4, 11, 24, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(91, 141, 232, 0.12);
+    transform: translateY(0);
+    transition: transform 0.32s ease;
+  }
+
+  .site-header.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  /* Wordmark — "JVA Music" in Cormorant Garamond italic,
+     matching the hero name treatment. */
+  .site-wordmark {
+    font-family: var(--serif);
+    color: var(--cream);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
+    line-height: 1;
+    letter-spacing: 0.005em;
+  }
+
+  .wordmark-jva {
+    font-style: italic;
+    font-weight: 400;
+    font-size: 26px;
+    color: var(--cream);
+  }
+
+  .wordmark-music {
+    font-style: italic;
+    font-weight: 300;
+    font-size: 22px;
+    color: var(--blue-lt);
+  }
+
+  /* Nav links */
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .site-nav a {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.78);
+    text-decoration: none;
+    padding: 4px 0;
+    transition: color 0.18s ease;
+    position: relative;
+  }
+
+  .site-nav a:hover,
+  .site-nav a:focus-visible {
+    color: var(--cream);
+  }
+
+  /* Subtle underline on hover */
+  .site-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--orange-lt);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.22s ease;
+  }
+
+  .site-nav a:hover::after,
+  .site-nav a:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  /* Light mode: when the OS prefers light, swap to a cream
+     header with dark text. The body background is also cream
+     in light mode, so we keep the header opaque-ish for
+     legibility against varied content underneath. */
+  @media (prefers-color-scheme: light) {
+    .site-header {
+      background: rgba(background: rgba(245, 243, 238, 0.88););
+      border-bottom: 1px solid rgba(9, 21, 40, 0.08);
+    }
+
+    .wordmark-jva { color: var(--ink); }
+    .wordmark-music { color: var(--cobalt); }
+
+    .site-nav a {
+      color: rgba(14, 13, 11, 0.7);
+    }
+
+    .site-nav a:hover,
+    .site-nav a:focus-visible {
+      color: var(--ink);
+    }
+  }
+
+  /* Mobile: keep the wordmark + nav on one row but let the nav
+     shrink. For now, no hamburger menu — three short links fit. */
+  @media (max-width: 560px) {
+    .site-header {
+      padding: 12px 18px;
+    }
+
+    .wordmark-jva { font-size: 22px; }
+    .wordmark-music { font-size: 18px; }
+
+    .site-nav {
+      gap: 16px;
+    }
+
+    .site-nav a {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+    }
+  }
+</style>
+
+<script is:inline>
+  // Scroll-hide behavior: hide on scroll-down past threshold,
+  // show on scroll-up. Always visible near the top of the page.
+  (function () {
+    const header = document.getElementById("siteHeader");
+    if (!header) return;
+
+    const TOP_ZONE = 80;        // always visible above this scroll position
+    const DELTA = 6;            // ignore tiny scroll jitter
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    function update() {
+      const y = window.scrollY;
+      const diff = y - lastY;
+
+      if (y < TOP_ZONE) {
+        header.classList.remove("is-hidden");
+      } else if (Math.abs(diff) > DELTA) {
+        if (diff > 0) {
+          header.classList.add("is-hidden");
+        } else {
+          header.classList.remove("is-hidden");
+        }
+      }
+
+      lastY = y;
+      ticking = false;
+    }
+
+    window.addEventListener("scroll", function () {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+</script>
