@@ -1,0 +1,231 @@
+---
+import '../styles/lessons.css';
+import Footer from '../components/Footer.astro';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Drum lessons in Rochester, NY with Jacobo Vega-Albela. Eastman MM, 10+ years teaching all ages and levels. Your first lesson is half off." />
+  <meta name="theme-color" content="#091528" />
+  <title>Drum Lessons in Rochester, NY — Jacobo Vega-Albela</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<main>
+<!-- HERO -->
+<section class="hero" aria-labelledby="heroTitle">
+  <div class="wrap">
+    <div class="hero-text">
+      <p class="hero-eyebrow">Private drum instruction</p>
+      <h1 id="heroTitle">Drum Lessons in <em>Rochester, NY</em></h1>
+      <p class="hero-sub">Personalized instruction for adults and kids — from your first beat to gigging confidently.</p>
+      <ul class="chips" aria-label="Credentials">
+        <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Master's, Eastman School of Music</li>
+        <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>10+ years teaching</li>
+        <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>All ages &amp; levels</li>
+      </ul>
+      <div class="cta-row">
+        <a class="btn btn-primary" data-cta href="mailto:jacobovamusic@gmail.com?subject=Half-Price%20First%20Lesson&amp;body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20book%20my%20half-price%20first%20lesson.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Age%2Flevel%3A%20%0A-%20Goals%3A%20%0A%0AThanks%21">Book Your Half-Price Lesson</a>
+        <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
+      </div>
+      <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
+    </div>
+    <figure class="hero-img">
+      <picture>
+        <source media="(max-width: 779px)" srcset="assets/hero-mobile.jpg">
+        <img src="/DSC04813.webp" alt="Jacobo Vega-Albela holding a cymbal overhead — black-and-white portrait" width="1000" height="1500" fetchpriority="high">
+      </picture>
+    </figure>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section aria-labelledby="testimonialsTitle">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">What students say</span>
+      <h2 id="testimonialsTitle">Real wins, real students.</h2>
+      <span class="section-rule" aria-hidden="true"></span>
+    </div>
+    <div class="testimonials-grid">
+      <figure class="tcard">
+        <blockquote>I had an audition for a jazz camp and decided to have a lesson with Jacobo. In one lesson he helped me improve so much, and I ended up getting into the camp. Highly recommended!</blockquote>
+        <figcaption>&mdash; <strong>Will</strong>, college student</figcaption>
+      </figure>
+      <figure class="tcard">
+        <blockquote>I got into the conservatory in Brussels! Thank you so much for all your support &mdash; I learned a lot from you.</blockquote>
+        <figcaption>&mdash; <strong>Annie</strong>, music school graduate</figcaption>
+      </figure>
+      <figure class="tcard">
+        <blockquote>My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.</blockquote>
+        <figcaption>&mdash; <strong>Joseph</strong>, hobbyist</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section aria-labelledby="pricingTitle">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">Rates &amp; packages</span>
+      <h2 id="pricingTitle">Transparent pricing, no surprises.</h2>
+      <span class="section-rule" aria-hidden="true"></span>
+    </div>
+    <p class="promo-banner"><strong>New students</strong> 50% off your first lesson.</p>
+    <div class="pricing-grid">
+      <div class="pcard featured">
+        <span class="pcard-tag">Most popular</span>
+        <h3>Standard rate</h3>
+        <p class="price">$50 <small>/ 60 min</small></p>
+        <p class="price">$30 <small>/ 30 min</small></p>
+        <p>At my home studio in Rochester, or virtual over Zoom &mdash; same rate either way.</p>
+      </div>
+      <div class="pcard">
+        <span class="pcard-tag">4-lesson pack</span>
+        <h3>Save ~10%</h3>
+        <p class="price">$180 <small>/ four 60-min</small></p>
+        <p class="price">$100 <small>/ four 30-min</small></p>
+        <p>Steady momentum, slightly better price. Reschedulable with 24h notice.</p>
+      </div>
+      <div class="pcard">
+        <span class="pcard-tag">House calls</span>
+        <h3>I come to you</h3>
+        <p class="price">Standard <small>+ $0.75/min commute</small></p>
+        <p>Round-trip travel time billed transparently &mdash; ideal for younger students.</p>
+      </div>
+      <div class="pcard">
+        <span class="pcard-tag">Collegiate</span>
+        <h3>Student discount</h3>
+        <p class="price">3 + 1<small> &nbsp;at 50% off</small></p>
+        <p>Book three lessons at full price, get the 4th half off. Proof of enrollment required.</p>
+      </div>
+      <div class="pcard">
+        <span class="pcard-tag">K&ndash;12 special</span>
+        <h3>Back-to-school</h3>
+        <p class="price">Buy 5, get 1<small> free</small></p>
+        <p>Runs Jul&ndash;Sep and Jan&ndash;Mar. Great for kids building a habit around the school year.</p>
+      </div>
+      <div class="pcard">
+        <span class="pcard-tag">Referral bonus</span>
+        <h3>Bring a friend</h3>
+        <p class="price">Both get 1<small> free lesson</small></p>
+        <p>Refer a student. Once they complete 3 lessons, you both get a free lesson on me.</p>
+      </div>
+    </div>
+    <p class="pricing-fineprint">Bulk packs are non-refundable but fully reschedulable with 24 hours notice. Illness exceptions always apply.</p>
+    <div class="mid-cta">
+      <p><strong>Not sure which option fits?</strong> Try a half-price first lesson &mdash; drum with me, then decide.</p>
+      <a class="btn btn-outline" data-cta href="mailto:jacobovamusic@gmail.com?subject=Half-Price%20First%20Lesson&amp;body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20book%20my%20half-price%20first%20lesson.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Age%2Flevel%3A%20%0A-%20Goals%3A%20%0A%0AThanks%21">Book Your Half-Price Lesson</a>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section aria-labelledby="aboutTitle">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">About me</span>
+      <h2 id="aboutTitle">Why study with me.</h2>
+      <span class="section-rule" aria-hidden="true"></span>
+    </div>
+    <div class="about-grid">
+      <div class="about-text">
+        <h3>Clarity, honest feedback, steady wins.</h3>
+        <p>I help students find their voice with assignments tailored to their individual needs &mdash; and I get results. I teach K&ndash;12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and other popular styles.</p>
+        <p>Whether you're picking up sticks for the first time or preparing for a conservatory audition, the path forward is the same: clarity about what to practice, honest feedback, and steady wins. We figure out where you want to go, then build the habits to get you there.</p>
+        <p>I'm a working drummer first and a teacher second. Everything I assign comes from a practical base of knowledge &mdash; the same things I'm using on stage and in the studio.</p>
+      </div>
+      <div class="about-bg">
+        <h3>Background</h3>
+        <ul class="bg-list">
+          <li><strong>Education</strong>MM, Jazz Studies &amp; Contemporary Media &mdash; Eastman School of Music (2022, Schirmer Prize in Jazz Performance) &middot; BM, Classical Percussion Performance &mdash; New Mexico State University (2019, Crimson Scholar) &middot; Betty Carter's Jazz Ahead alumnus (2023)</li>
+          <li><strong>Teaching</strong>Private instructor 2015&ndash;present &middot; Lecture-style classes on drumset styles at Eastman &middot; All ages and levels</li>
+          <li><strong>Performance</strong>Western New York Big Band, Las Cruces Symphony Orchestra, The Swooners, Silver Arrow, Trio 55, Brendan Lanighan Octet &middot; Festivals: Rochester International Jazz Festival, Burlington Discover Jazz Festival, Las Cruces Juneteenth Jazz Festival</li>
+        </ul>
+        <p class="press-line"><strong>As featured in</strong>Rochester City Magazine &middot; Las Cruces Bulletin &middot; Bob Osborne's <em>Different Noises</em> &middot; WMSE, WFMU, KURU, KOWS-LP</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LISTEN -->
+<section aria-labelledby="listenTitle">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">Hear me play</span>
+      <h2 id="listenTitle">What my playing sounds like.</h2>
+      <span class="section-rule" aria-hidden="true"></span>
+    </div>
+    <div class="listen-grid">
+      <figure class="media media-bc">
+        <div class="media-frame bc">
+          <iframe loading="lazy" title="Un-Belonging on Bandcamp" src="https://bandcamp.com/EmbeddedPlayer/album=2556455061/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/transparent=true/" seamless><a href="https://577records.bandcamp.com/album/un-belonging">Un-Belonging by Jacobo Vega-Albela</a></iframe>
+        </div>
+        <figcaption><strong>Un-Belonging</strong> &mdash; my debut album on 577 Records (2025).</figcaption>
+      </figure>
+      <figure class="media">
+        <div class="media-frame yt">
+          <iframe loading="lazy" title="Performance footage on YouTube" src="https://www.youtube.com/embed/videoseries?list=PLr4sdvgtCCMcfSZHuTscc1YX61tsUFaJt" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <figcaption><strong>Performance footage</strong> &mdash; clips from recent shows and sessions.</figcaption>
+      </figure>
+    </div>
+    <p class="epk-link">More about me at <a href="https://www.jva-music.com" target="_blank" rel="noopener">jva-music.com</a>.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section aria-labelledby="faqTitle">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">Good to know</span>
+      <h2 id="faqTitle">Frequently asked questions.</h2>
+      <span class="section-rule" aria-hidden="true"></span>
+    </div>
+    <div class="faq-list">
+      <details>
+        <summary>What's your cancellation policy?</summary>
+        <div class="faq-body">24 hours notice, please. Bulk packs are non-refundable but fully reschedulable with 24h notice. Illness exceptions always apply, just let me know. If I have to cancel late on you, your next lesson is on me.</div>
+      </details>
+      <details>
+        <summary>Do you teach beginners?</summary>
+        <div class="faq-body">Yes: K&ndash;12 and adults. Most of my students start as beginners, and there's nothing to "catch up on" before lesson one.</div>
+      </details>
+      <details>
+        <summary>Do you offer virtual lessons?</summary>
+        <div class="faq-body">Yes, over Zoom. Same rate as in-person at my studio. It works great once we sort out a basic mic and camera setup, and I'll walk you through that on our first call.</div>
+      </details>
+      <details>
+        <summary>What styles do you teach?</summary>
+        <div class="faq-body">Rock, jazz, funk, Latin, and popular music more broadly. I cover reading and ear training, rudiments, technique, and sound on the kit. We'll shape the curriculum to your goals.</div>
+      </details>
+      <details>
+        <summary>Where are you located?</summary>
+        <div class="faq-body">Rochester, NY. The studio address is shared after booking. I also do house calls (see pricing) and virtual lessons over Zoom.</div>
+      </details>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- FINAL CTA BAND -->
+<section class="cta-band" aria-label="Book your half-price first lesson">
+  <div class="cta-band-inner">
+    <h2>Ready to start?</h2>
+    <p>Your first lesson is half off &mdash; just $25 for an hour. See if we click before committing further.</p>
+    <a class="btn btn-primary" data-cta href="mailto:jacobovamusic@gmail.com?subject=Half-Price%20First%20Lesson&amp;body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20book%20my%20half-price%20first%20lesson.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Age%2Flevel%3A%20%0A-%20Goals%3A%20%0A%0AThanks%21">Book Your Half-Price Lesson</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+
+<Footer />
+
+</body>
+</html>
