@@ -204,7 +204,7 @@ section:first-of-type{border-top:0}
   .tel-link{justify-content:center;border:1px solid rgba(245,243,238,.22);border-bottom-color:rgba(245,243,238,.22);border-radius:2px;padding:.75rem 1rem}
   .tel-link:hover{border-color:rgba(245,243,238,.7)}
 
-  .hero{padding-top:2.25rem;padding-bottom:2rem}
+  .hero{padding-top:calc(var(--header-h) + 16px);padding-bottom:2rem}
   .hero h1{font-size:2rem;margin-bottom:.75rem}
   .hero-sub{font-size:1rem;margin-bottom:1.25rem}
   .chips{margin-bottom:1.25rem;gap:.4rem}
