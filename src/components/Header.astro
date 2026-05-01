@@ -1,8 +1,9 @@
 ---
 // Site header — used on every page. Self-contained: brings its own
-// styles + scroll-hide behavior. Uses CSS variables defined in each
-// page's stylesheet (--navy, --cream, --serif, --sans, --blue-lt,
-// --orange-lt).
+// styles, scroll-hide behavior, and mobile hamburger menu. Uses CSS
+// variables defined in each page's stylesheet (--navy, --cream,
+// --serif, --sans, --blue-lt, --orange-lt). Exposes --header-h so
+// pages can offset hero content from behind the fixed header.
 ---
 
 <header class="site-header" id="siteHeader">
@@ -16,15 +17,41 @@
     <a href="/drum-lessons">Drum Lessons</a>
     <a href="/group-classes">Group Classes</a>
   </nav>
+
+  <button
+    class="nav-toggle"
+    id="navToggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="mobileMenu"
+    aria-label="Open navigation menu"
+  >
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+  </button>
 </header>
+
+<nav class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation">
+  <a href="/">Home</a>
+  <a href="/drum-lessons">Drum Lessons</a>
+  <a href="/group-classes">Group Classes</a>
+</nav>
 
 <style is:global>
   /* ── HEADER ──────────────────────────────────────────
      Fixed-position site header. Always visible at top of
      page; auto-hides on scroll-down, reappears on scroll-up.
-     Pages should add `padding-top: 64px` (or the equivalent
-     CSS variable) to their first section so content isn't
-     covered when the page first loads. */
+     Below 560px the inline nav collapses into a hamburger
+     button that toggles a slide-down mobile menu.
+
+     Pages should offset their hero's top padding by
+     var(--header-h) so first-fold content isn't covered
+     when the page first loads. */
+
+  :root {
+    --header-h: 64px;
+  }
 
   .site-header {
     position: fixed;
@@ -37,7 +64,7 @@
     justify-content: space-between;
     gap: 24px;
     padding: 14px 32px;
-    background: rgba(4, 11, 24, 0.88);
+    background: rgba(4, 11, 24, 0.78);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(91, 141, 232, 0.12);
@@ -76,7 +103,7 @@
     color: var(--blue-lt);
   }
 
-  /* Nav links */
+  /* Inline desktop nav */
   .site-nav {
     display: flex;
     align-items: center;
@@ -101,7 +128,6 @@
     color: var(--cream);
   }
 
-  /* Subtle underline on hover */
   .site-nav a::after {
     content: "";
     position: absolute;
@@ -120,13 +146,100 @@
     transform: scaleX(1);
   }
 
-  /* Light mode: when the OS prefers light, swap to a cream
-     header with dark text. The body background is also cream
-     in light mode, so we keep the header opaque-ish for
-     legibility against varied content underneath. */
+  /* Hamburger toggle — hidden on desktop, shown on mobile. */
+  .nav-toggle {
+    display: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin-right: -6px;
+    background: transparent;
+    border: 0;
+    color: var(--cream);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .nav-toggle-bar {
+    position: absolute;
+    left: 9px;
+    width: 22px;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 1px;
+    transition: transform 0.22s ease, opacity 0.18s ease, top 0.22s ease;
+  }
+
+  .nav-toggle-bar:nth-child(1) { top: 13px; }
+  .nav-toggle-bar:nth-child(2) { top: 19px; }
+  .nav-toggle-bar:nth-child(3) { top: 25px; }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) {
+    top: 19px;
+    transform: rotate(45deg);
+  }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) {
+    opacity: 0;
+  }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) {
+    top: 19px;
+    transform: rotate(-45deg);
+  }
+
+  /* Mobile menu — fixed slide-down panel anchored below the
+     header. Hidden on desktop; visible (and toggled by JS) on
+     mobile. */
+  .mobile-menu {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    z-index: 99;
+    display: none;
+    flex-direction: column;
+    padding: 6px 18px 16px;
+    background: rgba(4, 11, 24, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(91, 141, 232, 0.12);
+    transform: translateY(-8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.22s ease, opacity 0.18s ease, visibility 0s linear 0.22s;
+  }
+
+  .mobile-menu.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+    transition: transform 0.22s ease, opacity 0.18s ease, visibility 0s;
+  }
+
+  .mobile-menu a {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.86);
+    text-decoration: none;
+    padding: 14px 6px;
+    border-bottom: 1px solid rgba(245, 243, 238, 0.07);
+  }
+
+  .mobile-menu a:last-child {
+    border-bottom: 0;
+  }
+
+  .mobile-menu a:hover,
+  .mobile-menu a:focus-visible {
+    color: var(--cream);
+  }
+
+  /* Light mode: cream-tinted header with dark text. */
   @media (prefers-color-scheme: light) {
     .site-header {
-      background: rgba(background: rgba(245, 243, 238, 0.88););
+      background: rgba(245, 243, 238, 0.78);
       border-bottom: 1px solid rgba(9, 21, 40, 0.08);
     }
 
@@ -141,11 +254,29 @@
     .site-nav a:focus-visible {
       color: var(--ink);
     }
+
+    .nav-toggle { color: var(--ink); }
+
+    .mobile-menu {
+      background: rgba(245, 243, 238, 0.94);
+      border-bottom: 1px solid rgba(9, 21, 40, 0.08);
+    }
+
+    .mobile-menu a {
+      color: rgba(14, 13, 11, 0.78);
+      border-bottom-color: rgba(9, 21, 40, 0.08);
+    }
+
+    .mobile-menu a:hover,
+    .mobile-menu a:focus-visible {
+      color: var(--ink);
+    }
   }
 
-  /* Mobile: keep the wordmark + nav on one row but let the nav
-     shrink. For now, no hamburger menu — three short links fit. */
+  /* Mobile: collapse inline nav into a hamburger. */
   @media (max-width: 560px) {
+    :root { --header-h: 56px; }
+
     .site-header {
       padding: 12px 18px;
     }
@@ -153,14 +284,9 @@
     .wordmark-jva { font-size: 22px; }
     .wordmark-music { font-size: 18px; }
 
-    .site-nav {
-      gap: 16px;
-    }
-
-    .site-nav a {
-      font-size: 11px;
-      letter-spacing: 0.1em;
-    }
+    .site-nav { display: none; }
+    .nav-toggle { display: inline-flex; }
+    .mobile-menu { display: flex; }
   }
 </style>
 
@@ -171,8 +297,8 @@
     const header = document.getElementById("siteHeader");
     if (!header) return;
 
-    const TOP_ZONE = 80;        // always visible above this scroll position
-    const DELTA = 6;            // ignore tiny scroll jitter
+    const TOP_ZONE = 80;
+    const DELTA = 6;
     let lastY = window.scrollY;
     let ticking = false;
 
@@ -200,5 +326,55 @@
         ticking = true;
       }
     }, { passive: true });
+  })();
+
+  // Mobile menu toggle
+  (function () {
+    const btn = document.getElementById("navToggle");
+    const menu = document.getElementById("mobileMenu");
+    if (!btn || !menu) return;
+
+    function setOpen(open) {
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.setAttribute(
+        "aria-label",
+        open ? "Close navigation menu" : "Open navigation menu"
+      );
+      menu.classList.toggle("is-open", open);
+    }
+
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      const isOpen = btn.getAttribute("aria-expanded") === "true";
+      setOpen(!isOpen);
+    });
+
+    // Close when a menu link is tapped (so the open state doesn't
+    // linger if Astro/router intercepts navigation).
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest("a")) setOpen(false);
+    });
+
+    // Close on outside tap.
+    document.addEventListener("click", function (e) {
+      if (btn.getAttribute("aria-expanded") !== "true") return;
+      if (menu.contains(e.target) || btn.contains(e.target)) return;
+      setOpen(false);
+    });
+
+    // Close on Escape.
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+
+    // Close when the viewport grows past the mobile breakpoint
+    // (e.g. user rotates a tablet into landscape).
+    const mq = window.matchMedia("(min-width: 561px)");
+    const onChange = function (e) { if (e.matches) setOpen(false); };
+    if (mq.addEventListener) mq.addEventListener("change", onChange);
+    else mq.addListener(onChange);
   })();
 </script>
