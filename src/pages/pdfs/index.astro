@@ -452,10 +452,13 @@ import manifest from '../../data/pdfs.json';
 
     function syncForViewport() {
       const isMobile = mq.matches;
-      toggles.forEach(function (t) {
+      toggles.forEach(function (t, i) {
         if (isMobile) {
+          // Open the first section by default so the page doesn't read
+          // as empty on first load. Subsequent toggles persist via the
+          // !hasAttribute guard until the viewport flips back.
           if (!t.hasAttribute("aria-expanded")) {
-            t.setAttribute("aria-expanded", "false");
+            t.setAttribute("aria-expanded", i === 0 ? "true" : "false");
           }
         } else {
           t.removeAttribute("aria-expanded");
