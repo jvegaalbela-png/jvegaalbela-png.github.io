@@ -1,0 +1,48 @@
+{
+  "categories": [
+    {
+      "id": "single-surface",
+      "title": "Single Surface Exercises",
+      "blurb": "Snare-drum and pad-based exercises for technique, reading, and rudimental development.",
+      "items": [
+        { "file": "tech-routine-1.pdf",   "title": "Tech Routine 1", "description": "" },
+        { "file": "tech-routine-2.pdf",   "title": "Tech Routine 2", "description": "" },
+        { "file": "rtsk.pdf",             "title": "RTSK",           "description": "" },
+        { "file": "eighth-note-rests.pdf","title": "Eighth Note Rests", "description": "" }
+      ]
+    },
+    {
+      "id": "drumset",
+      "title": "Drumset Exercises",
+      "blurb": "Coordination, independence, and groove studies for the full kit.",
+      "items": [
+        { "file": "three-basic-rock-beats.pdf",            "title": "Three Basic Rock Beats", "description": "" },
+        { "file": "bass-drum-eighth-note-partials.pdf",    "title": "Bass Drum Eighth Note Partials", "description": "" },
+        { "file": "bass-drum-sixteenth-note-partials.pdf", "title": "Bass Drum Sixteenth Note Partials", "description": "" },
+        { "file": "independence-exercise-pamphlet.pdf",    "title": "Independence Exercise Pamphlet", "description": "" }
+      ]
+    },
+    {
+      "id": "transcriptions",
+      "title": "Transcriptions",
+      "blurb": "Drum and comping transcriptions from records I love.",
+      "items": [
+        { "file": "daahoud.pdf",                              "title": "Daahoud", "description": "" },
+        { "file": "tony-williams-seven-steps-solos.pdf",      "title": "Tony Williams — Seven Steps Solos (Chronological)", "description": "" },
+        { "file": "marcus-gilmore-chorale-comping-sample.pdf","title": "Marcus Gilmore — Chorale Comping Sample", "description": "" },
+        { "file": "island-in-the-sun.pdf",                    "title": "Island In The Sun", "description": "" },
+        { "file": "undone-the-sweater-song.pdf",              "title": "Undone (The Sweater Song)", "description": "" }
+      ]
+    }
+  ],
+  "handwritten": {
+    "blurb": "A handful of older worksheets in my own handwriting. To be digitized eventually.",
+    "items": [
+      { "file": "come-as-you-are.pdf",     "title": "Come As You Are", "description": "" },
+      { "file": "in-bloom.pdf",            "title": "In Bloom", "description": "" },
+      { "file": "oakland-beats.pdf",       "title": "Oakland Beats", "description": "" },
+      { "file": "potluck.pdf",             "title": "Potluck", "description": "" },
+      { "file": "grooves-worksheet-2.pdf", "title": "Grooves Worksheet 2", "description": "" }
+    ]
+  }
+}

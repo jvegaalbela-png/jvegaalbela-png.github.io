@@ -1,0 +1,184 @@
+---
+import '../../styles/global.css';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import manifest from '../../data/pdfs.json';
+
+const { handwritten } = manifest;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Older handwritten teaching worksheets — to be digitized eventually." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#091528" />
+  <title>Handwritten Worksheets — Jacobo Vega-Albela</title>
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+<Header />
+
+<main class="hw-wrap">
+  <nav class="hw-back" aria-label="Breadcrumb">
+    <a href="/pdfs">← Back to all PDFs</a>
+  </nav>
+
+  <header class="hw-head">
+    <span class="hw-eyebrow">Archive</span>
+    <h1 class="hw-title">Handwritten <em>Worksheets</em></h1>
+    {handwritten.blurb && <p class="hw-sub">{handwritten.blurb}</p>}
+  </header>
+
+  <ul class="hw-list">
+    {handwritten.items.map((item) => {
+      const href = `/pdfs/handwritten/${item.file}`;
+      return (
+        <li class="hw-item">
+          <a class="hw-link" href={href} target="_blank" rel="noopener">
+            <span class="hw-link-title">{item.title}</span>
+            <span class="hw-link-arrow" aria-hidden="true">↗</span>
+          </a>
+          {item.description && <p class="hw-desc">{item.description}</p>}
+        </li>
+      );
+    })}
+  </ul>
+</main>
+
+<Footer />
+
+<style is:global>
+  .hw-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: calc(var(--header-h) + 56px) 56px 80px;
+  }
+
+  .hw-back {
+    margin-bottom: 32px;
+  }
+
+  .hw-back a {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.18s ease;
+  }
+
+  .hw-back a:hover { color: var(--cobalt); }
+
+  .hw-head {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 32px;
+    margin-bottom: 8px;
+  }
+
+  .hw-eyebrow {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+  }
+
+  .hw-title {
+    font-family: var(--serif);
+    font-size: clamp(36px, 4.5vw, 56px);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+
+  .hw-title em {
+    font-style: italic;
+    color: var(--cobalt);
+  }
+
+  .hw-sub {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 560px;
+  }
+
+  .hw-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .hw-item {
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 0;
+  }
+
+  .hw-link {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    font-family: var(--serif);
+    font-size: 21px;
+    font-weight: 400;
+    color: var(--ink);
+    text-decoration: none;
+    transition: color 0.18s ease;
+  }
+
+  .hw-link:hover,
+  .hw-link:focus-visible {
+    color: var(--cobalt);
+  }
+
+  .hw-link:focus-visible {
+    outline: 2px solid var(--orange-lt);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .hw-link-arrow {
+    font-size: 14px;
+    color: var(--muted);
+    transition: transform 0.18s ease, color 0.18s ease;
+  }
+
+  .hw-link:hover .hw-link-arrow {
+    transform: translate(2px, -2px);
+    color: var(--orange);
+  }
+
+  .hw-desc {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  @media (max-width: 760px) {
+    .hw-wrap { padding: calc(var(--header-h) + 32px) 28px 64px; }
+    .hw-link { font-size: 18px; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .hw-link:hover,
+    .hw-link:focus-visible { color: var(--blue-lt); }
+    .hw-title em { color: var(--blue-lt); }
+    .hw-back a:hover { color: var(--blue-lt); }
+  }
+</style>
+
+</body>
+</html>

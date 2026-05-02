@@ -9,9 +9,13 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "pdfs:thumbs": "node scripts/generate-pdf-thumbs.mjs"
   },
   "dependencies": {
     "astro": "^6.2.0"
+  },
+  "devDependencies": {
+    "pdf-to-img": "^4.5.0"
   }
 }

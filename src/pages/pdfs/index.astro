@@ -1,0 +1,485 @@
+---
+import '../../styles/global.css';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import manifest from '../../data/pdfs.json';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Free teaching PDFs from Jacobo Vega-Albela — single-surface exercises, drumset exercises, and transcriptions for students at every level." />
+  <meta name="theme-color" content="#091528" />
+  <title>Teaching PDFs — Jacobo Vega-Albela</title>
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+<Header />
+
+<header class="pdfs-hero">
+  <div class="pdfs-hero-inner">
+    <span class="pdfs-eyebrow">Teaching Resources</span>
+    <h1 class="pdfs-title">PDFs <em>&amp; Worksheets</em></h1>
+    <p class="pdfs-sub">A growing library of exercises, etudes, and transcriptions I share with my students. Free to download — print them, mark them up, take them to the practice room.</p>
+  </div>
+</header>
+
+<div class="pdfs-wrap">
+  {manifest.categories.map((cat) => (
+    <section class="pdf-section" id={cat.id}>
+      <button class="pdf-section-toggle" type="button" aria-controls={`${cat.id}-body`}>
+        <span class="section-tag">{cat.title}</span>
+        <span class="section-rule" aria-hidden="true"></span>
+        <svg class="pdf-section-chevron" aria-hidden="true" viewBox="0 0 12 8" fill="none">
+          <path d="M1 1.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+      <div class="pdf-section-body" id={`${cat.id}-body`}>
+        <div class="pdf-section-body-inner">
+          {cat.blurb && <p class="pdf-section-blurb">{cat.blurb}</p>}
+          <div class="pdf-grid">
+            {cat.items.map((item) => {
+              const href = `/pdfs/${cat.id}/${item.file}`;
+              const thumb = `/pdfs/_thumbs/${cat.id}/${item.file.replace(/\.pdf$/i, '.png')}`;
+              return (
+                <a class="pdf-card" href={href} target="_blank" rel="noopener" aria-label={`Open ${item.title} (PDF) in a new tab`}>
+                  <div class="pdf-thumb">
+                    <img src={thumb} alt="" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="pdf-meta">
+                    <div class="pdf-card-title">{item.title}</div>
+                    {item.description && <div class="pdf-card-desc">{item.description}</div>}
+                    <div class="pdf-card-cta">
+                      <span class="pdf-card-cta-label">Open PDF</span>
+                      <span class="pdf-card-cta-arrow" aria-hidden="true">↗</span>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <section class="pdf-handwritten-link" aria-label="Handwritten worksheets">
+    <p>
+      Looking for the older <a href="/pdfs/handwritten">handwritten worksheets</a>? They're tucked away on a separate page — to be digitized eventually.
+    </p>
+  </section>
+</div>
+
+<Footer />
+
+<style is:global>
+  /* ── PDFs PAGE ─────────────────────────────────────
+     Library of teaching PDFs. Tone matches the home page:
+     navy hero, cream content area, cobalt/orange accents.
+     Cards display a portrait-aspect first-page thumbnail,
+     a title, optional description, and an "open" affordance. */
+
+  .pdfs-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: calc(var(--header-h) + 64px) 56px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pdfs-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 80% 110%, rgba(26,58,138,0.55) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 10% -10%, rgba(232,101,10,0.15) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .pdfs-hero-inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .pdfs-eyebrow {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+    margin-bottom: 16px;
+  }
+
+  .pdfs-title {
+    font-family: var(--serif);
+    font-size: clamp(44px, 5.5vw, 72px);
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    margin-bottom: 18px;
+  }
+
+  .pdfs-title em {
+    font-style: italic;
+    color: var(--blue-lt);
+  }
+
+  .pdfs-sub {
+    max-width: 620px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: rgba(245,243,238,0.72);
+  }
+
+  .pdfs-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 56px;
+  }
+
+  .pdf-section {
+    padding: 64px 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .pdf-section:first-of-type {
+    border-top: 0;
+  }
+
+  /* Section header is a button so it can act as a disclosure
+     widget on mobile. On desktop it looks identical to the old
+     <div class="section-header"> — chevron hidden, body always
+     visible, no pointer cursor. */
+  .pdf-section-toggle {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0 0 44px;
+    width: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    cursor: default;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+  }
+
+  .pdf-section-toggle:focus { outline: none; }
+  .pdf-section-toggle:focus-visible {
+    outline: 2px solid var(--orange-lt);
+    outline-offset: 6px;
+    border-radius: 2px;
+  }
+
+  .pdf-section-chevron {
+    display: none;
+    width: 12px;
+    height: 8px;
+    color: var(--muted);
+    transition: transform 0.22s ease;
+    flex-shrink: 0;
+    align-self: center;
+    margin-left: auto;
+  }
+
+  .pdf-section-blurb {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 0 36px;
+  }
+
+  .pdf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 28px;
+  }
+
+  .pdf-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--ink);
+    position: relative;
+    z-index: 1;
+    /* The whole card (thumb + meta) holds a 1:1 aspect when at rest
+       and expands to ~portrait-letter-plus-meta on hover, with a
+       modest scale-up so the preview reads as a real preview, not
+       just a taller crop. aspect-ratio transitions are supported in
+       modern Chromium, Safari 18+, and Firefox 138+; older browsers
+       snap between sizes (acceptable degradation). */
+    aspect-ratio: 1 / 1;
+    transition:
+      aspect-ratio 0.32s cubic-bezier(0.2, 0, 0.2, 1),
+      transform 0.32s cubic-bezier(0.2, 0, 0.2, 1),
+      box-shadow 0.32s ease,
+      border-color 0.18s ease;
+    overflow: hidden;
+  }
+
+  .pdf-card:hover,
+  .pdf-card:focus-visible {
+    transform: translateY(-4px) scale(1.1);
+    z-index: 5;
+    border-color: var(--cobalt);
+    box-shadow: 0 18px 40px rgba(9, 21, 40, 0.18);
+  }
+
+  /* Hover-intent: wait 250ms before expanding so a quick pass over
+     the grid doesn't fire the animation. No delay on collapse (mouse
+     leaves) or on keyboard focus — those should feel immediate. */
+  .pdf-card:hover {
+    transition-delay: 0.25s;
+  }
+
+  .pdf-card:focus-visible {
+    outline: 2px solid var(--orange-lt);
+    outline-offset: 2px;
+  }
+
+  /* Thumb fills whatever vertical space the card has after the meta
+     block. Card aspect controls the overall size (square at rest,
+     portrait-ish on hover), so the thumb's shape changes implicitly. */
+  .pdf-thumb {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    background: #fafaf6;
+    border-bottom: 1px solid var(--rule);
+    overflow: hidden;
+  }
+
+  .pdf-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  /* On hover-capable devices, expand the card to give the thumb
+     enough room to show the full first page. The 8.5/14 ratio is
+     "letter portrait + room for meta" — at ~226px wide that yields
+     a card ~372px tall, with ~290px of thumb (close to 8.5×11). */
+  @media (hover: hover) {
+    .pdf-card:hover,
+    .pdf-card:focus-visible {
+      aspect-ratio: 8.5 / 14;
+    }
+  }
+
+  .pdf-meta {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+
+  .pdf-card-title {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+
+  .pdf-card-desc {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .pdf-card-cta {
+    padding-top: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cobalt);
+  }
+
+  .pdf-card:hover .pdf-card-cta,
+  .pdf-card:focus-visible .pdf-card-cta {
+    color: var(--orange);
+  }
+
+  .pdf-card-cta-arrow {
+    font-size: 12px;
+    transition: transform 0.18s ease;
+  }
+
+  .pdf-card:hover .pdf-card-cta-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .pdf-handwritten-link {
+    margin-top: 24px;
+    padding: 28px 0 64px;
+    border-top: 1px solid var(--rule);
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .pdf-handwritten-link a {
+    color: var(--cobalt);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(26, 58, 138, 0.35);
+    transition: color 0.18s ease, text-decoration-color 0.18s ease;
+  }
+
+  .pdf-handwritten-link a:hover {
+    color: var(--orange);
+    text-decoration-color: var(--orange-lt);
+  }
+
+  @media (max-width: 760px) {
+    .pdfs-hero { padding: calc(var(--header-h) + 40px) 28px 48px; }
+    .pdfs-wrap { padding: 0 28px; }
+    .pdf-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
+    .pdf-card-title { font-size: 16px; }
+
+    /* Section becomes a stacked accordion. The toggle button is the
+       full-width tap target; the body collapses with an animated
+       grid-template-rows trick (1fr → 0fr) for a smooth height
+       transition without needing to know the body's actual height. */
+    .pdf-section {
+      padding: 0;
+      border-top: 0;
+    }
+    .pdf-section + .pdf-section .pdf-section-toggle {
+      border-top: 0;
+    }
+    .pdf-section:first-of-type .pdf-section-toggle {
+      border-top: 1px solid var(--rule);
+    }
+
+    .pdf-section-toggle {
+      cursor: pointer;
+      margin: 0;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--rule);
+      align-items: center;
+    }
+
+    .pdf-section-toggle .section-rule { display: none; }
+    .pdf-section-chevron { display: inline-block; }
+
+    .pdf-section-toggle[aria-expanded="true"] .pdf-section-chevron {
+      transform: rotate(180deg);
+    }
+
+    .pdf-section-body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pdf-section-toggle[aria-expanded="true"] + .pdf-section-body {
+      grid-template-rows: 1fr;
+    }
+    .pdf-section-body-inner {
+      overflow: hidden;
+      min-height: 0;
+    }
+    .pdf-section-toggle[aria-expanded="true"] + .pdf-section-body .pdf-section-body-inner {
+      padding: 22px 0 32px;
+    }
+  }
+
+  /* Dark mode — matches the site's existing prefers-color-scheme treatment:
+     dark navy panels, light text, blue-lt accents in place of cobalt. */
+  @media (prefers-color-scheme: dark) {
+    .pdf-card {
+      background: #0d1830;
+      border-color: rgba(91, 141, 232, 0.16);
+    }
+    .pdf-card:hover,
+    .pdf-card:focus-visible {
+      border-color: var(--blue-lt);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+    .pdf-thumb {
+      background: #142544;
+      border-bottom-color: rgba(91, 141, 232, 0.16);
+    }
+    .pdf-card-cta { color: var(--blue-lt); }
+    .pdf-card:hover .pdf-card-cta,
+    .pdf-card:focus-visible .pdf-card-cta { color: var(--orange-lt); }
+    .pdf-handwritten-link a {
+      color: var(--blue-lt);
+      text-decoration-color: rgba(91, 141, 232, 0.45);
+    }
+    .pdf-handwritten-link a:hover {
+      color: var(--orange-lt);
+      text-decoration-color: var(--orange-lt);
+    }
+  }
+</style>
+
+<script is:inline>
+  // Mobile collapsibles for the PDF category sections.
+  // Each .pdf-section-toggle is a disclosure button on viewports
+  // <= 760px and a no-op heading on desktop. We toggle aria-expanded
+  // on click; CSS handles the height animation. On resize we sync
+  // aria state — added on mobile (default collapsed), removed on
+  // desktop so the role of the heading is correctly announced.
+  (function () {
+    const toggles = document.querySelectorAll(".pdf-section-toggle");
+    if (!toggles.length) return;
+
+    const mq = window.matchMedia("(max-width: 760px)");
+
+    function syncForViewport() {
+      const isMobile = mq.matches;
+      toggles.forEach(function (t) {
+        if (isMobile) {
+          if (!t.hasAttribute("aria-expanded")) {
+            t.setAttribute("aria-expanded", "false");
+          }
+        } else {
+          t.removeAttribute("aria-expanded");
+        }
+      });
+    }
+
+    toggles.forEach(function (t) {
+      t.addEventListener("click", function () {
+        // Click is a no-op on desktop where there is no aria-expanded.
+        if (!t.hasAttribute("aria-expanded")) return;
+        const expanded = t.getAttribute("aria-expanded") === "true";
+        t.setAttribute("aria-expanded", expanded ? "false" : "true");
+      });
+    });
+
+    syncForViewport();
+    if (mq.addEventListener) {
+      mq.addEventListener("change", syncForViewport);
+    } else if (mq.addListener) {
+      mq.addListener(syncForViewport);
+    }
+  })();
+</script>
+
+</body>
+</html>
