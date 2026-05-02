@@ -837,6 +837,186 @@ import Header from '../components/Header.astro';
       margin-top: 0.5rem;
       font-style: italic;
     }
+
+    /* Desktop: 3-column grid for the basic mode. Tempo anchors the left full-
+       height; Time Signature spans the top of the right two columns so all 10
+       presets fit on a single row (custom row beneath = 2 lines total);
+       Subdivision and Sound sit side-by-side on the second right row; Beats
+       spans the full width below for the live visual feedback. Advanced mode
+       stays below in its own constrained column. */
+    @media (min-width: 900px) {
+      .metronome-shell {
+        padding: calc(var(--header-h) + 1rem) 2rem 2.5rem;
+      }
+
+      .metronome-shell .app {
+        max-width: 1100px;
+      }
+
+      .metronome-shell .header {
+        margin-bottom: 1rem;
+      }
+
+      .metronome-shell .basic-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "tempo  timesig  timesig"
+          "tempo  subdiv   sound"
+          "beats  beats    beats";
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .metronome-shell .basic-grid > .card {
+        margin-bottom: 0;
+        padding: 0.9rem 1.1rem;
+      }
+      .metronome-shell .basic-grid .card-tempo   { grid-area: tempo; display: flex; flex-direction: column; }
+      .metronome-shell .basic-grid .card-timesig { grid-area: timesig; }
+      .metronome-shell .basic-grid .card-subdiv  { grid-area: subdiv; }
+      .metronome-shell .basic-grid .card-sound   { grid-area: sound; }
+      .metronome-shell .basic-grid .card-beats   { grid-area: beats; }
+
+      /* Tighter internal spacing across cards on desktop. */
+      .metronome-shell .basic-grid .section-label { margin-bottom: 0.55rem; }
+
+      /* Tempo card — BPM display anchored at the top, transport controls
+         (slider, tap, play) cluster at the bottom so the column reads cleanly
+         without floating dead space. */
+      .metronome-shell .basic-grid .card-tempo .bpm-row {
+        padding: 0 0.5rem;
+        margin-bottom: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .bpm-number { font-size: clamp(2.6rem, 6vw, 3.4rem); }
+      .metronome-shell .basic-grid .card-tempo .bpm-unit { margin-top: 0.1rem; }
+      .metronome-shell .basic-grid .card-tempo .tempo-name { margin-top: 0.05rem; letter-spacing: 0.16em; }
+      .metronome-shell .basic-grid .card-tempo .bpm-step-group { gap: 0.3rem; }
+      .metronome-shell .basic-grid .card-tempo .btn-step {
+        min-width: 38px;
+        font-size: 0.78rem;
+        padding: 0.3rem 0.5rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .slider-row {
+        margin-top: auto;
+        margin-bottom: 0.55rem;
+        padding-top: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .tap-row { margin-bottom: 0.5rem; }
+      .metronome-shell .basic-grid .card-tempo .btn-tap {
+        min-width: 120px;
+        padding: 0.45rem 1.2rem;
+        font-size: 0.85rem;
+      }
+      /* Keep Start truly centered; balance the SPACE hint with an empty slot
+         on the left so the visual center isn't pulled to the right. */
+      .metronome-shell .basic-grid .card-tempo .play-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        margin-top: 0;
+        gap: 0.5rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .play-row .btn-play {
+        grid-column: 2;
+        padding: 0.65rem 1.6rem;
+        font-size: 1.02rem;
+        min-width: 160px;
+      }
+      .metronome-shell .basic-grid .card-tempo .play-row .spacebar-hint {
+        grid-column: 3;
+        justify-self: start;
+        align-self: center;
+      }
+
+      /* Time Signature — wider column lets all 10 presets sit on one row;
+         center the custom row so the card reads as a balanced block. */
+      .metronome-shell .basic-grid .card-timesig .time-sig-presets {
+        margin-bottom: 0.7rem;
+        flex-wrap: nowrap;
+        gap: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-timesig .btn-sig { flex: 1 1 auto; padding: 0.32rem 0.4rem; }
+      .metronome-shell .basic-grid .card-timesig .custom-sig { justify-content: center; }
+
+      /* Subdivision — equalize icon-row height so the four buttons line up
+         regardless of glyph width (♩ vs ♬♬ have very different metrics). */
+      .metronome-shell .basic-grid .card-subdiv .subdivision-grid { gap: 0.4rem; }
+      .metronome-shell .basic-grid .card-subdiv .btn-sub { padding: 0.55rem 0.3rem; }
+      .metronome-shell .basic-grid .card-subdiv .sub-icon {
+        min-height: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Sound — match the subdivision card visually. */
+      .metronome-shell .basic-grid .card-sound .sound-grid { gap: 0.4rem; }
+      .metronome-shell .basic-grid .card-sound .btn-sound { padding: 0.55rem 0.3rem; }
+      .metronome-shell .basic-grid .card-sound .sound-icon {
+        min-height: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Beats — center the section label so it sits over the centered circles
+         instead of orphaned in the corner; drop the redundant cycle hint. */
+      .metronome-shell .basic-grid .card-beats { padding: 0.75rem 1.1rem; }
+      .metronome-shell .basic-grid .card-beats .section-label { text-align: center; }
+      .metronome-shell .basic-grid .card-beats .beat-grid-hint { display: none; }
+      .metronome-shell .basic-grid .card-beats .sub-indicators { margin-top: 0.6rem; }
+
+      /* Advanced toggle row stays narrow & centered (it's just a label and
+         switch). The advanced panel itself spans the full grid width and lays
+         its three cards out in two columns to match the top section. */
+      .metronome-shell .adv-toggle-row {
+        max-width: 620px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .metronome-shell .adv-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "gap     form"
+          "random  form";
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .metronome-shell .adv-grid > .card { margin-bottom: 0; padding: 0.9rem 1.1rem; }
+      .metronome-shell .adv-grid .card-gap    { grid-area: gap; }
+      .metronome-shell .adv-grid .card-random { grid-area: random; }
+      .metronome-shell .adv-grid .card-form   { grid-area: form; }
+
+      /* When the grid stretches the cards to align bottoms, distribute the
+         slack inside each card. For Custom Form the form-list absorbs it
+         (so the toolbar / bulk row / play button keep their rhythm). For
+         Gap Click and Random Mute the controls section vertically centers
+         in the empty space below the header so the card doesn't read as
+         top-heavy. */
+      .metronome-shell .adv-grid .card-form { display: flex; flex-direction: column; }
+      .metronome-shell .adv-grid .card-form .adv-controls { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+      .metronome-shell .adv-grid .card-form .form-list { flex: 1; max-height: none; min-height: 120px; }
+
+      .metronome-shell .adv-grid .card-gap,
+      .metronome-shell .adv-grid .card-random {
+        display: flex;
+        flex-direction: column;
+      }
+      .metronome-shell .adv-grid .card-gap .adv-controls,
+      .metronome-shell .adv-grid .card-random .adv-controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .metronome-shell .adv-grid .card-gap .adv-row:last-of-type,
+      .metronome-shell .adv-grid .card-random .adv-row:last-of-type {
+        margin-bottom: 0;
+      }
+    }
   </style>
 </head>
 <body class="metronome-page">
@@ -850,8 +1030,10 @@ import Header from '../components/Header.astro';
     <div class="beat-flash" id="beat-flash-2"></div>
   </div>
 
+  <div class="basic-grid">
+
   <!-- BPM -->
-  <div class="card">
+  <div class="card card-tempo">
     <div class="section-label">Tempo</div>
     <div class="bpm-row">
       <div class="bpm-step-group">
@@ -883,7 +1065,7 @@ import Header from '../components/Header.astro';
   </div>
 
   <!-- Time Signature -->
-  <div class="card">
+  <div class="card card-timesig">
     <div class="section-label">Time Signature</div>
     <div class="time-sig-presets" id="time-sig-presets">
       <button class="btn btn-sig" data-beats="2" data-unit="4">2/4</button>
@@ -906,7 +1088,7 @@ import Header from '../components/Header.astro';
   </div>
 
   <!-- Subdivision -->
-  <div class="card">
+  <div class="card card-subdiv">
     <div class="section-label">Subdivision</div>
     <div class="subdivision-grid">
       <button class="btn btn-sub active" data-sub="1">
@@ -929,7 +1111,7 @@ import Header from '../components/Header.astro';
   </div>
 
   <!-- Sound Library -->
-  <div class="card">
+  <div class="card card-sound">
     <div class="section-label">Sound</div>
     <div class="sound-grid">
       <button class="btn btn-sound active" data-sound="electronic">
@@ -944,12 +1126,14 @@ import Header from '../components/Header.astro';
   </div>
 
   <!-- Beat Grid -->
-  <div class="card">
+  <div class="card card-beats">
     <div class="section-label">Beats</div>
     <div id="beat-grid"></div>
     <div class="sub-indicators" id="sub-indicators"></div>
     <div class="beat-grid-hint">Click a beat to cycle: Normal → Accent → Mute</div>
   </div>
+
+  </div><!-- /.basic-grid -->
 
   <!-- Advanced Mode Toggle -->
   <div class="adv-toggle-row" id="adv-toggle-row">
@@ -962,9 +1146,10 @@ import Header from '../components/Header.astro';
 
   <!-- Advanced Panel -->
   <div class="adv-panel" id="adv-panel">
+    <div class="adv-grid">
 
     <!-- Gap Click -->
-    <div class="card">
+    <div class="card card-gap">
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Gap Click</div>
@@ -996,7 +1181,7 @@ import Header from '../components/Header.astro';
     </div>
 
     <!-- Random Mute -->
-    <div class="card">
+    <div class="card card-random">
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Random Mute</div>
@@ -1018,7 +1203,7 @@ import Header from '../components/Header.astro';
     </div>
 
     <!-- Custom Form -->
-    <div class="card">
+    <div class="card card-form">
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Custom Form</div>
@@ -1056,6 +1241,7 @@ import Header from '../components/Header.astro';
       </div>
     </div>
 
+    </div><!-- /.adv-grid -->
   </div>
 </div>
 </main>
