@@ -2,7 +2,7 @@
 :root{
   --navy:#091528; --cobalt:#1a3a8a; --blue:#2a5cc8; --blue-lt:#5b8de8;
   --orange:#e8650a; --orange-lt:#f5882a; --lime:#8db820;
-  --cream:#f5f3ee; --warm:#edeae3; --ink:#0e0d0b; --muted:#6b6560; --rule:#d8d3cb;
+  --cream:#f5f3ee; --ink:#0e0d0b; --muted:#6b6560; --rule:#d8d3cb;
   --serif:'Cormorant Garamond',Georgia,serif;
   --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   --maxw:1100px;
@@ -213,7 +213,9 @@ section:first-of-type{border-top:0}
 .cta-band p{color:rgba(245,243,238,.78);font-size:1rem;line-height:1.55;max-width:50ch;margin:0 auto 1.75rem}
 .cta-band .btn-primary{padding:1rem 2.25rem;font-size:.875rem}
 
-/* footer */
+/* footer base — class-level styles (.footer-name, .footer-links, etc.) live in
+   Footer.astro. This block is kept because its padding + 1-col grid intentionally
+   differ from Footer.astro's defaults on the lessons page. */
 footer{
   background:var(--navy);color:rgba(245,243,238,.55);
   padding:clamp(2rem,5vw,3rem) var(--pad);
@@ -221,15 +223,6 @@ footer{
   border-top:2px solid var(--cobalt);
 }
 @media (min-width:680px){footer{grid-template-columns:1fr auto;align-items:center}}
-.foot-name{font-family:var(--serif);font-style:italic;font-weight:300;font-size:1.5rem;color:var(--cream);margin-bottom:.25rem}
-.foot-meta{font-size:.8125rem;line-height:1.7}
-.foot-meta a{color:rgba(245,243,238,.7);text-decoration:none;border-bottom:1px solid rgba(245,243,238,.2)}
-.foot-meta a:hover{color:#fff;border-color:rgba(245,243,238,.6)}
-.foot-links{display:flex;flex-direction:column;gap:.4rem;font-size:.75rem;letter-spacing:.06em}
-@media (min-width:680px){.foot-links{align-items:flex-end}}
-.foot-links a{color:rgba(245,243,238,.55);text-decoration:none}
-.foot-links a:hover{color:var(--orange-lt)}
-.foot-copy{font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,243,238,.4)}
 
 /* reduced motion */
 @media (prefers-reduced-motion:reduce){
@@ -275,7 +268,6 @@ footer{
   .cta-band .btn{width:100%;max-width:340px}
 
   footer{padding-left:1.25rem;padding-right:1.25rem;gap:1rem}
-  .foot-meta a{display:inline-block;padding:.15rem 0}
 }
 
 /* ── DARK MODE (follows OS preference) ──────────────

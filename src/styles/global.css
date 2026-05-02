@@ -10,7 +10,6 @@
       --orange-lt: #f5882a;
       --lime:    #8db820;        /* lime green dots in painting */
       --cream:   #f5f3ee;
-      --warm:    #edeae3;
       --ink:     #0e0d0b;
       --muted:   #6b6560;
       --rule:    #d8d3cb;
@@ -755,51 +754,7 @@
 
     .photos-cta-btn:hover { background: var(--blue); }
 
-    /* ── FOOTER ──────────────────────────────────────── */
-    footer {
-      background: var(--navy);
-      color: rgba(245,243,238,0.45);
-      padding: 52px 56px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      align-items: center;
-      border-top: 2px solid var(--cobalt);
-    }
-
-    .footer-name {
-      font-family: var(--serif);
-      font-size: 30px;
-      font-weight: 300;
-      font-style: italic;
-      color: var(--cream);
-      margin-bottom: 6px;
-    }
-
-    .footer-label {
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--blue-lt);
-    }
-
-    .footer-links {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: flex-end;
-    }
-
-    .footer-links a {
-      color: rgba(245,243,238,0.55);
-      text-decoration: none;
-      font-size: 12px;
-      letter-spacing: 0.03em;
-      transition: color 0.2s;
-    }
-
-    .footer-links a:hover { color: var(--orange-lt); }
+    /* Footer styles live in Footer.astro (declared is:global). */
 
     /* ── CAROUSEL ────────────────────────────────────── */
     .carousel-wrap {
