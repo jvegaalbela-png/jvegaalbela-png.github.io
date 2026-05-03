@@ -1,25 +1,13 @@
 ---
 import '../styles/lessons.css';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Drum lessons in Rochester, NY with Jacobo Vega-Albela. Eastman MM, 10+ years teaching all ages and levels. Your first lesson is half off." />
-  <meta name="theme-color" content="#091528" />
-  <title>Drum Lessons in Rochester, NY — Jacobo Vega-Albela</title>
-  <link rel="icon" type="image/webp" href="/favicon.webp" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-</head>
-<body>
-<Header />
+<Layout
+  title="Drum Lessons in Rochester, NY — Jacobo Vega-Albela"
+  description="Drum lessons in Rochester, NY with Jacobo Vega-Albela. Eastman MM, 10+ years teaching all ages and levels. Your first lesson is half off."
+  themeColor="#091528"
+>
 <main>
 <!-- HERO -->
 <section class="hero" aria-labelledby="heroTitle">
@@ -224,9 +212,4 @@ import Header from '../components/Header.astro';
   </div>
 </section>
 
-<!-- FOOTER -->
-
-<Footer />
-
-</body>
-</html>
+</Layout>

@@ -1,28 +1,18 @@
 ---
 import '../styles/group-class.css';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="DJ1 — a 10-week online group drum class for complete beginners with Jacobo Vega-Albela. Small group, no kit required to start. Join the pilot cohort waitlist.">
-<meta name="theme-color" content="#091528">
-<meta property="og:title" content="DJ1 — Online Group Drum Class for Beginners">
-<meta property="og:description" content="A 10-week online group drum class for complete beginners. Small group, no kit required to start.">
-<meta property="og:type" content="website">
-<title>DJ1 — Online Group Drum Class for Beginners | Jacobo Vega-Albela</title>
-<link rel="icon" type="image/webp" href="/favicon.webp">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-
-<Header />
+<Layout
+  title="DJ1 — Online Group Drum Class for Beginners | Jacobo Vega-Albela"
+  description="DJ1 — a 10-week online group drum class for complete beginners with Jacobo Vega-Albela. Small group, no kit required to start. Join the pilot cohort waitlist."
+  themeColor="#091528"
+  og={{
+    title: "DJ1 — Online Group Drum Class for Beginners",
+    description: "A 10-week online group drum class for complete beginners. Small group, no kit required to start.",
+    type: "website"
+  }}
+>
 
 <main>
 
@@ -204,13 +194,10 @@ import Footer from '../components/Footer.astro';
   </div>
 </section>
 
-<Footer />
-
 <script is:inline>
   // Single source of truth for the waitlist mailto URL.
   const PRIMARY_CTA_URL = "mailto:jacobovamusic@gmail.com?subject=DJ1%20Waitlist%20%E2%80%94%20Pilot%20Cohort&body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20join%20the%20DJ1%20pilot%20cohort%20waitlist.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Drumming%20experience%3A%20none%0A-%20Time%20zone%3A%20%0A-%20What%20I%27m%20hoping%20to%20get%20out%20of%20the%20class%3A%20%0A%0AThanks%21";
   document.querySelectorAll('[data-cta]').forEach(el => el.setAttribute('href', PRIMARY_CTA_URL));
 </script>
 
-</body>
-</html>
+</Layout>

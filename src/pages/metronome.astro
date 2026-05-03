@@ -1,23 +1,16 @@
 ---
 import '../styles/global.css';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Free online metronome with subdivisions, accent control, custom time signatures, gap click, random mute, and custom forms — by Jacobo Vega-Albela." />
-  <meta name="theme-color" content="#0d0d1a" />
-  <title>Metronome — Jacobo Vega-Albela</title>
-  <link rel="icon" type="image/webp" href="/favicon.webp" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<Layout
+  title="Metronome — Jacobo Vega-Albela"
+  description="Free online metronome with subdivisions, accent control, custom time signatures, gap click, random mute, and custom forms — by Jacobo Vega-Albela."
+  themeColor="#0d0d1a"
+  bodyClass="metronome-page"
+>
 
-  <style is:global>
+<style is:global>
     /* Metronome tool — uses the site's brand palette (navy / cobalt /
        blue-lt / orange / cream) defined in global.css. The .metronome-shell
        container declares an explicit baseline (font-size, line-height,
@@ -1018,9 +1011,6 @@ import Header from '../components/Header.astro';
       }
     }
   </style>
-</head>
-<body class="metronome-page">
-<Header />
 
 <main class="metronome-shell">
 <div class="app">
@@ -1245,8 +1235,6 @@ import Header from '../components/Header.astro';
   </div>
 </div>
 </main>
-
-<Footer />
 
 <script is:inline>
   // ─── State ───────────────────────────────────────────────────────────────────
@@ -2073,5 +2061,4 @@ import Header from '../components/Header.astro';
 
   init();
 </script>
-</body>
-</html>
+</Layout>

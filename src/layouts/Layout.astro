@@ -1,0 +1,40 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import GoogleAnalytics from '../components/GoogleAnalytics.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  themeColor?: string;
+  bodyClass?: string;
+  noindex?: boolean;
+  og?: { title?: string; description?: string; type?: string };
+}
+
+const { title, description, themeColor, bodyClass, noindex, og } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {description && <meta name="description" content={description} />}
+  {themeColor && <meta name="theme-color" content={themeColor} />}
+  {noindex && <meta name="robots" content="noindex" />}
+  {og?.title && <meta property="og:title" content={og.title} />}
+  {og?.description && <meta property="og:description" content={og.description} />}
+  {og?.type && <meta property="og:type" content={og.type} />}
+  <title>{title}</title>
+  <link rel="icon" type="image/webp" href="/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <GoogleAnalytics />
+</head>
+<body class={bodyClass}>
+  <Header />
+  <slot />
+  <Footer />
+</body>
+</html>

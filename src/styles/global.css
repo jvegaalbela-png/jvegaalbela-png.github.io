@@ -42,12 +42,6 @@
       overflow: hidden;
     }
 
-    /* When embedded in an iframe, vh resolves against the iframe's height,
-       which creates a feedback loop with the auto-resize script. */
-    html.embedded .hero { min-height: 0; padding-top: 56px; }
-    html.embedded .hero-left { padding-bottom: 48px; }
-    html.embedded .hero-right { padding-bottom: 48px; }
-
     /* painting-inspired background texture */
     .hero::before {
       content: '';

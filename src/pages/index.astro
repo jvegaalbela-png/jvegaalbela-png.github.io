@@ -1,27 +1,9 @@
 ---
 import '../styles/global.css';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jacobo Vega-Albela — Home</title>
-  <link rel="icon" type="image/webp" href="/favicon.webp" />
-  <script>
-    // Tag the document as embedded BEFORE first paint so the hero never
-    // renders at vh-based height inside an iframe.
-    if (window.parent !== window) document.documentElement.className = 'embedded';
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-</head>
-<body>
-<Header />
+<Layout title="Jacobo Vega-Albela — Home">
 <!-- ══════════════════════════════════════════ HERO -->
 <header class="hero">
   <div class="hero-left">
@@ -478,9 +460,6 @@ import Header from '../components/Header.astro';
 
 </div><!-- /.wrapper -->
 
-<!-- ══════════════════════════════════════════ FOOTER -->
-<Footer />
-
 <script>
   (function () {
     const slides = Array.from(document.querySelectorAll('.carousel-slide'));
@@ -534,31 +513,4 @@ import Header from '../components/Header.astro';
     resetTimer();
   })();
 </script>
-
-<script>
-  // Report content height to parent (used when embedded in an iframe, e.g. Squarespace)
-  (function () {
-    if (window.parent === window) return;
-    let last = 0;
-    const send = () => {
-      const h = Math.ceil(document.body.getBoundingClientRect().bottom);
-      if (Math.abs(h - last) < 1) return;
-      last = h;
-      window.parent.postMessage({ type: 'epk-height', h }, '*');
-    };
-    new ResizeObserver(send).observe(document.body);
-    window.addEventListener('load', send);
-    window.addEventListener('resize', send);
-    window.addEventListener('orientationchange', send);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(send);
-    // Resize after each image finishes loading.
-    document.querySelectorAll('img').forEach(img => {
-      if (!img.complete) img.addEventListener('load', send, { once: true });
-      img.addEventListener('error', send, { once: true });
-    });
-    // Resend a few times to catch late layout shifts.
-    [100, 400, 1200, 3000].forEach(t => setTimeout(send, t));
-  })();
-</script>
-</body>
-</html>
+</Layout>
