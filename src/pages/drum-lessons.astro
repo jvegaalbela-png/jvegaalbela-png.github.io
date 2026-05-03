@@ -254,19 +254,19 @@ import Layout from '../layouts/Layout.astro';
   .hero-form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     max-width: 480px;
     margin: 0.5rem 0 0.75rem;
   }
   .hero-form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
   }
   .hero-form-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
   }
   .hero-form-field label {
     font-size: .6875rem;
@@ -337,8 +337,19 @@ import Layout from '../layouts/Layout.astro';
     background: rgba(232, 101, 10, 0.16);
     border-left: 3px solid var(--orange);
   }
-  @media (max-width: 560px) {
+  @media (max-width: 600px) {
     .hero-form-row { grid-template-columns: 1fr; }
+    .hero-form { gap: 6px; }
+    .hero-form-field { gap: 2px; }
+    .hero-form-field input,
+    .hero-form-field textarea { padding: 9px 11px; }
+    .hero-form-field textarea { min-height: 48px; }
+    .hero-form-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.625rem;
+    }
+    .hero-form-actions .btn { width: 100%; }
   }
 </style>
 
