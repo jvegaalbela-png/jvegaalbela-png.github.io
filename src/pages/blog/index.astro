@@ -1,0 +1,271 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const dateFmt = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+---
+
+<Layout
+  title="Blog — Jacobo Vega-Albela"
+  description="Essays on drumming, practice, and music — from a working jazz drummer in Rochester, NY."
+  themeColor="#091528"
+>
+  <main class="blog-index">
+    <!-- HERO -->
+    <header class="blog-hero">
+      <div class="blog-hero-inner">
+        <p class="blog-hero-eyebrow">Writing</p>
+        <h1 class="blog-hero-title">Blog</h1>
+        <p class="blog-hero-sub">
+          Essays on drumming, practice, and music — from a working jazz drummer in Rochester, NY.
+        </p>
+      </div>
+    </header>
+
+    <!-- POSTS -->
+    <section class="blog-list-section">
+      <div class="blog-wrap">
+        {
+          posts.length === 0 ? (
+            <p class="blog-empty">No posts yet — check back soon.</p>
+          ) : (
+            <ul class="post-list">
+              {posts.map((post) => (
+                <li class="post-card">
+                  <a class="post-card-link" href={`/blog/${post.id}`}>
+                    {post.data.heroImage && (
+                      <figure class="post-card-img">
+                        <Image
+                          src={post.data.heroImage}
+                          alt=""
+                          widths={[400, 800, 1200]}
+                          sizes="(min-width: 760px) 360px, 100vw"
+                          loading="lazy"
+                        />
+                      </figure>
+                    )}
+                    <div class="post-card-body">
+                      <p class="post-card-meta">
+                        <time datetime={post.data.pubDate.toISOString()}>
+                          {dateFmt.format(post.data.pubDate)}
+                        </time>
+                      </p>
+                      <h2 class="post-card-title">{post.data.title}</h2>
+                      <p class="post-card-desc">{post.data.description}</p>
+                      {post.data.tags.length > 0 && (
+                        <ul class="post-card-tags">
+                          {post.data.tags.map((tag) => (
+                            <li class="post-card-tag">{tag}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .blog-index { padding-top: var(--header-h, 64px); }
+
+  /* ── HERO ─────────────────────────────────── */
+  .blog-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 80px 56px 72px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .blog-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 80% 110%, rgba(26, 58, 138, 0.55) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 10% -10%, rgba(232, 101, 10, 0.18) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .blog-hero-inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .blog-hero-eyebrow {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+    margin-bottom: 14px;
+  }
+
+  .blog-hero-title {
+    font-family: var(--serif);
+    font-size: clamp(48px, 6vw, 78px);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    margin-bottom: 18px;
+  }
+
+  .blog-hero-sub {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.5;
+    color: rgba(245, 243, 238, 0.78);
+    max-width: 640px;
+  }
+
+  /* ── LIST ─────────────────────────────────── */
+  .blog-list-section { padding: 72px 0; }
+
+  .blog-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 56px;
+  }
+
+  .blog-empty {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  .post-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .post-card { border-top: 1px solid var(--rule); }
+  .post-card:last-child { border-bottom: 1px solid var(--rule); }
+
+  .post-card-link {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 48px;
+    align-items: center;
+    padding: 36px 0;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s ease;
+  }
+
+  .post-card-link:hover { opacity: 0.85; }
+
+  .post-card-img {
+    margin: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--navy);
+    border-radius: 2px;
+  }
+
+  .post-card-img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .post-card-link:hover .post-card-img :global(img) {
+    transform: scale(1.02);
+  }
+
+  .post-card-body { display: flex; flex-direction: column; gap: 12px; }
+
+  .post-card-meta {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange);
+  }
+
+  .post-card-title {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3vw, 34px);
+    font-weight: 400;
+    line-height: 1.18;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .post-card-link:hover .post-card-title { color: var(--cobalt); }
+
+  .post-card-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #3a342c;
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  .post-card-tags {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .post-card-tag {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cobalt);
+    border: 1px solid rgba(26, 58, 138, 0.3);
+    padding: 5px 10px;
+    border-radius: 2px;
+  }
+
+  /* ── RESPONSIVE ───────────────────────────── */
+  @media (max-width: 760px) {
+    .blog-hero { padding: 64px 28px 52px; }
+    .blog-wrap { padding: 0 28px; }
+    .post-card-link {
+      grid-template-columns: 1fr;
+      gap: 18px;
+      padding: 28px 0;
+    }
+    .post-card-img { aspect-ratio: 16 / 9; }
+  }
+
+  /* ── DARK MODE ────────────────────────────── */
+  @media (prefers-color-scheme: dark) {
+    .post-card-desc { color: #d6d2c8; }
+    .post-card-link:hover .post-card-title { color: var(--blue-lt); }
+    .post-card-tag {
+      color: var(--blue-lt);
+      border-color: rgba(91, 141, 232, 0.35);
+    }
+  }
+</style>

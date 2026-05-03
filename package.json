@@ -13,6 +13,7 @@
     "pdfs:thumbs": "node scripts/generate-pdf-thumbs.mjs"
   },
   "dependencies": {
+    "@astrojs/mdx": "^5.0.4",
     "astro": "^6.2.0"
   },
   "devDependencies": {

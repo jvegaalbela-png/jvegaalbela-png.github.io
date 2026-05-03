@@ -1,0 +1,411 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const dateFmt = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+---
+
+<Layout
+  title={`${post.data.title} — JVA Music`}
+  description={post.data.description}
+  themeColor="#091528"
+  og={{ title: post.data.title, description: post.data.description, type: 'article' }}
+>
+  <main class="post">
+    <!-- HERO -->
+    <header class="post-hero">
+      <div class="post-hero-inner">
+        <div class="post-hero-text">
+          <p class="post-hero-eyebrow">
+            <a href="/blog">Blog</a>
+            <span class="sep" aria-hidden="true">·</span>
+            <time datetime={post.data.pubDate.toISOString()}>
+              {dateFmt.format(post.data.pubDate)}
+            </time>
+            {
+              post.data.updatedDate && (
+                <>
+                  <span class="sep" aria-hidden="true">·</span>
+                  <span>Updated {dateFmt.format(post.data.updatedDate)}</span>
+                </>
+              )
+            }
+          </p>
+          <h1 class="post-hero-title">{post.data.title}</h1>
+          <p class="post-hero-desc">{post.data.description}</p>
+          {
+            post.data.tags.length > 0 && (
+              <ul class="post-hero-tags">
+                {post.data.tags.map((tag) => (
+                  <li class="post-hero-tag">{tag}</li>
+                ))}
+              </ul>
+            )
+          }
+        </div>
+        {
+          post.data.heroImage && (
+            <figure class="post-hero-img">
+              <Image
+                src={post.data.heroImage}
+                alt=""
+                widths={[600, 900, 1200]}
+                sizes="(min-width: 900px) 420px, 100vw"
+                fetchpriority="high"
+              />
+            </figure>
+          )
+        }
+      </div>
+    </header>
+
+    <!-- ARTICLE -->
+    <article class="post-article">
+      <div class="prose">
+        <Content />
+      </div>
+
+      <nav class="post-back">
+        <a href="/blog">← Back to all posts</a>
+      </nav>
+    </article>
+  </main>
+</Layout>
+
+<style>
+  .post { padding-top: var(--header-h, 64px); }
+
+  /* ── HERO ─────────────────────────────────── */
+  .post-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 64px 56px 72px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .post-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 85% 110%, rgba(26, 58, 138, 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 5% -10%, rgba(232, 101, 10, 0.16) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .post-hero-inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 56px;
+    align-items: center;
+  }
+
+  .post-hero-text { display: flex; flex-direction: column; gap: 18px; }
+
+  .post-hero-eyebrow {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+    margin: 0;
+  }
+
+  .post-hero-eyebrow a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(245, 136, 42, 0.5);
+    transition: border-color 0.18s, color 0.18s;
+  }
+
+  .post-hero-eyebrow a:hover {
+    color: var(--cream);
+    border-bottom-color: var(--cream);
+  }
+
+  .post-hero-eyebrow .sep { opacity: 0.4; }
+
+  .post-hero-title {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 300;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .post-hero-desc {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.55;
+    color: rgba(245, 243, 238, 0.82);
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .post-hero-tags {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .post-hero-tag {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.75);
+    border: 1px solid rgba(245, 243, 238, 0.25);
+    padding: 5px 10px;
+    border-radius: 2px;
+  }
+
+  .post-hero-img {
+    margin: 0;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  }
+
+  .post-hero-img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── ARTICLE ──────────────────────────────── */
+  .post-article {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 72px 56px 96px;
+  }
+
+  /* Prose styles — applied to rendered MDX content. */
+  .prose :global(p) {
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.78;
+    color: #252018;
+    margin: 0 0 22px;
+  }
+
+  .prose :global(p:last-child) { margin-bottom: 0; }
+
+  .prose :global(a) {
+    color: var(--cobalt);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(26, 58, 138, 0.3);
+    transition: color 0.18s, border-color 0.18s;
+  }
+
+  .prose :global(a:hover) {
+    color: var(--blue);
+    border-color: var(--cobalt);
+  }
+
+  .prose :global(strong) { font-weight: 600; }
+  .prose :global(em) { font-style: italic; }
+
+  .prose :global(h2) {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3.2vw, 32px);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+    margin: 56px 0 18px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .prose :global(h3) {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--ink);
+    margin: 36px 0 12px;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0 0 22px;
+    padding-left: 24px;
+  }
+
+  .prose :global(li) {
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.78;
+    color: #252018;
+    margin-bottom: 6px;
+  }
+
+  .prose :global(hr) {
+    border: 0;
+    border-top: 1px solid var(--rule);
+    margin: 44px 0;
+  }
+
+  /* Pull quote — used for highlighted quotations in posts. */
+  .prose :global(blockquote.pullquote) {
+    margin: 36px 0;
+    padding: 4px 0 4px 28px;
+    border-left: 3px solid var(--orange);
+  }
+
+  .prose :global(blockquote.pullquote p) {
+    font-family: var(--serif);
+    font-size: clamp(20px, 2.5vw, 26px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0 0 10px;
+  }
+
+  .prose :global(blockquote.pullquote cite) {
+    display: block;
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Plain markdown blockquotes (if used). */
+  .prose :global(blockquote:not(.pullquote)) {
+    margin: 28px 0;
+    padding: 4px 0 4px 22px;
+    border-left: 3px solid var(--rule);
+    color: #3a342c;
+    font-style: italic;
+  }
+
+  /* Responsive video embed (16:9). */
+  .prose :global(.video-embed) {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin: 22px 0 32px;
+    background: var(--navy);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  }
+
+  .prose :global(.video-embed iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* Back link */
+  .post-back {
+    margin-top: 72px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .post-back a {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cobalt);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(26, 58, 138, 0.3);
+    padding-bottom: 2px;
+    transition: color 0.18s, border-color 0.18s;
+  }
+
+  .post-back a:hover {
+    color: var(--blue);
+    border-color: var(--cobalt);
+  }
+
+  /* ── RESPONSIVE ───────────────────────────── */
+  @media (max-width: 900px) {
+    .post-hero-inner {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .post-hero-img {
+      aspect-ratio: 16 / 10;
+      max-width: 480px;
+      order: -1;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .post-hero { padding: 48px 28px 52px; }
+    .post-article { padding: 56px 28px 72px; }
+  }
+
+  /* ── DARK MODE ────────────────────────────── */
+  @media (prefers-color-scheme: dark) {
+    .prose :global(p),
+    .prose :global(li) {
+      color: #d6d2c8;
+    }
+    .prose :global(a) {
+      color: var(--blue-lt);
+      border-bottom-color: rgba(91, 141, 232, 0.35);
+    }
+    .prose :global(a:hover) {
+      color: #fff;
+      border-bottom-color: var(--blue-lt);
+    }
+    .prose :global(blockquote.pullquote p) { color: var(--ink); }
+    .prose :global(blockquote:not(.pullquote)) { color: #c2bcae; }
+    .post-back a {
+      color: var(--blue-lt);
+      border-bottom-color: rgba(91, 141, 232, 0.35);
+    }
+    .post-back a:hover {
+      color: #fff;
+      border-bottom-color: var(--blue-lt);
+    }
+  }
+</style>
