@@ -15,16 +15,38 @@ import Layout from '../layouts/Layout.astro';
     <div class="hero-text">
       <p class="hero-eyebrow">Private drum instruction</p>
       <h1 id="heroTitle">Drum Lessons in <em>Rochester, NY</em></h1>
-      <p class="hero-sub">Personalized instruction for adults and kids — from your first beat to gigging confidently.</p>
+      <p class="hero-sub">Personalized instruction for every age and skill level.</p>
       <ul class="chips" aria-label="Credentials">
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Master's, Eastman School of Music</li>
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>10+ years teaching</li>
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>All ages &amp; levels</li>
       </ul>
-      <div class="cta-row">
-        <a class="btn btn-primary" data-cta href="mailto:jacobovamusic@gmail.com?subject=Half-Price%20First%20Lesson&amp;body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20book%20my%20half-price%20first%20lesson.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Age%2Flevel%3A%20%0A-%20Goals%3A%20%0A%0AThanks%21">Book Your Half-Price Lesson</a>
-        <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
-      </div>
+      <p class="hero-price"><strong>$50/hr</strong> &middot; <strong>$30/30min</strong> &nbsp;&middot;&nbsp; <span class="hero-price-promo">First lesson half off</span></p>
+      <form id="lesson-form" class="hero-form" novalidate>
+        <div class="hero-form-row">
+          <div class="hero-form-field">
+            <label for="hf-name">Name</label>
+            <input type="text" id="hf-name" name="name" required data-fs-field />
+            <span class="hero-form-error" data-fs-error="name"></span>
+          </div>
+          <div class="hero-form-field">
+            <label for="hf-email">Email</label>
+            <input type="email" id="hf-email" name="email" required data-fs-field />
+            <span class="hero-form-error" data-fs-error="email"></span>
+          </div>
+        </div>
+        <div class="hero-form-field">
+          <label for="hf-message">Message <span class="optional">(optional)</span></label>
+          <textarea id="hf-message" name="message" rows="2" data-fs-field></textarea>
+          <span class="hero-form-error" data-fs-error="message"></span>
+        </div>
+        <div class="hero-form-actions">
+          <button type="submit" class="btn btn-primary" data-fs-submit-btn>Book Your Half-Price Lesson</button>
+          <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">or text/call (585) 802-4247</a>
+        </div>
+        <div class="hero-form-success" data-fs-success>Thank you! I'll be in touch ASAP.</div>
+        <div class="hero-form-error-summary" data-fs-error></div>
+      </form>
       <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
     </div>
     <figure class="hero-img">
@@ -211,5 +233,119 @@ import Layout from '../layouts/Layout.astro';
     <a class="btn btn-primary" data-cta href="mailto:jacobovamusic@gmail.com?subject=Half-Price%20First%20Lesson&amp;body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20book%20my%20half-price%20first%20lesson.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Age%2Flevel%3A%20%0A-%20Goals%3A%20%0A%0AThanks%21">Book Your Half-Price Lesson</a>
   </div>
 </section>
+
+<style>
+  .hero-price {
+    font-size: .9375rem;
+    line-height: 1.4;
+    color: rgba(245, 243, 238, 0.85);
+    margin: -0.25rem 0 0.75rem;
+    letter-spacing: .01em;
+  }
+  .hero-price strong {
+    color: var(--cream);
+    font-weight: 600;
+  }
+  .hero-price-promo {
+    color: var(--orange-lt);
+    font-weight: 500;
+  }
+
+  .hero-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 480px;
+    margin: 0.5rem 0 0.75rem;
+  }
+  .hero-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .hero-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hero-form-field label {
+    font-size: .6875rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.78);
+  }
+  .hero-form-field .optional {
+    font-weight: 400;
+    letter-spacing: .04em;
+    text-transform: none;
+    color: rgba(245, 243, 238, 0.5);
+  }
+  .hero-form-field input,
+  .hero-form-field textarea {
+    background: rgba(245, 243, 238, 0.06);
+    border: 1px solid rgba(245, 243, 238, 0.22);
+    color: var(--cream);
+    font: 400 15px/1.5 var(--sans);
+    padding: 10px 12px;
+    border-radius: 2px;
+    width: 100%;
+    transition: border-color .18s, background .18s;
+  }
+  .hero-form-field textarea {
+    resize: vertical;
+    min-height: 56px;
+  }
+  .hero-form-field input:focus,
+  .hero-form-field textarea:focus {
+    outline: none;
+    border-color: var(--orange-lt);
+    background: rgba(245, 243, 238, 0.1);
+  }
+  .hero-form-field input[aria-invalid="true"],
+  .hero-form-field textarea[aria-invalid="true"] {
+    border-color: #e87a7a;
+  }
+  .hero-form-error {
+    font-size: 12px;
+    color: #ff9b9b;
+    min-height: 1em;
+    line-height: 1.3;
+  }
+  .hero-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .hero-form-success,
+  .hero-form-error-summary {
+    display: none;
+    padding: 12px 14px;
+    color: var(--cream);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .hero-form-success[data-fs-active] {
+    display: block;
+    background: rgba(141, 184, 32, 0.16);
+    border-left: 3px solid var(--lime);
+  }
+  .hero-form-error-summary[data-fs-active] {
+    display: block;
+    background: rgba(232, 101, 10, 0.16);
+    border-left: 3px solid var(--orange);
+  }
+  @media (max-width: 560px) {
+    .hero-form-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script is:inline>
+  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+  formspree('initForm', { formElement: '#lesson-form', formId: 'xjglgjjj', useDefaultStyles: false });
+</script>
+<script is:inline src="https://unpkg.com/@formspree/ajax@1" defer></script>
 
 </Layout>
