@@ -42,16 +42,18 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <div class="hero-form-actions">
           <button type="submit" class="btn btn-primary" data-fs-submit-btn>Book Your Half-Price Lesson</button>
-          <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">or text/call (585) 802-4247</a>
         </div>
         <div class="hero-form-success" data-fs-success>Thank you! I'll be in touch ASAP.</div>
         <div class="hero-form-error-summary" data-fs-error></div>
       </form>
-      <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
     </div>
     <figure class="hero-img">
       <img src="/DSC04813.webp" alt="Jacobo Vega-Albela holding a cymbal overhead — black-and-white portrait" width="1000" height="1500" fetchpriority="high">
     </figure>
+    <div class="hero-aside">
+      <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
+      <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
+    </div>
   </div>
 </section>
 
@@ -256,7 +258,7 @@ import Layout from '../layouts/Layout.astro';
     flex-direction: column;
     gap: 8px;
     max-width: 480px;
-    margin: 0.5rem 0 0.75rem;
+    margin: 0.5rem 0 0;
   }
   .hero-form-row {
     display: grid;
