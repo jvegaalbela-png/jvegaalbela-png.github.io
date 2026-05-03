@@ -1,0 +1,239 @@
+---
+// Reusable Formspree-powered booking form. Used in the drum-lessons
+// hero and on the dedicated /book page. The two radio fieldsets are
+// opt-in so the hero form stays minimal while /book collects more
+// detail.
+
+interface Props {
+  formId: string;
+  /** Unique slug for element IDs and the form's id attribute.
+   *  Required when more than one form ever appears on the same page. */
+  formIdSlug?: string;
+  /** Show the "I want lessons for" radio fieldset. */
+  showLessonType?: boolean;
+  /** Show the "I want" location radio fieldset. */
+  showLocation?: boolean;
+}
+
+const {
+  formId,
+  formIdSlug = 'lesson-form',
+  showLessonType = false,
+  showLocation = false,
+} = Astro.props;
+
+const id = (suffix: string) => `${formIdSlug}-${suffix}`;
+---
+
+<form id={formIdSlug} class="lesson-form" novalidate>
+  <div class="lesson-form-row">
+    <div class="lesson-form-field">
+      <label for={id('name')}>Name</label>
+      <input type="text" id={id('name')} name="name" required data-fs-field />
+      <span class="lesson-form-error" data-fs-error="name"></span>
+    </div>
+    <div class="lesson-form-field">
+      <label for={id('email')}>Email</label>
+      <input type="email" id={id('email')} name="email" required data-fs-field />
+      <span class="lesson-form-error" data-fs-error="email"></span>
+    </div>
+  </div>
+
+  {showLessonType && (
+    <fieldset class="lesson-form-radios">
+      <legend>I want lessons for</legend>
+      <div class="lesson-form-radios-row">
+        <label class="radio-pill"><input type="radio" name="lesson_for" value="An adult" /><span>An adult</span></label>
+        <label class="radio-pill"><input type="radio" name="lesson_for" value="A college student" /><span>A college student</span></label>
+        <label class="radio-pill"><input type="radio" name="lesson_for" value="A K-12 student" /><span>A K&ndash;12 student</span></label>
+      </div>
+    </fieldset>
+  )}
+
+  {showLocation && (
+    <fieldset class="lesson-form-radios">
+      <legend>I want</legend>
+      <div class="lesson-form-radios-row">
+        <label class="radio-pill"><input type="radio" name="lesson_location" value="Lessons at your home studio" /><span>Lessons at your home studio</span></label>
+        <label class="radio-pill"><input type="radio" name="lesson_location" value="House calls" /><span>House calls</span></label>
+        <label class="radio-pill"><input type="radio" name="lesson_location" value="Online lessons" /><span>Online lessons</span></label>
+      </div>
+    </fieldset>
+  )}
+
+  <div class="lesson-form-field">
+    <label for={id('message')}>Message <span class="optional">(optional)</span></label>
+    <textarea id={id('message')} name="message" rows="2" data-fs-field></textarea>
+    <span class="lesson-form-error" data-fs-error="message"></span>
+  </div>
+
+  <div class="lesson-form-actions">
+    <button type="submit" class="btn btn-primary" data-fs-submit-btn>Book Your Half-Price Lesson</button>
+  </div>
+  <div class="lesson-form-success" data-fs-success>Thank you! I'll be in touch ASAP.</div>
+  <div class="lesson-form-error-summary" data-fs-error></div>
+</form>
+
+<style>
+  .lesson-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 480px;
+    margin: 0.5rem 0 0;
+  }
+  .lesson-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .lesson-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .lesson-form-field label {
+    font-size: .6875rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.78);
+  }
+  .lesson-form-field .optional {
+    font-weight: 400;
+    letter-spacing: .04em;
+    text-transform: none;
+    color: rgba(245, 243, 238, 0.5);
+  }
+  .lesson-form-field input,
+  .lesson-form-field textarea {
+    background: rgba(245, 243, 238, 0.06);
+    border: 1px solid rgba(245, 243, 238, 0.22);
+    color: var(--cream);
+    font: 400 15px/1.5 var(--sans);
+    padding: 10px 12px;
+    border-radius: 2px;
+    width: 100%;
+    transition: border-color .18s, background .18s;
+  }
+  .lesson-form-field textarea {
+    resize: vertical;
+    min-height: 56px;
+  }
+  .lesson-form-field input:focus,
+  .lesson-form-field textarea:focus {
+    outline: none;
+    border-color: var(--orange-lt);
+    background: rgba(245, 243, 238, 0.1);
+  }
+  .lesson-form-field input[aria-invalid="true"],
+  .lesson-form-field textarea[aria-invalid="true"] {
+    border-color: #e87a7a;
+  }
+  .lesson-form-error {
+    font-size: 12px;
+    color: #ff9b9b;
+    min-height: 1em;
+    line-height: 1.3;
+  }
+
+  /* Radio pill fieldsets */
+  .lesson-form-radios {
+    border: 0;
+    padding: 0;
+    margin: 6px 0 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lesson-form-radios legend {
+    font-size: .6875rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.78);
+    padding: 0;
+    margin-bottom: 2px;
+  }
+  .lesson-form-radios-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .radio-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid rgba(245, 243, 238, 0.22);
+    border-radius: 999px;
+    background: rgba(245, 243, 238, 0.04);
+    color: var(--cream);
+    font-size: 14px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .radio-pill:hover {
+    border-color: rgba(245, 243, 238, 0.4);
+    background: rgba(245, 243, 238, 0.08);
+  }
+  .radio-pill input[type="radio"] {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--orange);
+    flex: none;
+  }
+  .radio-pill:has(input:checked) {
+    border-color: var(--orange-lt);
+    background: rgba(232, 101, 10, 0.14);
+  }
+
+  .lesson-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .lesson-form-success,
+  .lesson-form-error-summary {
+    display: none;
+    padding: 12px 14px;
+    color: var(--cream);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .lesson-form-success[data-fs-active] {
+    display: block;
+    background: rgba(141, 184, 32, 0.16);
+    border-left: 3px solid var(--lime);
+  }
+  .lesson-form-error-summary[data-fs-active] {
+    display: block;
+    background: rgba(232, 101, 10, 0.16);
+    border-left: 3px solid var(--orange);
+  }
+  @media (max-width: 600px) {
+    .lesson-form-row { grid-template-columns: 1fr; }
+    .lesson-form { gap: 6px; }
+    .lesson-form-field { gap: 2px; }
+    .lesson-form-field input,
+    .lesson-form-field textarea { padding: 9px 11px; }
+    .lesson-form-field textarea { min-height: 48px; }
+    .lesson-form-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.625rem;
+    }
+    .lesson-form-actions .btn { width: 100%; }
+    .radio-pill { padding: 7px 12px; font-size: 13.5px; }
+  }
+</style>
+
+<script is:inline define:vars={{ formId, formIdSlug }}>
+  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+  formspree('initForm', { formElement: '#' + formIdSlug, formId: formId, useDefaultStyles: false });
+</script>
+<script is:inline src="https://unpkg.com/@formspree/ajax@1" defer></script>
