@@ -1,4 +1,6 @@
 ---
+import { statSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import '../../styles/global.css';
 import Layout from '../../layouts/Layout.astro';
 import JsonLd from '../../components/JsonLd.astro';
@@ -7,12 +9,80 @@ import { SITE_URL, PERSON, PERSON_ID } from '../../data/schema';
 
 const pageUrl = `${SITE_URL}/pdfs`;
 
+// `about` mappings for transcriptions — each transcription is a drum part
+// captured from a specific recording or composition. Keys match the file
+// stem in src/data/pdfs.json.
+type AboutMap = Record<string, object>;
+const ABOUT_BY_FILE: AboutMap = {
+  'daahoud.pdf': {
+    '@type': 'MusicComposition',
+    name: 'Daahoud',
+    composer: { '@type': 'Person', name: 'Clifford Brown' },
+    recordedAs: {
+      '@type': 'MusicRecording',
+      name: 'Daahoud',
+      byArtist: [
+        { '@type': 'Person', name: 'Clifford Brown' },
+        { '@type': 'Person', name: 'Max Roach' },
+      ],
+    },
+  },
+  'tony-williams-seven-steps-solos.pdf': {
+    '@type': 'MusicComposition',
+    name: 'Seven Steps to Heaven',
+    composer: [
+      { '@type': 'Person', name: 'Miles Davis' },
+      { '@type': 'Person', name: 'Victor Feldman' },
+    ],
+    recordedAs: {
+      '@type': 'MusicRecording',
+      name: 'Seven Steps to Heaven',
+      byArtist: [
+        { '@type': 'Person', name: 'Miles Davis' },
+        { '@type': 'Person', name: 'Tony Williams' },
+      ],
+    },
+  },
+  'marcus-gilmore-chorale-comping-sample.pdf': {
+    '@type': 'MusicRecording',
+    name: 'Chorale (comping sample)',
+    composer: { '@type': 'Person', name: 'Vijay Iyer' },
+    byArtist: { '@type': 'Person', name: 'Marcus Gilmore' },
+  },
+  'island-in-the-sun.pdf': {
+    '@type': 'MusicRecording',
+    name: 'Island in the Sun',
+    byArtist: { '@type': 'MusicGroup', name: 'Weezer' },
+  },
+  'undone-the-sweater-song.pdf': {
+    '@type': 'MusicRecording',
+    name: 'Undone (The Sweater Song)',
+    byArtist: { '@type': 'MusicGroup', name: 'Weezer' },
+  },
+};
+
+function pdfFileSize(categoryId: string, file: string): string | undefined {
+  try {
+    const path = fileURLToPath(
+      new URL(`../../../public/pdfs/${categoryId}/${file}`, import.meta.url)
+    );
+    const bytes = statSync(path).size;
+    return `${Math.round(bytes / 1024)} kB`;
+  } catch {
+    return undefined;
+  }
+}
+
 const allItems = manifest.categories.flatMap((cat) =>
   cat.items.map((item) => ({
     title: item.title,
     description: item.description,
+    file: item.file,
     url: `${SITE_URL}/pdfs/${cat.id}/${item.file}`,
     category: cat.title,
+    categoryId: cat.id,
+    fileSize: pdfFileSize(cat.id, item.file),
+    about: ABOUT_BY_FILE[item.file],
   }))
 );
 
@@ -50,9 +120,11 @@ const graph = {
             url: item.url,
             encodingFormat: 'application/pdf',
             inLanguage: 'en-US',
-            author: { '@id': PERSON_ID },
+            creator: { '@id': PERSON_ID },
             isAccessibleForFree: true,
             learningResourceType: item.category,
+            ...(item.fileSize && { contentSize: item.fileSize }),
+            ...(item.about && { about: item.about }),
           },
         })),
       },

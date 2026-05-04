@@ -25,14 +25,17 @@ const offers = [
 const reviews = [
   {
     author: 'Will',
+    datePublished: '2024-05-17',
     body: 'I had an audition for a jazz camp and decided to have a lesson with Jacobo. In one lesson he helped me improve so much, and I ended up getting into the camp. Highly recommended!',
   },
   {
     author: 'Annie',
+    datePublished: '2024-07-12',
     body: 'I got into the conservatory in Brussels! Thank you so much for all your support — I learned a lot from you.',
   },
   {
     author: 'Joseph',
+    datePublished: '2023-01-15',
     body: 'My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.',
   },
 ];
@@ -65,7 +68,7 @@ const localBusiness = {
   '@id': LOCAL_BUSINESS_ID,
   name: 'Jacobo Vega-Albela — Private Drum Lessons',
   description:
-    'Private drum lessons in Rochester, NY with Jacobo Vega-Albela. K–12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
+    'Private drum lessons in Rochester, NY with Jacobo Vega-Albela. By appointment only. K–12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
   url: pageUrl,
   image: `${SITE_URL}/DSC04813.webp`,
   telephone: '+1-585-802-4247',
@@ -79,8 +82,15 @@ const localBusiness = {
     '@type': 'PostalAddress',
     addressLocality: 'Rochester',
     addressRegion: 'NY',
+    postalCode: '14620',
     addressCountry: 'US',
   },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 43.1413,
+    longitude: -77.6097,
+  },
+  hasMap: 'https://www.google.com/maps/place/Mt+Hope+Ave+%26+Alexander+St,+Rochester,+NY+14620/',
   areaServed: [
     ROCHESTER_AREA,
     {
@@ -115,6 +125,7 @@ const localBusiness = {
   review: reviews.map((r) => ({
     '@type': 'Review',
     author: { '@type': 'Person', name: r.author },
+    datePublished: r.datePublished,
     reviewBody: r.body,
     reviewRating: {
       '@type': 'Rating',
@@ -167,7 +178,13 @@ const graph = {
   title="Drum Lessons in Rochester, NY — Jacobo Vega-Albela"
   description="Drum lessons in Rochester, NY with Jacobo Vega-Albela. Eastman MM, 10+ years teaching all ages and levels. Your first lesson is half off."
   themeColor="#091528"
-  image="/DSC04813.webp"
+  image={{
+    url: '/DSC04813.webp',
+    width: 1600,
+    height: 2400,
+    type: 'image/webp',
+    alt: 'Black-and-white portrait of Jacobo Vega-Albela holding a cymbal overhead',
+  }}
 >
   <JsonLd slot="head" data={graph} />
 <main>

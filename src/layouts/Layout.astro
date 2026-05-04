@@ -3,23 +3,41 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import GoogleAnalytics from '../components/GoogleAnalytics.astro';
 
+interface OgImage {
+  url: string;
+  width?: number;
+  height?: number;
+  alt?: string;
+  type?: string;
+}
+
 interface Props {
   title: string;
   description?: string;
   themeColor?: string;
   bodyClass?: string;
   noindex?: boolean;
-  image?: string;
-  og?: { title?: string; description?: string; type?: string; image?: string };
+  image?: OgImage;
+  og?: { title?: string; description?: string; type?: string; image?: OgImage };
 }
 
 const { title, description, themeColor, bodyClass, noindex, image, og } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
-const ogImageRaw = og?.image ?? image ?? '/album-art.jpg';
-const ogImage = ogImageRaw.startsWith('http')
-  ? ogImageRaw
-  : new URL(ogImageRaw, Astro.site).toString();
+
+const DEFAULT_IMAGE: OgImage = {
+  url: '/album-art.jpg',
+  width: 1013,
+  height: 1013,
+  type: 'image/jpeg',
+  alt: "Album cover for 'Un-Belonging' by Jacobo Vega-Albela — released on 577 Records, May 2025",
+};
+
+const resolved: OgImage = og?.image ?? image ?? DEFAULT_IMAGE;
+const ogImageUrl = resolved.url.startsWith('http')
+  ? resolved.url
+  : new URL(resolved.url, Astro.site).toString();
+
 const ogTitle = og?.title ?? title;
 const ogDescription = og?.description ?? description;
 const ogType = og?.type ?? 'website';
@@ -39,11 +57,16 @@ const ogType = og?.type ?? 'website';
   <meta property="og:url" content={canonical} />
   <meta property="og:title" content={ogTitle} />
   {ogDescription && <meta property="og:description" content={ogDescription} />}
-  <meta property="og:image" content={ogImage} />
+  <meta property="og:image" content={ogImageUrl} />
+  {resolved.type && <meta property="og:image:type" content={resolved.type} />}
+  {resolved.width && <meta property="og:image:width" content={String(resolved.width)} />}
+  {resolved.height && <meta property="og:image:height" content={String(resolved.height)} />}
+  {resolved.alt && <meta property="og:image:alt" content={resolved.alt} />}
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={ogTitle} />
   {ogDescription && <meta name="twitter:description" content={ogDescription} />}
-  <meta name="twitter:image" content={ogImage} />
+  <meta name="twitter:image" content={ogImageUrl} />
+  {resolved.alt && <meta name="twitter:image:alt" content={resolved.alt} />}
   <title>{title}</title>
   <link rel="icon" type="image/webp" href="/favicon.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />

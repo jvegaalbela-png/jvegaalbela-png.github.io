@@ -81,6 +81,7 @@ const course = {
           priceCurrency: 'USD',
           category: 'Tuition',
           availability: 'https://schema.org/PreOrder',
+          validFrom: '2026-05-04',
           url: `${SITE_URL}/join`,
         },
         {
@@ -90,6 +91,7 @@ const course = {
           priceCurrency: 'USD',
           category: 'Tuition',
           availability: 'https://schema.org/PreOrder',
+          validFrom: '2026-05-04',
           url: `${SITE_URL}/join`,
         },
       ],
@@ -136,7 +138,13 @@ const graph = {
   title="DJ1 — Online Group Drum Class for Beginners | Jacobo Vega-Albela"
   description="DJ1 — a 10-week online group drum class for complete beginners with Jacobo Vega-Albela. Small group, no kit required to start. Join the pilot cohort waitlist."
   themeColor="#091528"
-  image="/DSC04880.webp"
+  image={{
+    url: '/DSC04880.webp',
+    width: 1600,
+    height: 2400,
+    type: 'image/webp',
+    alt: 'Jacobo Vega-Albela seated at the drumset',
+  }}
   og={{
     title: "DJ1 — Online Group Drum Class for Beginners",
     description: "A 10-week online group drum class for complete beginners. Small group, no kit required to start.",

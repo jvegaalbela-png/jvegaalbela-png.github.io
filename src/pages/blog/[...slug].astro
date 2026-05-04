@@ -25,11 +25,29 @@ const dateFmt = new Intl.DateTimeFormat('en-US', {
 
 const postUrl = `${SITE_URL}/blog/${post.id}`;
 
-let heroImageUrl: string | undefined;
+let heroImage: { url: string; width: number; height: number; type: string; alt: string } | undefined;
 if (post.data.heroImage) {
   const optimized = await getImage({ src: post.data.heroImage, width: 1200 });
-  heroImageUrl = new URL(optimized.src, SITE_URL).toString();
+  heroImage = {
+    url: new URL(optimized.src, SITE_URL).toString(),
+    width: optimized.attributes.width as number,
+    height: optimized.attributes.height as number,
+    type: 'image/webp',
+    alt: `Hero image for "${post.data.title}"`,
+  };
 }
+
+const wordCount = post.body
+  ? post.body
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`[^`]*`/g, ' ')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/[*_~#>|]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean).length
+  : undefined;
 
 const graph = {
   '@context': 'https://schema.org',
@@ -44,16 +62,20 @@ const graph = {
       url: postUrl,
       mainEntityOfPage: postUrl,
       datePublished: post.data.pubDate.toISOString(),
-      ...(post.data.updatedDate && {
-        dateModified: post.data.updatedDate.toISOString(),
-      }),
-      ...(!post.data.updatedDate && {
-        dateModified: post.data.pubDate.toISOString(),
-      }),
+      dateModified: (post.data.updatedDate ?? post.data.pubDate).toISOString(),
       author: { '@id': PERSON_ID },
       publisher: { '@id': ORGANIZATION_ID },
-      ...(heroImageUrl && { image: heroImageUrl }),
+      ...(heroImage && {
+        image: {
+          '@type': 'ImageObject',
+          url: heroImage.url,
+          width: heroImage.width,
+          height: heroImage.height,
+          caption: heroImage.alt,
+        },
+      }),
       keywords: post.data.tags.join(', '),
+      ...(wordCount && { wordCount }),
       inLanguage: 'en-US',
       isPartOf: { '@id': `${SITE_URL}/blog#blog` },
     },
@@ -79,8 +101,8 @@ const graph = {
   title={`${post.data.title} — JVA Music`}
   description={post.data.description}
   themeColor="#091528"
-  image={heroImageUrl}
-  og={{ title: post.data.title, description: post.data.description, type: 'article', image: heroImageUrl }}
+  image={heroImage}
+  og={{ title: post.data.title, description: post.data.description, type: 'article', image: heroImage }}
 >
   <JsonLd slot="head" data={graph} />
   <main class="post">
