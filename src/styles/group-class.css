@@ -76,6 +76,7 @@ section:first-of-type{border-top:0}
 }
 .chip svg{width:14px;height:14px;color:var(--lime);flex:none}
 .cta-row{display:flex;flex-wrap:wrap;gap:.625rem}
+.hero-tel{margin-top:1rem;padding-left:0;padding-right:0}
 .tel-link{
   display:inline-flex;align-items:center;gap:.5rem;
   color:rgba(245,243,238,.82);text-decoration:none;
@@ -145,6 +146,9 @@ section:first-of-type{border-top:0}
 .pcard .price small{font-size:.8125rem;color:var(--muted);font-family:var(--sans);margin-left:.25rem}
 .pcard p{font-size:.9375rem;color:#3a342c;line-height:1.55}
 .pricing-fineprint{margin-top:1.5rem;font-size:.8125rem;color:var(--muted);line-height:1.6;max-width:760px}
+.mid-cta{margin-top:2rem;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;justify-content:flex-start;max-width:760px}
+.mid-cta p{font-size:.9375rem;color:#3a342c;margin:0;flex:1 1 320px;line-height:1.55}
+.mid-cta strong{color:var(--cobalt);font-weight:600}
 
 /* about */
 .about-grid{display:grid;gap:2.5rem;grid-template-columns:1fr}
@@ -213,6 +217,9 @@ section:first-of-type{border-top:0}
   .hero-img{margin-top:1.25rem}
 
   .pcard,.tcard,.tile{padding:1.25rem}
+  .mid-cta{flex-direction:column;align-items:stretch;gap:.875rem}
+  .mid-cta p{text-align:left}
+  .mid-cta .btn{width:100%}
   .tcard blockquote{font-size:1rem;padding-left:1.25rem}
 
   .cta-band-inner{padding-left:1.25rem;padding-right:1.25rem}
@@ -229,7 +236,8 @@ section:first-of-type{border-top:0}
   body{background:#060d1c}
   .tcard,.pcard,.tile,.faq-list details{background:#0d1830;border-color:var(--rule)}
   .pcard.featured{border-color:var(--blue-lt);box-shadow:0 6px 20px rgba(91,141,232,.08)}
-  .tcard blockquote,.pcard p,.tile p,.about-text p,.bg-list li,.faq-list .faq-body{color:#d6d2c8}
+  .tcard blockquote,.pcard p,.tile p,.about-text p,.bg-list li,.faq-list .faq-body,.mid-cta p{color:#d6d2c8}
+  .mid-cta strong{color:var(--blue-lt)}
   .pcard .price{color:var(--ink)}
   .pcard.featured .pcard-tag,.tile-tag,.bg-list li strong{color:var(--blue-lt)}
   .tcard{border-left-color:var(--blue-lt)}

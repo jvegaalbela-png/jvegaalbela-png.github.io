@@ -1,0 +1,117 @@
+---
+// Unlisted waitlist page (noindex). Linked from the secondary
+// "Join the Pilot Cohort Waitlist" CTAs on /group-classes. Uses the
+// shared LessonForm with timezone + experience dropdowns enabled so
+// we collect a bit more detail than the slim hero form does.
+import '../styles/group-class.css';
+import Layout from '../layouts/Layout.astro';
+import LessonForm from '../components/LessonForm.astro';
+---
+
+<Layout
+  title="Join the DJ1 Waitlist — Jacobo Vega-Albela"
+  description="Join the waitlist for DJ1, a 10-week online group drum class for complete beginners. Tell me a few details and I'll be in touch as soon as dates are set."
+  themeColor="#091528"
+  noindex={true}
+>
+
+<section class="join-hero">
+  <div class="join-wrap">
+    <p class="hero-eyebrow">DJ1 Pilot Cohort Waitlist</p>
+    <h1>Get on the <em>waitlist</em>.</h1>
+    <p class="hero-sub">The pilot cohort is capped at <strong>10</strong>. Fill out a few details and I'll be in touch as soon as dates and a start week are set.</p>
+
+    <LessonForm
+      formId="xkoyjkzk"
+      formIdSlug="join-waitlist-form"
+      submitLabel="Join the Waitlist"
+      showTimezone={true}
+      showExperience={true}
+    />
+
+    <div class="join-aside">
+      <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
+      <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
+      <p class="join-back"><a href="/group-classes">&larr; Back to group classes</a></p>
+    </div>
+  </div>
+</section>
+
+</Layout>
+
+<style>
+  .join-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: calc(var(--header-h) + clamp(1.5rem, 4vw, 3rem)) 0 clamp(2.5rem, 6vw, 4.5rem);
+    min-height: calc(100vh - 0px);
+    position: relative;
+    overflow: hidden;
+  }
+  .join-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 80% at 85% 110%, rgba(26,58,138,.45), transparent 60%),
+      radial-gradient(ellipse 40% 50% at 5% -10%, rgba(232,101,10,.16), transparent 55%);
+  }
+  .join-wrap {
+    position: relative;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 0 var(--pad);
+  }
+  .join-hero h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -.01em;
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: 0.75rem;
+  }
+  .join-hero h1 em {
+    font-style: italic;
+    color: var(--blue-lt);
+  }
+  .join-hero .hero-sub {
+    font-size: clamp(1rem, 1.5vw, 1.0625rem);
+    line-height: 1.55;
+    color: rgba(245, 243, 238, .82);
+    max-width: 48ch;
+    margin-bottom: 1.5rem;
+  }
+  .join-hero .hero-sub strong {
+    color: var(--cream);
+    font-weight: 600;
+  }
+  .join-aside {
+    display: flex;
+    flex-direction: column;
+    gap: .875rem;
+    margin-top: 1rem;
+  }
+  .join-aside .trust-line {
+    margin-top: 0;
+  }
+  .join-back {
+    margin-top: 0.5rem;
+    font-size: .8125rem;
+  }
+  .join-back a {
+    color: rgba(245, 243, 238, 0.65);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(245, 243, 238, 0.2);
+    padding-bottom: 1px;
+    transition: color .15s, border-color .15s;
+  }
+  .join-back a:hover {
+    color: var(--cream);
+    border-color: var(--cream);
+  }
+  @media (max-width: 600px) {
+    .join-hero { padding-top: calc(var(--header-h) + 16px); padding-bottom: 2.5rem; }
+    .join-hero h1 { font-size: 2rem; }
+  }
+</style>

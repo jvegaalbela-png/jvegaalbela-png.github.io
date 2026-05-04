@@ -1,6 +1,7 @@
 ---
 import '../styles/group-class.css';
 import Layout from '../layouts/Layout.astro';
+import LessonForm from '../components/LessonForm.astro';
 ---
 
 <Layout
@@ -28,10 +29,12 @@ import Layout from '../layouts/Layout.astro';
           <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>9 years teaching</li>
           <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Small group, capped at 10</li>
         </ul>
-        <div class="cta-row">
-          <a class="btn btn-primary" data-cta href="mailto:jacobovamusic@gmail.com?subject=DJ1%20Waitlist%20%E2%80%94%20Pilot%20Cohort&amp;body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20join%20the%20DJ1%20pilot%20cohort%20waitlist.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Drumming%20experience%3A%20none%0A-%20Time%20zone%3A%20%0A-%20What%20I%27m%20hoping%20to%20get%20out%20of%20the%20class%3A%20%0A%0AThanks%21">Join the Pilot Cohort Waitlist</a>
-          <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
-        </div>
+        <LessonForm
+          formId="xkoyjkzk"
+          formIdSlug="hero-waitlist-form"
+          submitLabel="Join the Waitlist"
+        />
+        <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
         <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
       </div>
       <figure class="hero-img">
@@ -121,6 +124,10 @@ import Layout from '../layouts/Layout.astro';
         </div>
       </div>
       <p class="pricing-fineprint">Payment via Venmo, Zelle, or PayPal. Full course due before the first class; drop-in pays per session.</p>
+      <div class="mid-cta">
+        <p><strong>Ready to claim a seat?</strong> The pilot cohort is capped at 10 &mdash; get on the waitlist and I'll be in touch with dates.</p>
+        <a class="btn btn-outline" href="/join">Join the Pilot Cohort Waitlist</a>
+      </div>
     </div>
   </section>
 
@@ -190,14 +197,8 @@ import Layout from '../layouts/Layout.astro';
   <div class="cta-band-inner">
     <h2>Ready to drum?</h2>
     <p>The pilot cohort is capped at 10. Get on the waitlist and I'll be in touch as soon as dates and a start week are set.</p>
-    <a class="btn btn-primary" data-cta href="mailto:jacobovamusic@gmail.com?subject=DJ1%20Waitlist%20%E2%80%94%20Pilot%20Cohort&amp;body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20join%20the%20DJ1%20pilot%20cohort%20waitlist.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Drumming%20experience%3A%20none%0A-%20Time%20zone%3A%20%0A-%20What%20I%27m%20hoping%20to%20get%20out%20of%20the%20class%3A%20%0A%0AThanks%21">Join the Pilot Cohort Waitlist</a>
+    <a class="btn btn-primary" href="/join">Join the Pilot Cohort Waitlist</a>
   </div>
 </section>
-
-<script is:inline>
-  // Single source of truth for the waitlist mailto URL.
-  const PRIMARY_CTA_URL = "mailto:jacobovamusic@gmail.com?subject=DJ1%20Waitlist%20%E2%80%94%20Pilot%20Cohort&body=Hi%20Jacobo%2C%0A%0AI%27d%20like%20to%20join%20the%20DJ1%20pilot%20cohort%20waitlist.%20A%20bit%20about%20me%3A%0A%0A-%20Name%3A%20%0A-%20Drumming%20experience%3A%20none%0A-%20Time%20zone%3A%20%0A-%20What%20I%27m%20hoping%20to%20get%20out%20of%20the%20class%3A%20%0A%0AThanks%21";
-  document.querySelectorAll('[data-cta]').forEach(el => el.setAttribute('href', PRIMARY_CTA_URL));
-</script>
 
 </Layout>

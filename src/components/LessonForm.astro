@@ -1,25 +1,35 @@
 ---
-// Reusable Formspree-powered booking form. Used in the drum-lessons
-// hero and on the dedicated /book page. The two radio fieldsets are
-// opt-in so the hero form stays minimal while /book collects more
-// detail.
+// Reusable Formspree-powered lead form. Used in the drum-lessons
+// hero, on the dedicated /book page, in the group-classes hero,
+// and on /join. Optional fields are toggled via props so each page
+// can collect just what it needs.
 
 interface Props {
   formId: string;
   /** Unique slug for element IDs and the form's id attribute.
    *  Required when more than one form ever appears on the same page. */
   formIdSlug?: string;
+  /** Submit button label. */
+  submitLabel?: string;
   /** Show the "I want lessons for" radio fieldset. */
   showLessonType?: boolean;
   /** Show the "I want" location radio fieldset. */
   showLocation?: boolean;
+  /** Show the time zone dropdown. */
+  showTimezone?: boolean;
+  /** Show the drumming experience dropdown
+   *  (with a soft pre-qualifying warning for intermediate/advanced). */
+  showExperience?: boolean;
 }
 
 const {
   formId,
   formIdSlug = 'lesson-form',
+  submitLabel = 'Book Your Half-Price Lesson',
   showLessonType = false,
   showLocation = false,
+  showTimezone = false,
+  showExperience = false,
 } = Astro.props;
 
 const id = (suffix: string) => `${formIdSlug}-${suffix}`;
@@ -61,6 +71,44 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
     </fieldset>
   )}
 
+  {(showTimezone || showExperience) && (
+    <div class="lesson-form-row">
+      {showTimezone && (
+        <div class="lesson-form-field">
+          <label for={id('timezone')}>Time zone</label>
+          <select id={id('timezone')} name="timezone" required data-fs-field>
+            <option value="" disabled selected>Choose one&hellip;</option>
+            <option value="Eastern (ET)">Eastern (ET)</option>
+            <option value="Central (CT)">Central (CT)</option>
+            <option value="Mountain (MT)">Mountain (MT)</option>
+            <option value="Pacific (PT)">Pacific (PT)</option>
+            <option value="Outside the US">Outside the US</option>
+          </select>
+          <span class="lesson-form-error" data-fs-error="timezone"></span>
+        </div>
+      )}
+      {showExperience && (
+        <div class="lesson-form-field">
+          <label for={id('experience')}>Drumming experience</label>
+          <select id={id('experience')} name="experience" required data-fs-field data-fs-experience-select>
+            <option value="" disabled selected>Choose one&hellip;</option>
+            <option value="No experience">No experience</option>
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+          <span class="lesson-form-error" data-fs-error="experience"></span>
+        </div>
+      )}
+    </div>
+  )}
+
+  {showExperience && (
+    <div class="lesson-form-notice" data-fs-experience-notice hidden>
+      Heads up &mdash; this class focuses on the basics of technique and reading rhythms. If you already have a solid foundation in those areas, private lessons might be a better fit.
+    </div>
+  )}
+
   <div class="lesson-form-field">
     <label for={id('message')}>Message <span class="optional">(optional)</span></label>
     <textarea id={id('message')} name="message" rows="2" data-fs-field></textarea>
@@ -68,7 +116,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   </div>
 
   <div class="lesson-form-actions">
-    <button type="submit" class="btn btn-primary" data-fs-submit-btn>Book Your Half-Price Lesson</button>
+    <button type="submit" class="btn btn-primary" data-fs-submit-btn>{submitLabel}</button>
   </div>
   <div class="lesson-form-success" data-fs-success>Thank you! I'll be in touch ASAP.</div>
   <div class="lesson-form-error-summary" data-fs-error></div>
@@ -106,7 +154,8 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
     color: rgba(245, 243, 238, 0.5);
   }
   .lesson-form-field input,
-  .lesson-form-field textarea {
+  .lesson-form-field textarea,
+  .lesson-form-field select {
     background: rgba(245, 243, 238, 0.06);
     border: 1px solid rgba(245, 243, 238, 0.22);
     color: var(--cream);
@@ -120,16 +169,42 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
     resize: vertical;
     min-height: 56px;
   }
+  .lesson-form-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23f5f3ee' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M1.5 1.75 6 6.25l4.5-4.5'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
+    padding-right: 34px;
+    cursor: pointer;
+  }
+  .lesson-form-field select option {
+    color: #0e0d0b;
+    background: #f5f3ee;
+  }
   .lesson-form-field input:focus,
-  .lesson-form-field textarea:focus {
+  .lesson-form-field textarea:focus,
+  .lesson-form-field select:focus {
     outline: none;
     border-color: var(--orange-lt);
     background: rgba(245, 243, 238, 0.1);
   }
   .lesson-form-field input[aria-invalid="true"],
-  .lesson-form-field textarea[aria-invalid="true"] {
+  .lesson-form-field textarea[aria-invalid="true"],
+  .lesson-form-field select[aria-invalid="true"] {
     border-color: #e87a7a;
   }
+  .lesson-form-notice {
+    padding: 10px 14px;
+    border-left: 3px solid var(--orange-lt);
+    background: rgba(232, 101, 10, 0.12);
+    color: rgba(245, 243, 238, 0.92);
+    font-size: 13.5px;
+    line-height: 1.5;
+    border-radius: 2px;
+  }
+  .lesson-form-notice[hidden] { display: none; }
   .lesson-form-error {
     font-size: 12px;
     color: #ff9b9b;
@@ -235,5 +310,19 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
 <script is:inline define:vars={{ formId, formIdSlug }}>
   window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
   formspree('initForm', { formElement: '#' + formIdSlug, formId: formId, useDefaultStyles: false });
+
+  (function () {
+    const form = document.getElementById(formIdSlug);
+    if (!form) return;
+    const select = form.querySelector('[data-fs-experience-select]');
+    const notice = form.querySelector('[data-fs-experience-notice]');
+    if (!select || !notice) return;
+    const update = () => {
+      const v = select.value;
+      notice.hidden = !(v === 'Intermediate' || v === 'Advanced');
+    };
+    select.addEventListener('change', update);
+    update();
+  })();
 </script>
 <script is:inline src="https://unpkg.com/@formspree/ajax@1" defer></script>
