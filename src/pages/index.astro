@@ -1,9 +1,97 @@
 ---
 import '../styles/global.css';
 import Layout from '../layouts/Layout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import {
+  SITE_URL,
+  PERSON,
+  PERSON_ID,
+  ORGANIZATION,
+  ORGANIZATION_ID,
+  WEBSITE,
+  ALBUM_ID,
+} from '../data/schema';
+
+const tracks = [
+  'Moonbeams',
+  'To Hope',
+  'Plonqs',
+  '390S',
+  'I Fall In Love Too Easily',
+  'Carousel',
+  'High Priest',
+  'Birthday Week',
+];
+
+const album = {
+  '@type': 'MusicAlbum',
+  '@id': ALBUM_ID,
+  name: 'Un-Belonging',
+  alternateName: '"Un-Belonging"',
+  url: 'https://577records.bandcamp.com/album/un-belonging',
+  image: `${SITE_URL}/album-art.jpg`,
+  datePublished: '2025-05',
+  numTracks: tracks.length,
+  albumProductionType: 'https://schema.org/StudioAlbum',
+  albumReleaseType: 'https://schema.org/AlbumRelease',
+  description:
+    "Debut album from jazz drummer and composer Jacobo Vega-Albela. Released on 577 Records in May 2025 — nine tracks across trio, quartet, and quintet settings.",
+  recordLabel: {
+    '@type': 'Organization',
+    name: '577 Records',
+    url: 'https://www.577records.com/',
+  },
+  byArtist: {
+    '@type': 'MusicGroup',
+    name: 'Jacobo Vega-Albela',
+    member: [
+      {
+        '@type': 'Person',
+        '@id': PERSON_ID,
+        name: 'Jacobo Vega-Albela',
+        roleName: 'drums, composition & arrangement',
+      },
+      { '@type': 'Person', name: 'Leon Hsu', roleName: 'piano' },
+      { '@type': 'Person', name: 'Zach Walgren', roleName: 'bass' },
+      { '@type': 'Person', name: 'Jordan Lerner', roleName: 'alto & tenor saxophones' },
+      { '@type': 'Person', name: 'Adam Aronesty', roleName: 'tenor saxophone' },
+    ],
+  },
+  track: tracks.map((name, i) => ({
+    '@type': 'MusicRecording',
+    position: i + 1,
+    name,
+    byArtist: { '@id': PERSON_ID },
+    inAlbum: { '@id': ALBUM_ID },
+  })),
+};
+
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    PERSON,
+    ORGANIZATION,
+    {
+      ...WEBSITE,
+      mainEntity: { '@id': PERSON_ID },
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${SITE_URL}/#webpage`,
+      url: SITE_URL,
+      name: 'Jacobo Vega-Albela — Home',
+      isPartOf: { '@id': WEBSITE['@id'] },
+      about: { '@id': PERSON_ID },
+      primaryImageOfPage: `${SITE_URL}/album-art.jpg`,
+    },
+    album,
+  ],
+};
 ---
 
-<Layout title="Jacobo Vega-Albela — Home">
+<Layout title="Jacobo Vega-Albela — Home"
+  description="Jacobo Vega-Albela — jazz drummer, composer, and music educator based in Rochester, NY. Debut album 'Un-Belonging' out on 577 Records (May 2025).">
+  <JsonLd slot="head" data={graph} />
 <!-- ══════════════════════════════════════════ HERO -->
 <header class="hero">
   <div class="hero-left">

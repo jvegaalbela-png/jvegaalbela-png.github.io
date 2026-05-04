@@ -2,13 +2,174 @@
 import '../styles/lessons.css';
 import Layout from '../layouts/Layout.astro';
 import LessonForm from '../components/LessonForm.astro';
+import JsonLd from '../components/JsonLd.astro';
+import {
+  SITE_URL,
+  PERSON,
+  PERSON_ID,
+  LOCAL_BUSINESS_ID,
+  ROCHESTER_AREA,
+} from '../data/schema';
+
+const pageUrl = `${SITE_URL}/drum-lessons`;
+
+const offers = [
+  { name: '60-minute private drum lesson', price: '50' },
+  { name: '30-minute private drum lesson', price: '30' },
+  { name: '4-pack of 60-minute lessons', price: '180' },
+  { name: '4-pack of 30-minute lessons', price: '100' },
+  { name: 'Half-price first 60-minute lesson (new students)', price: '25' },
+  { name: 'Half-price first 30-minute lesson (new students)', price: '15' },
+];
+
+const reviews = [
+  {
+    author: 'Will',
+    body: 'I had an audition for a jazz camp and decided to have a lesson with Jacobo. In one lesson he helped me improve so much, and I ended up getting into the camp. Highly recommended!',
+  },
+  {
+    author: 'Annie',
+    body: 'I got into the conservatory in Brussels! Thank you so much for all your support — I learned a lot from you.',
+  },
+  {
+    author: 'Joseph',
+    body: 'My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.',
+  },
+];
+
+const faqs = [
+  {
+    q: "What's your cancellation policy?",
+    a: '24 hours notice, please. Bulk packs are non-refundable but fully reschedulable with 24h notice. Illness exceptions always apply, just let me know. If I have to cancel late on you, your next lesson is on me.',
+  },
+  {
+    q: 'Do you teach beginners?',
+    a: "Yes: K–12 and adults. Most of my students start as beginners, and there's nothing to catch up on before lesson one.",
+  },
+  {
+    q: 'Do you offer virtual lessons?',
+    a: "Yes, over Zoom. Same rate as in-person at my studio. It works great once we sort out a basic mic and camera setup, and I'll walk you through that on our first call.",
+  },
+  {
+    q: 'What styles do you teach?',
+    a: "Rock, jazz, funk, Latin, and popular music more broadly. I cover reading and ear training, rudiments, technique, and sound on the kit. We'll shape the curriculum to your goals.",
+  },
+  {
+    q: 'Where are you located?',
+    a: "Rochester, NY (South Wedge neighborhood). The studio address is shared after booking. I also do house calls and virtual lessons over Zoom.",
+  },
+];
+
+const localBusiness = {
+  '@type': ['LocalBusiness', 'MusicSchool'],
+  '@id': LOCAL_BUSINESS_ID,
+  name: 'Jacobo Vega-Albela — Private Drum Lessons',
+  description:
+    'Private drum lessons in Rochester, NY with Jacobo Vega-Albela. K–12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
+  url: pageUrl,
+  image: `${SITE_URL}/DSC04813.webp`,
+  telephone: '+1-585-802-4247',
+  email: 'mailto:jacobovamusic@gmail.com',
+  priceRange: '$$',
+  currenciesAccepted: 'USD',
+  paymentAccepted: 'Cash, Venmo, Zelle, PayPal',
+  founder: { '@id': PERSON_ID },
+  employee: { '@id': PERSON_ID },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Rochester',
+    addressRegion: 'NY',
+    addressCountry: 'US',
+  },
+  areaServed: [
+    ROCHESTER_AREA,
+    {
+      '@type': 'AdministrativeArea',
+      name: 'Worldwide (virtual lessons over Zoom)',
+    },
+  ],
+  knowsAbout: [
+    'Drum lessons',
+    'Drumset',
+    'Jazz drumming',
+    'Rock drumming',
+    'Funk drumming',
+    'Latin drumming',
+    'Drum rudiments',
+    'Music reading',
+    'Audition preparation',
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Drum lesson rates',
+    itemListElement: offers.map((o) => ({
+      '@type': 'Offer',
+      name: o.name,
+      price: o.price,
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: `${SITE_URL}/book`,
+      seller: { '@id': PERSON_ID },
+    })),
+  },
+  review: reviews.map((r) => ({
+    '@type': 'Review',
+    author: { '@type': 'Person', name: r.author },
+    reviewBody: r.body,
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue: '5',
+      bestRating: '5',
+    },
+    itemReviewed: { '@id': LOCAL_BUSINESS_ID },
+  })),
+};
+
+const faqPage = {
+  '@type': 'FAQPage',
+  '@id': `${pageUrl}#faq`,
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: f.a,
+    },
+  })),
+};
+
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    PERSON,
+    localBusiness,
+    {
+      '@type': 'WebPage',
+      '@id': `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: 'Drum Lessons in Rochester, NY — Jacobo Vega-Albela',
+      about: { '@id': LOCAL_BUSINESS_ID },
+      primaryImageOfPage: `${SITE_URL}/DSC04813.webp`,
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Drum Lessons', item: pageUrl },
+        ],
+      },
+    },
+    faqPage,
+  ],
+};
 ---
 
 <Layout
   title="Drum Lessons in Rochester, NY — Jacobo Vega-Albela"
   description="Drum lessons in Rochester, NY with Jacobo Vega-Albela. Eastman MM, 10+ years teaching all ages and levels. Your first lesson is half off."
   themeColor="#091528"
+  image="/DSC04813.webp"
 >
+  <JsonLd slot="head" data={graph} />
 <main>
 <!-- HERO -->
 <section class="hero" aria-labelledby="heroTitle">

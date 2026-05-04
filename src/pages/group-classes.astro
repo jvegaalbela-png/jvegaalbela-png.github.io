@@ -2,18 +2,148 @@
 import '../styles/group-class.css';
 import Layout from '../layouts/Layout.astro';
 import LessonForm from '../components/LessonForm.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION_ID } from '../data/schema';
+
+const pageUrl = `${SITE_URL}/group-classes`;
+const courseId = `${pageUrl}#dj1`;
+
+const faqs = [
+  {
+    q: 'Do I need a drumset?',
+    a: "Nope. You'll start with a practice pad, a pair of sticks, and Ted Reed's Syncopation — that's it. Many students stay on the pad for months and make great progress before investing in a kit.",
+  },
+  {
+    q: 'Can I sign my kid up?',
+    a: "The pilot is for ages 15+. Younger students usually do better in private lessons where I can adapt to their pace and energy — reach out and we'll find a fit.",
+  },
+  {
+    q: 'What does "small group format" mean?',
+    a: 'Class size is capped at 10. Sessions run 90 minutes so I have time to give individual feedback to each student, not just lecture the room.',
+  },
+  {
+    q: 'How does payment work?',
+    a: 'Venmo, Zelle, or PayPal. The full course ($250) is due before our first class. Drop-in students pay $30 per session as they go.',
+  },
+  {
+    q: 'What if I miss a class?',
+    a: "Let me know ahead of time and I'll send notes plus what to practice. With a small cohort there's no formal makeup, but I'll get you caught up before the next session.",
+  },
+];
+
+const course = {
+  '@type': 'Course',
+  '@id': courseId,
+  name: 'Drumset Jumpstart 1 (DJ1)',
+  alternateName: 'DJ1',
+  description:
+    'A 10-week online group drum class for complete beginners. 90-minute Zoom sessions with a small cohort capped at 10 students. No drumset required to start — just a practice pad, sticks, and Ted Reed\'s Syncopation.',
+  url: pageUrl,
+  image: `${SITE_URL}/DSC04880.webp`,
+  inLanguage: 'en-US',
+  educationalLevel: 'Beginner',
+  audience: {
+    '@type': 'EducationalAudience',
+    educationalRole: 'Beginner drum students, ages 15 and up',
+  },
+  teaches: [
+    'Drumset fundamentals',
+    'Stick technique',
+    'Music reading for drumset',
+    'Basic groove vocabulary',
+    'Practice habits',
+  ],
+  provider: {
+    '@id': ORGANIZATION_ID,
+    '@type': 'Organization',
+    name: 'JVA Music',
+    url: SITE_URL,
+  },
+  instructor: { '@id': PERSON_ID },
+  hasCourseInstance: [
+    {
+      '@type': 'CourseInstance',
+      name: 'DJ1 — Pilot Cohort',
+      courseMode: 'Online',
+      courseWorkload: 'PT15H',
+      inLanguage: 'en-US',
+      maximumAttendeeCapacity: 10,
+      location: {
+        '@type': 'VirtualLocation',
+        url: 'https://zoom.us/',
+      },
+      instructor: { '@id': PERSON_ID },
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Full course (10 weeks)',
+          price: '250',
+          priceCurrency: 'USD',
+          category: 'Tuition',
+          availability: 'https://schema.org/PreOrder',
+          url: `${SITE_URL}/join`,
+        },
+        {
+          '@type': 'Offer',
+          name: 'Drop-in (per class)',
+          price: '30',
+          priceCurrency: 'USD',
+          category: 'Tuition',
+          availability: 'https://schema.org/PreOrder',
+          url: `${SITE_URL}/join`,
+        },
+      ],
+    },
+  ],
+};
+
+const faqPage = {
+  '@type': 'FAQPage',
+  '@id': `${pageUrl}#faq`,
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    PERSON,
+    course,
+    {
+      '@type': 'WebPage',
+      '@id': `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: 'DJ1 — Online Group Drum Class for Beginners',
+      about: { '@id': courseId },
+      primaryImageOfPage: `${SITE_URL}/DSC04880.webp`,
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Group Classes', item: pageUrl },
+        ],
+      },
+    },
+    faqPage,
+  ],
+};
 ---
 
 <Layout
   title="DJ1 — Online Group Drum Class for Beginners | Jacobo Vega-Albela"
   description="DJ1 — a 10-week online group drum class for complete beginners with Jacobo Vega-Albela. Small group, no kit required to start. Join the pilot cohort waitlist."
   themeColor="#091528"
+  image="/DSC04880.webp"
   og={{
     title: "DJ1 — Online Group Drum Class for Beginners",
     description: "A 10-week online group drum class for complete beginners. Small group, no kit required to start.",
     type: "website"
   }}
 >
+  <JsonLd slot="head" data={graph} />
 
 <main>
 

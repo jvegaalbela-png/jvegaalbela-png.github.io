@@ -9,10 +9,20 @@ interface Props {
   themeColor?: string;
   bodyClass?: string;
   noindex?: boolean;
-  og?: { title?: string; description?: string; type?: string };
+  image?: string;
+  og?: { title?: string; description?: string; type?: string; image?: string };
 }
 
-const { title, description, themeColor, bodyClass, noindex, og } = Astro.props;
+const { title, description, themeColor, bodyClass, noindex, image, og } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImageRaw = og?.image ?? image ?? '/album-art.jpg';
+const ogImage = ogImageRaw.startsWith('http')
+  ? ogImageRaw
+  : new URL(ogImageRaw, Astro.site).toString();
+const ogTitle = og?.title ?? title;
+const ogDescription = og?.description ?? description;
+const ogType = og?.type ?? 'website';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -22,14 +32,24 @@ const { title, description, themeColor, bodyClass, noindex, og } = Astro.props;
   {description && <meta name="description" content={description} />}
   {themeColor && <meta name="theme-color" content={themeColor} />}
   {noindex && <meta name="robots" content="noindex" />}
-  {og?.title && <meta property="og:title" content={og.title} />}
-  {og?.description && <meta property="og:description" content={og.description} />}
-  {og?.type && <meta property="og:type" content={og.type} />}
+  <link rel="canonical" href={canonical} />
+  <meta property="og:site_name" content="JVA Music" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:type" content={ogType} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:title" content={ogTitle} />
+  {ogDescription && <meta property="og:description" content={ogDescription} />}
+  <meta property="og:image" content={ogImage} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={ogTitle} />
+  {ogDescription && <meta name="twitter:description" content={ogDescription} />}
+  <meta name="twitter:image" content={ogImage} />
   <title>{title}</title>
   <link rel="icon" type="image/webp" href="/favicon.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <slot name="head" />
   <GoogleAnalytics />
 </head>
 <body class={bodyClass}>
