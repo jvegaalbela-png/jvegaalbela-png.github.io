@@ -46,15 +46,30 @@ const album = {
     name: 'Jacobo Vega-Albela',
     member: [
       {
-        '@type': 'Person',
-        '@id': PERSON_ID,
-        name: 'Jacobo Vega-Albela',
+        '@type': 'OrganizationRole',
         roleName: 'drums, composition & arrangement',
+        member: { '@id': PERSON_ID },
       },
-      { '@type': 'Person', name: 'Leon Hsu', roleName: 'piano' },
-      { '@type': 'Person', name: 'Zach Walgren', roleName: 'bass' },
-      { '@type': 'Person', name: 'Jordan Lerner', roleName: 'alto & tenor saxophones' },
-      { '@type': 'Person', name: 'Adam Aronesty', roleName: 'tenor saxophone' },
+      {
+        '@type': 'OrganizationRole',
+        roleName: 'piano',
+        member: { '@type': 'Person', name: 'Leon Hsu' },
+      },
+      {
+        '@type': 'OrganizationRole',
+        roleName: 'bass',
+        member: { '@type': 'Person', name: 'Zach Walgren' },
+      },
+      {
+        '@type': 'OrganizationRole',
+        roleName: 'alto & tenor saxophones',
+        member: { '@type': 'Person', name: 'Jordan Lerner' },
+      },
+      {
+        '@type': 'OrganizationRole',
+        roleName: 'tenor saxophone',
+        member: { '@type': 'Person', name: 'Adam Aronesty' },
+      },
     ],
   },
   track: tracks.map((name, i) => ({
