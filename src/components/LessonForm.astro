@@ -20,6 +20,10 @@ interface Props {
   /** Show the drumming experience dropdown
    *  (with a soft pre-qualifying warning for intermediate/advanced). */
   showExperience?: boolean;
+  /** GA4 event name to fire on Formspree success. Omit to skip tracking. */
+  submitEvent?: string;
+  /** Parameters to attach to the GA4 event. */
+  submitEventParams?: Record<string, unknown>;
 }
 
 const {
@@ -30,6 +34,8 @@ const {
   showLocation = false,
   showTimezone = false,
   showExperience = false,
+  submitEvent,
+  submitEventParams = {},
 } = Astro.props;
 
 const id = (suffix: string) => `${formIdSlug}-${suffix}`;
@@ -307,7 +313,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   }
 </style>
 
-<script is:inline define:vars={{ formId, formIdSlug }}>
+<script is:inline define:vars={{ formId, formIdSlug, submitEvent, submitEventParams }}>
   window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
   formspree('initForm', { formElement: '#' + formIdSlug, formId: formId, useDefaultStyles: false });
 
@@ -323,6 +329,27 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
     };
     select.addEventListener('change', update);
     update();
+  })();
+
+  // Fire GA4 event when Formspree marks the form as successfully submitted.
+  // Formspree adds [data-fs-active] to the [data-fs-success] element on
+  // success — that's the only state that distinguishes a real submission
+  // from a network/validation failure.
+  (function () {
+    if (!submitEvent || typeof window === 'undefined') return;
+    const form = document.getElementById(formIdSlug);
+    if (!form) return;
+    const successEl = form.querySelector('[data-fs-success]');
+    if (!successEl) return;
+    const observer = new MutationObserver(function () {
+      if (successEl.hasAttribute('data-fs-active')) {
+        if (typeof gtag === 'function') {
+          gtag('event', submitEvent, submitEventParams || {});
+        }
+        observer.disconnect();
+      }
+    });
+    observer.observe(successEl, { attributes: true, attributeFilter: ['data-fs-active'] });
   })();
 </script>
 <script is:inline src="https://unpkg.com/@formspree/ajax@1" defer></script>

@@ -1,5 +1,9 @@
 ---
 // Google Analytics — gtag.js. Rendered in <head> by Layout.astro on every page.
+// Also installs a delegated click listener that fires GA4 events for
+// mailto:, tel:, and outbound link clicks site-wide. Page-specific CTAs
+// (DJ1 waitlist, lesson booking) and form submits are tracked separately
+// at the element level with explicit `location` / `form_location` params.
 ---
 <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-SH7NCTZDJE"></script>
 <script is:inline>
@@ -7,4 +11,54 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-SH7NCTZDJE');
+
+  // Delegated tracking for mailto:, tel:, and outbound clicks.
+  (function () {
+    // Hostnames that map to a friendly `destination` slug. Anything
+    // not in this map falls back to the raw hostname so new outbound
+    // links still produce a usable event without a code change.
+    var DEST_MAP = {
+      'open.spotify.com': 'spotify',
+      'music.apple.com': 'apple_music',
+      'www.youtube.com': 'youtube',
+      'youtube.com': 'youtube',
+      'youtu.be': 'youtube',
+      '577records.bandcamp.com': 'bandcamp',
+      'bandcamp.com': 'bandcamp',
+      'www.577records.com': '577_records',
+      'www.instagram.com': 'instagram',
+      'instagram.com': 'instagram',
+      'linktr.ee': 'linktree',
+      'drive.google.com': 'gdrive'
+    };
+
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      var href = a.getAttribute('href');
+      if (!href) return;
+
+      if (href.indexOf('mailto:') === 0) {
+        gtag('event', 'email_click', { link_url: href });
+        return;
+      }
+      if (href.indexOf('tel:') === 0) {
+        gtag('event', 'phone_click', { link_url: href });
+        return;
+      }
+
+      // Outbound: absolute http(s) URL whose host differs from the
+      // current page. Skip relative / anchor / non-http schemes.
+      try {
+        var url = new URL(href, window.location.href);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+        if (!url.hostname || url.hostname === window.location.hostname) return;
+        gtag('event', 'outbound_link_click', {
+          destination: DEST_MAP[url.hostname] || url.hostname,
+          link_url: url.href,
+          link_domain: url.hostname
+        });
+      } catch (_) { /* malformed URL — ignore */ }
+    });
+  })();
 </script>

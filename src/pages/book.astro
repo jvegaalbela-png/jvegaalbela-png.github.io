@@ -27,6 +27,8 @@ import LessonForm from '../components/LessonForm.astro';
       formIdSlug="book-lesson-form"
       showLessonType={true}
       showLocation={true}
+      submitEvent="lesson_inquiry_submit"
+      submitEventParams={{ form_location: 'book_page' }}
     />
 
     <div class="book-aside">

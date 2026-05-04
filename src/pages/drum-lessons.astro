@@ -23,7 +23,12 @@ import LessonForm from '../components/LessonForm.astro';
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>All ages &amp; levels</li>
       </ul>
       <p class="hero-price"><strong>$50/hr</strong> &middot; <strong>$30/30min</strong> &nbsp;&middot;&nbsp; <span class="hero-price-promo">First lesson half off</span></p>
-      <LessonForm formId="xjglgjjj" formIdSlug="hero-lesson-form" />
+      <LessonForm
+        formId="xjglgjjj"
+        formIdSlug="hero-lesson-form"
+        submitEvent="lesson_inquiry_submit"
+        submitEventParams={{ form_location: 'lessons_hero' }}
+      />
     </div>
     <figure class="hero-img">
       <img src="/DSC04813.webp" alt="Jacobo Vega-Albela holding a cymbal overhead — black-and-white portrait" width="1000" height="1500" fetchpriority="high">
@@ -112,7 +117,7 @@ import LessonForm from '../components/LessonForm.astro';
     <p class="pricing-fineprint">Bulk packs are non-refundable but fully reschedulable with 24 hours notice. Illness exceptions always apply.</p>
     <div class="mid-cta">
       <p><strong>Not sure which option fits?</strong> Try a half-price first lesson &mdash; drum with me, then decide.</p>
-      <a class="btn btn-outline" data-cta href="/book">Book Your Half-Price Lesson</a>
+      <a class="btn btn-outline" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'pricing_mid' })">Book Your Half-Price Lesson</a>
     </div>
   </div>
 </section>
@@ -210,7 +215,7 @@ import LessonForm from '../components/LessonForm.astro';
   <div class="cta-band-inner">
     <h2>Ready to start?</h2>
     <p>Your first lesson is half off &mdash; just $25 for an hour. See if we click before committing further.</p>
-    <a class="btn btn-primary" data-cta href="/book">Book Your Half-Price Lesson</a>
+    <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'cta_band' })">Book Your Half-Price Lesson</a>
   </div>
 </section>
 

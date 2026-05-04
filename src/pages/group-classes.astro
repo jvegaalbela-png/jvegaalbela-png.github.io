@@ -33,6 +33,8 @@ import LessonForm from '../components/LessonForm.astro';
           formId="xkoyjkzk"
           formIdSlug="hero-waitlist-form"
           submitLabel="Join the Waitlist"
+          submitEvent="dj1_waitlist_submit"
+          submitEventParams={{ form_location: 'group_classes_hero' }}
         />
         <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
         <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
@@ -126,7 +128,7 @@ import LessonForm from '../components/LessonForm.astro';
       <p class="pricing-fineprint">Payment via Venmo, Zelle, or PayPal. Full course due before the first class; drop-in pays per session.</p>
       <div class="mid-cta">
         <p><strong>Ready to claim a seat?</strong> The pilot cohort is capped at 10 &mdash; get on the waitlist and I'll be in touch with dates.</p>
-        <a class="btn btn-outline" href="/join">Join the Pilot Cohort Waitlist</a>
+        <a class="btn btn-outline" href="/join" onclick="gtag('event', 'dj1_waitlist_cta_click', { location: 'pricing_mid' })">Join the Pilot Cohort Waitlist</a>
       </div>
     </div>
   </section>
@@ -197,7 +199,7 @@ import LessonForm from '../components/LessonForm.astro';
   <div class="cta-band-inner">
     <h2>Ready to drum?</h2>
     <p>The pilot cohort is capped at 10. Get on the waitlist and I'll be in touch as soon as dates and a start week are set.</p>
-    <a class="btn btn-primary" href="/join">Join the Pilot Cohort Waitlist</a>
+    <a class="btn btn-primary" href="/join" onclick="gtag('event', 'dj1_waitlist_cta_click', { location: 'cta_band' })">Join the Pilot Cohort Waitlist</a>
   </div>
 </section>
 
