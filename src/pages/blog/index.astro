@@ -81,8 +81,6 @@ const dateFmt = new Intl.DateTimeFormat('en-US', {
 </Layout>
 
 <style>
-  .blog-index { padding-top: var(--header-h, 64px); }
-
   /* ── HERO ─────────────────────────────────── */
   .blog-hero {
     background: var(--navy);
@@ -239,7 +237,7 @@ const dateFmt = new Intl.DateTimeFormat('en-US', {
 
   /* ── RESPONSIVE ───────────────────────────── */
   @media (max-width: 760px) {
-    .blog-hero { padding: 64px 28px 52px; }
+    .blog-hero { padding: calc(var(--header-h) + 16px) 28px 52px; }
     .blog-wrap { padding: 0 28px; }
     .post-card-link {
       grid-template-columns: 1fr;
