@@ -1,7 +1,7 @@
 ---
 title: "5 Easy Drum Songs For Beginner Drummers"
 description: "Five accessible songs for new drummers — Weezer, CCR, Queen, and Stevie Ray Vaughan — with free sheet music links and practice strategies."
-pubDate: 2026-04-11
+pubDate: 2026-04-11T12:00:00Z
 heroImage: "../../assets/blog/easy-songs-hero.webp"
 tags: ["beginner drums", "drum lessons", "practice tips", "how to learn drums", "online drum lessons"]
 ---
