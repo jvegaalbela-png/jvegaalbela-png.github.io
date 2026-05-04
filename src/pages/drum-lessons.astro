@@ -22,24 +22,6 @@ const offers = [
   { name: 'Half-price first 30-minute lesson (new students)', price: '15' },
 ];
 
-const reviews = [
-  {
-    author: 'Will',
-    datePublished: '2024-05-17',
-    body: 'I had an audition for a jazz camp and decided to have a lesson with Jacobo. In one lesson he helped me improve so much, and I ended up getting into the camp. Highly recommended!',
-  },
-  {
-    author: 'Annie',
-    datePublished: '2024-07-12',
-    body: 'I got into the conservatory in Brussels! Thank you so much for all your support — I learned a lot from you.',
-  },
-  {
-    author: 'Joseph',
-    datePublished: '2023-01-15',
-    body: 'My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.',
-  },
-];
-
 const faqs = [
   {
     q: "What's your cancellation policy?",
@@ -122,18 +104,6 @@ const localBusiness = {
       seller: { '@id': PERSON_ID },
     })),
   },
-  review: reviews.map((r) => ({
-    '@type': 'Review',
-    author: { '@type': 'Person', name: r.author },
-    datePublished: r.datePublished,
-    reviewBody: r.body,
-    reviewRating: {
-      '@type': 'Rating',
-      ratingValue: '5',
-      bestRating: '5',
-    },
-    itemReviewed: { '@id': LOCAL_BUSINESS_ID },
-  })),
 };
 
 const faqPage = {
