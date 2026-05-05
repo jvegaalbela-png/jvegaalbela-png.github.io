@@ -10,6 +10,7 @@
       --orange-lt: #f5882a;
       --orange-dk: #b04600;      /* AA-contrast on cream for small text */
       --lime:    #8db820;        /* lime green dots in painting */
+      --lime-dk: #506e10;        /* AA-contrast on cream for small text */
       --cream:   #f5f3ee;
       --ink:     #0e0d0b;
       --muted:   #6b6560;
@@ -630,7 +631,7 @@
 
     .c-blue .highlight-eyebrow   { color: var(--cobalt); }
     .c-orange .highlight-eyebrow { color: var(--orange-dk); }
-    .c-lime .highlight-eyebrow   { color: var(--lime); }
+    .c-lime .highlight-eyebrow   { color: var(--lime-dk); }
 
     /* ── EDUCATION ───────────────────────────────────── */
     .edu-timeline { display: flex; flex-direction: column; }
@@ -881,6 +882,11 @@
         --ink:   #ece7da;
         --muted: #908a7e;
         --rule:  #1d2a48;
+        /* The -dk accent variants are tuned for AA contrast on the cream
+           body. On dark backgrounds they go too dim, so map them back to
+           the brighter brand colors here. */
+        --orange-dk: var(--orange);
+        --lime-dk:   var(--lime);
       }
 
       /* --cream stays light because it's also used as light text on dark
@@ -924,6 +930,10 @@
       .statement-block p:first-child::first-letter { color: var(--blue-lt); }
       .edu-body-subtitle { color: var(--blue-lt); }
       .press-list li::before { background: var(--blue-lt); }
+      /* Cobalt on the dark highlight-card (#0d1830) is ~1.7:1 — bump
+         the c-blue eyebrow up to blue-lt to match the other dark-mode
+         link/accent overrides above. */
+      .c-blue .highlight-eyebrow { color: var(--blue-lt); }
 
       .listen-btn {
         border-color: var(--blue-lt);
