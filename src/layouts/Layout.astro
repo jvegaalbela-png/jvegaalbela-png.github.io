@@ -1,7 +1,9 @@
 ---
+import { getImage } from 'astro:assets';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import GoogleAnalytics from '../components/GoogleAnalytics.astro';
+import albumArt from '../assets/album-art.jpg';
 
 interface OgImage {
   url: string;
@@ -25,10 +27,17 @@ const { title, description, themeColor, bodyClass, noindex, image, og } = Astro.
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 
+const defaultOgImage = await getImage({
+  src: albumArt,
+  format: 'jpg',
+  width: 1200,
+  height: 1200,
+});
+
 const DEFAULT_IMAGE: OgImage = {
-  url: '/album-art.jpg',
-  width: 1013,
-  height: 1013,
+  url: defaultOgImage.src,
+  width: 1200,
+  height: 1200,
   type: 'image/jpeg',
   alt: "Album cover for 'Un-Belonging' by Jacobo Vega-Albela — released on 577 Records, May 2025",
 };

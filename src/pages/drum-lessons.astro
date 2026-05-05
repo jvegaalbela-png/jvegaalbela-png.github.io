@@ -1,8 +1,10 @@
 ---
 import '../styles/lessons.css';
+import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import LessonForm from '../components/LessonForm.astro';
 import JsonLd from '../components/JsonLd.astro';
+import heroImg from '../assets/DSC04813.webp';
 import {
   SITE_URL,
   PERSON,
@@ -10,6 +12,13 @@ import {
   LOCAL_BUSINESS_ID,
   ROCHESTER_AREA,
 } from '../data/schema';
+
+const heroSocial = await getImage({
+  src: heroImg,
+  format: 'webp',
+  width: 1200,
+});
+const heroSocialUrl = new URL(heroSocial.src, SITE_URL).toString();
 
 const pageUrl = `${SITE_URL}/drum-lessons`;
 
@@ -52,7 +61,7 @@ const localBusiness = {
   description:
     'Private drum lessons in Rochester, NY with Jacobo Vega-Albela. By appointment only. K–12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
   url: pageUrl,
-  image: `${SITE_URL}/DSC04813.webp`,
+  image: heroSocialUrl,
   telephone: '+1-585-802-4247',
   email: 'mailto:jacobovamusic@gmail.com',
   priceRange: '$$',
@@ -130,7 +139,7 @@ const graph = {
       url: pageUrl,
       name: 'Drum Lessons in Rochester, NY — Jacobo Vega-Albela',
       about: { '@id': LOCAL_BUSINESS_ID },
-      primaryImageOfPage: `${SITE_URL}/DSC04813.webp`,
+      primaryImageOfPage: heroSocialUrl,
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [
@@ -149,9 +158,9 @@ const graph = {
   description="Drum lessons in Rochester, NY with Jacobo Vega-Albela. Eastman MM, 10+ years teaching all ages and levels. Your first lesson is half off."
   themeColor="#091528"
   image={{
-    url: '/DSC04813.webp',
-    width: 1600,
-    height: 2400,
+    url: heroSocial.src,
+    width: 1200,
+    height: 1800,
     type: 'image/webp',
     alt: 'Black-and-white portrait of Jacobo Vega-Albela holding a cymbal overhead',
   }}
@@ -179,7 +188,14 @@ const graph = {
       />
     </div>
     <figure class="hero-img">
-      <img src="/DSC04813.webp" alt="Jacobo Vega-Albela holding a cymbal overhead — black-and-white portrait" width="1000" height="1500" fetchpriority="high">
+      <Image
+        src={heroImg}
+        alt="Jacobo Vega-Albela holding a cymbal overhead — black-and-white portrait"
+        widths={[600, 800, 1000, 1200, 1600]}
+        sizes="(max-width: 780px) 100vw, 45vw"
+        loading="eager"
+        fetchpriority="high"
+      />
     </figure>
     <div class="hero-aside">
       <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>

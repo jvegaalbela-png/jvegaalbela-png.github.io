@@ -3,8 +3,18 @@
 // across the site (one canonical Person, one canonical Organization,
 // stable @id references for cross-linking).
 
+import { getImage } from 'astro:assets';
+import jacoboPortrait from '../assets/DSC04695.webp';
+
 export const SITE_URL = 'https://jva-music.com';
 export const SITE_NAME = 'JVA Music';
+
+const personImage = await getImage({
+  src: jacoboPortrait,
+  format: 'webp',
+  width: 1200,
+});
+const PERSON_IMAGE_URL = new URL(personImage.src, SITE_URL).toString();
 
 export const PERSON_ID = `${SITE_URL}/#jacobo`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
@@ -36,7 +46,7 @@ export const PERSON = {
   description:
     'Jazz drummer, composer, and bandleader based in Rochester, NY. Music educator and private drum teacher with a Master\'s from the Eastman School of Music.',
   url: SITE_URL,
-  image: `${SITE_URL}/DSC04695.webp`,
+  image: PERSON_IMAGE_URL,
   email: 'mailto:jacobovamusic@gmail.com',
   telephone: '+1-585-802-4247',
   address: {

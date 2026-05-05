@@ -1,12 +1,21 @@
 ---
 import '../styles/group-class.css';
+import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import LessonForm from '../components/LessonForm.astro';
 import JsonLd from '../components/JsonLd.astro';
+import heroImg from '../assets/DSC04880.webp';
 import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION_ID } from '../data/schema';
 
 const pageUrl = `${SITE_URL}/group-classes`;
 const courseId = `${pageUrl}#dj1`;
+
+const heroSocial = await getImage({
+  src: heroImg,
+  format: 'webp',
+  width: 1200,
+});
+const heroSocialUrl = new URL(heroSocial.src, SITE_URL).toString();
 
 const faqs = [
   {
@@ -39,7 +48,7 @@ const course = {
   description:
     'A 10-week online group drum class for complete beginners. 90-minute Zoom sessions with a small cohort capped at 10 students. No drumset required to start — just a practice pad, sticks, and Ted Reed\'s Syncopation.',
   url: pageUrl,
-  image: `${SITE_URL}/DSC04880.webp`,
+  image: heroSocialUrl,
   inLanguage: 'en-US',
   educationalLevel: 'Beginner',
   audience: {
@@ -120,7 +129,7 @@ const graph = {
       url: pageUrl,
       name: 'DJ1 — Online Group Drum Class for Beginners',
       about: { '@id': courseId },
-      primaryImageOfPage: `${SITE_URL}/DSC04880.webp`,
+      primaryImageOfPage: heroSocialUrl,
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [
@@ -139,9 +148,9 @@ const graph = {
   description="DJ1 — a 10-week online group drum class for complete beginners with Jacobo Vega-Albela. Small group, no kit required to start. Join the pilot cohort waitlist."
   themeColor="#091528"
   image={{
-    url: '/DSC04880.webp',
-    width: 1600,
-    height: 2400,
+    url: heroSocial.src,
+    width: 1200,
+    height: 1800,
     type: 'image/webp',
     alt: 'Jacobo Vega-Albela seated at the drumset',
   }}
@@ -178,7 +187,14 @@ const graph = {
         <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
       </div>
       <figure class="hero-img">
-        <img src="/DSC04880.webp" alt="Jacobo Vega-Albela at the drumset" width="1000" height="1250" fetchpriority="high">
+        <Image
+          src={heroImg}
+          alt="Jacobo Vega-Albela at the drumset"
+          widths={[600, 800, 1000, 1200, 1600]}
+          sizes="(max-width: 780px) 100vw, 45vw"
+          loading="eager"
+          fetchpriority="high"
+        />
       </figure>
     </div>
   </section>

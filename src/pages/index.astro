@@ -1,7 +1,19 @@
 ---
 import '../styles/global.css';
+import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import JsonLd from '../components/JsonLd.astro';
+import albumArt from '../assets/album-art.jpg';
+import press04695 from '../assets/DSC04695.webp';
+import press04717 from '../assets/DSC04717.webp';
+import press04734 from '../assets/DSC04734.webp';
+import press04790 from '../assets/DSC04790.webp';
+import press04813 from '../assets/DSC04813.webp';
+import press04880 from '../assets/DSC04880.webp';
+import press05009 from '../assets/DSC05009.webp';
+
+const carouselSizes = '(max-width: 700px) 100vw, 680px';
+const carouselWidths = [400, 540, 680, 800, 1080, 1360];
 import {
   SITE_URL,
   PERSON,
@@ -11,6 +23,16 @@ import {
   WEBSITE,
   ALBUM_ID,
 } from '../data/schema';
+
+// Optimized JPG for OG/Twitter cards and JSON-LD — social scrapers want
+// a stable URL in a widely-supported format.
+const albumArtSocial = await getImage({
+  src: albumArt,
+  format: 'jpg',
+  width: 1200,
+  height: 1200,
+});
+const albumArtSocialUrl = new URL(albumArtSocial.src, SITE_URL).toString();
 
 const tracks = [
   'Moonbeams',
@@ -29,7 +51,7 @@ const album = {
   name: 'Un-Belonging',
   alternateName: '"Un-Belonging"',
   url: 'https://577records.bandcamp.com/album/un-belonging',
-  image: `${SITE_URL}/album-art.jpg`,
+  image: albumArtSocialUrl,
   datePublished: '2025-05',
   numTracks: tracks.length,
   albumProductionType: 'https://schema.org/StudioAlbum',
@@ -97,7 +119,7 @@ const graph = {
       name: 'Jacobo Vega-Albela — Home',
       isPartOf: { '@id': WEBSITE['@id'] },
       about: { '@id': PERSON_ID },
-      primaryImageOfPage: `${SITE_URL}/album-art.jpg`,
+      primaryImageOfPage: albumArtSocialUrl,
     },
     album,
   ],
@@ -105,7 +127,14 @@ const graph = {
 ---
 
 <Layout title="Jacobo Vega-Albela — Home"
-  description="Jacobo Vega-Albela — jazz drummer, composer, and music educator based in Rochester, NY. Debut album 'Un-Belonging' out on 577 Records (May 2025).">
+  description="Jacobo Vega-Albela — jazz drummer, composer, and music educator based in Rochester, NY. Debut album 'Un-Belonging' out on 577 Records (May 2025)."
+  image={{
+    url: albumArtSocial.src,
+    width: 1200,
+    height: 1200,
+    type: 'image/jpeg',
+    alt: "Album cover for 'Un-Belonging' by Jacobo Vega-Albela — released on 577 Records, May 2025",
+  }}>
   <JsonLd slot="head" data={graph} />
 <!-- ══════════════════════════════════════════ HERO -->
 <header class="hero">
@@ -127,7 +156,16 @@ const graph = {
 
   <div class="hero-right">
     <div class="album-art-wrap">
-      <img src="/album-art.jpg" alt="Un-Belonging — Album Art" />
+      <Image
+        src={albumArt}
+        alt="Un-Belonging — Album Art"
+        width={560}
+        height={560}
+        widths={[280, 420, 480, 560]}
+        sizes="(max-width: 860px) 240px, 280px"
+        loading="eager"
+        fetchpriority="high"
+      />
       <div class="album-art-label">
         <span class="art-eyebrow">Debut Album</span>
         <span class="art-title">"Un-Belonging"</span>
@@ -515,27 +553,27 @@ const graph = {
     <div class="carousel-wrap">
       <div class="carousel-stage" id="carouselStage">
 
-        <!-- Portrait favorites — Google Drive thumbnail URLs -->
+        <!-- Portrait favorites -->
         <div class="carousel-slide active">
-          <img src="/DSC04695.webp" alt="Press Photo" loading="lazy" />
+          <Image src={press04695} alt="Press Photo" widths={carouselWidths} sizes={carouselSizes} width={1360} loading="lazy" />
         </div>
         <div class="carousel-slide">
-          <img src="/DSC04717.webp" alt="Press Photo" loading="lazy" />
+          <Image src={press04717} alt="Press Photo" widths={carouselWidths} sizes={carouselSizes} width={1360} loading="lazy" />
         </div>
         <div class="carousel-slide">
-          <img src="/DSC04734.webp" alt="Press Photo" loading="lazy" />
+          <Image src={press04734} alt="Press Photo" widths={carouselWidths} sizes={carouselSizes} width={1360} loading="lazy" />
         </div>
         <div class="carousel-slide">
-          <img src="/DSC04790.webp" alt="Press Photo" loading="lazy" />
+          <Image src={press04790} alt="Press Photo" widths={carouselWidths} sizes={carouselSizes} width={1360} loading="lazy" />
         </div>
         <div class="carousel-slide">
-          <img src="/DSC04813.webp" alt="Press Photo" loading="lazy" />
+          <Image src={press04813} alt="Press Photo" widths={carouselWidths} sizes={carouselSizes} width={1360} loading="lazy" />
         </div>
         <div class="carousel-slide">
-          <img src="/DSC04880.webp" alt="Press Photo" loading="lazy" />
+          <Image src={press04880} alt="Press Photo" widths={carouselWidths} sizes={carouselSizes} width={1360} loading="lazy" />
         </div>
         <div class="carousel-slide">
-          <img src="/DSC05009.webp" alt="Press Photo" loading="lazy" />
+          <Image src={press05009} alt="Press Photo" widths={carouselWidths} sizes={carouselSizes} width={1360} loading="lazy" />
         </div>
 
       </div><!-- /.carousel-stage -->
