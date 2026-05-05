@@ -93,6 +93,9 @@ const ogType = og?.type ?? 'website';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preload" as="font" type="font/woff2" href={interLatinUrl} crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href={cormorantLatinUrl} crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href={cormorantLatinItalicUrl} crossorigin />
   {description && <meta name="description" content={description} />}
   {themeColor && <meta name="theme-color" content={themeColor} />}
   {noindex && <meta name="robots" content="noindex" />}

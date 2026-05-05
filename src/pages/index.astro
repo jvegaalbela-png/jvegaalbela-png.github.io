@@ -11,10 +11,6 @@ import press04790 from '../assets/DSC04790.webp';
 import press04813 from '../assets/DSC04813.webp';
 import press04880 from '../assets/DSC04880.webp';
 import press05009 from '../assets/DSC05009.webp';
-// ?url returns the hashed file URL after Vite processes the woff2,
-// so we can preload it to avoid the FOUT swap reflow on body text.
-import interLatinUrl from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
-
 const carouselSizes = '(max-width: 700px) 100vw, 680px';
 const carouselWidths = [400, 540, 680, 800, 1080, 1360];
 import {
@@ -149,14 +145,6 @@ const graph = {
     alt: "Album cover for 'Un-Belonging' by Jacobo Vega-Albela — released on 577 Records, May 2025",
   }}>
   <JsonLd slot="head" data={graph} />
-  <link
-    slot="head"
-    rel="preload"
-    as="font"
-    type="font/woff2"
-    href={interLatinUrl}
-    crossorigin
-  />
 <main>
 <!-- ══════════════════════════════════════════ HERO -->
 <header class="hero">
