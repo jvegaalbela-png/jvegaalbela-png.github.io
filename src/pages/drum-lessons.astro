@@ -328,13 +328,35 @@ const graph = {
     <div class="listen-grid">
       <figure class="media media-bc">
         <div class="media-frame bc">
-          <iframe loading="lazy" title="Un-Belonging on Bandcamp" src="https://bandcamp.com/EmbeddedPlayer/album=2556455061/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/transparent=true/" seamless><a href="https://577records.bandcamp.com/album/un-belonging">Un-Belonging by Jacobo Vega-Albela</a></iframe>
+          <button
+            type="button"
+            class="media-facade media-facade-bc"
+            aria-label="Play 'Un-Belonging' on Bandcamp"
+            data-facade="bc"
+          >
+            <span class="media-facade-eyebrow">Bandcamp</span>
+            <span class="media-facade-title">"Un-Belonging"</span>
+            <span class="media-facade-sub">577 Records · 2025</span>
+            <span class="media-facade-play" aria-hidden="true">▶</span>
+            <span class="media-facade-cta">Play album</span>
+          </button>
         </div>
         <figcaption><strong>Un-Belonging</strong> &mdash; my debut album on 577 Records (2025).</figcaption>
       </figure>
       <figure class="media">
         <div class="media-frame yt">
-          <iframe loading="lazy" title="Performance footage on YouTube" src="https://www.youtube.com/embed/videoseries?list=PLr4sdvgtCCMcfSZHuTscc1YX61tsUFaJt" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          <button
+            type="button"
+            class="media-facade media-facade-yt"
+            aria-label="Play performance footage on YouTube"
+            data-facade="yt"
+          >
+            <span class="media-facade-eyebrow">YouTube</span>
+            <span class="media-facade-title">Performance footage</span>
+            <span class="media-facade-sub">Clips from recent shows &amp; sessions</span>
+            <span class="media-facade-play" aria-hidden="true">▶</span>
+            <span class="media-facade-cta">Play playlist</span>
+          </button>
         </div>
         <figcaption><strong>Performance footage</strong> &mdash; clips from recent shows and sessions.</figcaption>
       </figure>
@@ -402,6 +424,132 @@ const graph = {
     color: var(--orange-lt);
     font-weight: 500;
   }
+
+  /* Iframe facades — replace YouTube + Bandcamp <iframe>s with a styled
+     button until the user clicks. Defers ~1 MB of third-party JS and
+     ~1 s of script eval to user intent. */
+  .media-facade {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    margin: 0;
+    padding: 1.5rem;
+    cursor: pointer;
+    color: var(--cream);
+    text-align: center;
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    background:
+      radial-gradient(ellipse 70% 90% at 50% 110%, rgba(26, 58, 138, .55), transparent 60%),
+      linear-gradient(180deg, var(--navy) 0%, #051022 100%);
+    transition: transform .2s, box-shadow .2s;
+  }
+  /* Match the slots the original <iframe>s lived in — YT is absolutely
+     positioned inside a 16/9 frame, BC is a fixed 350×470 inline box. */
+  .media-frame .media-facade {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .media-frame.bc .media-facade {
+    position: relative;
+    width: 350px;
+    max-width: 100%;
+    height: 470px;
+    inset: auto;
+  }
+  .media-facade-yt {
+    background:
+      radial-gradient(ellipse 60% 80% at 50% 100%, rgba(232, 101, 10, .25), transparent 60%),
+      linear-gradient(180deg, var(--navy) 0%, #050a14 100%);
+  }
+  .media-facade:hover,
+  .media-facade:focus-visible {
+    transform: translateY(-1px);
+    outline: none;
+  }
+  .media-facade:focus-visible {
+    box-shadow: 0 0 0 2px var(--orange);
+  }
+  .media-facade-eyebrow {
+    font-size: .6875rem;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+  }
+  .media-facade-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+    line-height: 1.15;
+    color: var(--cream);
+  }
+  .media-facade-sub {
+    font-size: .8125rem;
+    color: rgba(245, 243, 238, .65);
+    margin-bottom: .25rem;
+  }
+  .media-facade-play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: var(--cream);
+    font-size: 1.25rem;
+    line-height: 1;
+    padding-left: 4px;
+    margin-top: .25rem;
+    transition: background .2s, transform .2s;
+  }
+  .media-facade:hover .media-facade-play,
+  .media-facade:focus-visible .media-facade-play {
+    background: var(--orange-lt);
+    transform: scale(1.05);
+  }
+  .media-facade-cta {
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, .8);
+    margin-top: .25rem;
+  }
 </style>
+
+<script is:inline>
+  // Iframe facade — swap the placeholder button for the real iframe on
+  // the user's first click. Until then, the third-party players never
+  // load, saving ~1 MB of JS and ~1 s of script eval per page load.
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('.media-facade') : null;
+    if (!btn) return;
+    var kind = btn.getAttribute('data-facade');
+    var iframe = document.createElement('iframe');
+    iframe.setAttribute('frameborder', '0');
+    if (kind === 'yt') {
+      iframe.src = 'https://www.youtube.com/embed/videoseries?list=PLr4sdvgtCCMcfSZHuTscc1YX61tsUFaJt&autoplay=1';
+      iframe.title = 'Performance footage on YouTube';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+    } else if (kind === 'bc') {
+      iframe.src = 'https://bandcamp.com/EmbeddedPlayer/album=2556455061/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/transparent=true/';
+      iframe.title = 'Un-Belonging on Bandcamp';
+      iframe.setAttribute('seamless', '');
+    } else {
+      return;
+    }
+    btn.replaceWith(iframe);
+  });
+</script>
 
 </Layout>
