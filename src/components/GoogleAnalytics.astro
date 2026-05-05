@@ -1,22 +1,12 @@
 ---
 // Google Analytics — GA4 via gtag.js. Rendered in <head> by Layout.astro.
 // The dataLayer stub and gtag() function are set up immediately so any
-// events fired before load are queued. The 153 KiB gtag.js script (and
-// the ~450 KiB chain of linked GTM/Ads containers it pulls in) is
-// deferred until the visitor's first interaction — scroll, pointerdown,
-// keydown, touchstart, or mousemove. Lighthouse's Performance audit
-// doesn't simulate any of those, so the entire analytics chain stays
-// out of the measurement window. Real visitors trip a trigger within
-// ~1 s of arrival, so the only sessions that go untracked are true
-// hard-bouncers (no interaction at all — usually bots or misclicks).
+// events fired before load are queued. The 153 KiB gtag.js script itself
+// is injected dynamically after window load so it cannot block LCP.
+// GA4 replays queued dataLayer entries when it initialises.
 //
-// A 15 s setTimeout is the safety net in case a visitor reads without
-// moving anything; it fires well after Lighthouse wraps up its trace,
-// so it doesn't leak back into the measured TBT.
-//
-// Click tracking (mailto:, tel:, outbound) is set up immediately and
-// works pre-load — gtag() calls before gtag.js loads just push to the
-// queue and replay when the script initialises.
+// Click tracking (mailto:, tel:, outbound) is set up here too and works
+// immediately — gtag() calls before load just push to the queue.
 ---
 <script is:inline>
   window.dataLayer = window.dataLayer || [];
@@ -24,27 +14,28 @@
   gtag('js', new Date());
   gtag('config', 'G-SH7NCTZDJE');
 
-  var _gtagLoaded = false;
+  // Inject gtag.js during the browser's first idle moment after load so
+  // it cannot block the LCP paint. requestIdleCallback fires after the
+  // browser finishes layout/paint; setTimeout(fn,1000) is the fallback
+  // for older Safari. Events queued in dataLayer are replayed by GA4.
   function _loadGtag() {
-    if (_gtagLoaded) return;
-    _gtagLoaded = true;
     var s = document.createElement('script');
     s.src = 'https://www.googletagmanager.com/gtag/js?id=G-SH7NCTZDJE';
     s.async = true;
     document.head.appendChild(s);
   }
-
-  var _triggers = ['pointerdown', 'scroll', 'keydown', 'touchstart', 'mousemove'];
-  function _onInteract() {
-    _triggers.forEach(function (ev) {
-      window.removeEventListener(ev, _onInteract);
-    });
-    _loadGtag();
+  function _scheduleGtag() {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(_loadGtag, { timeout: 5000 });
+    } else {
+      setTimeout(_loadGtag, 1000);
+    }
   }
-  _triggers.forEach(function (ev) {
-    window.addEventListener(ev, _onInteract, { once: true, passive: true });
-  });
-  setTimeout(_loadGtag, 15000);
+  if (document.readyState === 'complete') {
+    _scheduleGtag();
+  } else {
+    window.addEventListener('load', _scheduleGtag);
+  }
 
   // Delegated click tracking for mailto:, tel:, and outbound links.
   (function () {
