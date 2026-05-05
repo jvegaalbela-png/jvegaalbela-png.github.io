@@ -299,39 +299,50 @@
 <script is:inline>
   // Scroll-hide behavior: hide on scroll-down past threshold,
   // show on scroll-up. Always visible near the top of the page.
+  // Defer init to DOMContentLoaded so the initial scrollY read
+  // doesn't force a layout calculation while the body is still
+  // being parsed.
   (function () {
-    const header = document.getElementById("siteHeader");
-    if (!header) return;
+    function init() {
+      const header = document.getElementById("siteHeader");
+      if (!header) return;
 
-    const TOP_ZONE = 80;
-    const DELTA = 6;
-    let lastY = window.scrollY;
-    let ticking = false;
+      const TOP_ZONE = 80;
+      const DELTA = 6;
+      let lastY = window.scrollY;
+      let ticking = false;
 
-    function update() {
-      const y = window.scrollY;
-      const diff = y - lastY;
+      function update() {
+        const y = window.scrollY;
+        const diff = y - lastY;
 
-      if (y < TOP_ZONE) {
-        header.classList.remove("is-hidden");
-      } else if (Math.abs(diff) > DELTA) {
-        if (diff > 0) {
-          header.classList.add("is-hidden");
-        } else {
+        if (y < TOP_ZONE) {
           header.classList.remove("is-hidden");
+        } else if (Math.abs(diff) > DELTA) {
+          if (diff > 0) {
+            header.classList.add("is-hidden");
+          } else {
+            header.classList.remove("is-hidden");
+          }
         }
+
+        lastY = y;
+        ticking = false;
       }
 
-      lastY = y;
-      ticking = false;
+      window.addEventListener("scroll", function () {
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
     }
 
-    window.addEventListener("scroll", function () {
-      if (!ticking) {
-        window.requestAnimationFrame(update);
-        ticking = true;
-      }
-    }, { passive: true });
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
   })();
 
   // Mobile menu toggle
