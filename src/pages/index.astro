@@ -37,25 +37,14 @@ const albumArtSocial = await getImage({
 });
 const albumArtSocialUrl = new URL(albumArtSocial.src, SITE_URL).toString();
 
-// Build a preload imagesrcset for the LCP album-art image so the browser
-// can start fetching it during head parse, not after body parse. Params
-// must match the <Image> below exactly so the URLs resolve to the same
-// hashed files Astro emits.
+// Hero album-art display sizes. Quality dropped from default ~80 to 65
+// since the image only displays at 280-560px, where the difference is
+// imperceptible. Tried preloading via <link rel="preload" imagesrcset>
+// but it competed with other early-load bytes and dropped Speed Index
+// without helping LCP (image was already small enough that fetch time
+// wasn't the bottleneck).
 const lcpQuality = 65;
 const lcpWidths = [280, 420, 480, 560];
-const lcpVariants = await Promise.all(
-  lcpWidths.map(async (w) => {
-    const v = await getImage({
-      src: albumArt,
-      format: 'webp',
-      width: w,
-      height: w,
-      quality: lcpQuality,
-    });
-    return `${v.src} ${w}w`;
-  })
-);
-const lcpImageSrcset = lcpVariants.join(', ');
 const lcpImageSizes = '(max-width: 860px) 240px, 280px';
 
 const tracks = [
@@ -160,14 +149,6 @@ const graph = {
     alt: "Album cover for 'Un-Belonging' by Jacobo Vega-Albela — released on 577 Records, May 2025",
   }}>
   <JsonLd slot="head" data={graph} />
-  <link
-    slot="head"
-    rel="preload"
-    as="image"
-    imagesrcset={lcpImageSrcset}
-    imagesizes={lcpImageSizes}
-    fetchpriority="high"
-  />
   <link
     slot="head"
     rel="preload"
