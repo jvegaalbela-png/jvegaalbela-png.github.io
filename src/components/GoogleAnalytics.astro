@@ -1,22 +1,35 @@
 ---
-// Google Analytics — gtag.js. Rendered in <head> by Layout.astro on every page.
-// Also installs a delegated click listener that fires GA4 events for
-// mailto:, tel:, and outbound link clicks site-wide. Page-specific CTAs
-// (DJ1 waitlist, lesson booking) and form submits are tracked separately
-// at the element level with explicit `location` / `form_location` params.
+// Google Analytics — GA4 via gtag.js. Rendered in <head> by Layout.astro.
+// The dataLayer stub and gtag() function are set up immediately so any
+// events fired before load are queued. The 153 KiB gtag.js script itself
+// is injected dynamically after window load so it cannot block LCP.
+// GA4 replays queued dataLayer entries when it initialises.
+//
+// Click tracking (mailto:, tel:, outbound) is set up here too and works
+// immediately — gtag() calls before load just push to the queue.
 ---
-<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-SH7NCTZDJE"></script>
 <script is:inline>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-SH7NCTZDJE');
 
-  // Delegated tracking for mailto:, tel:, and outbound clicks.
+  // Inject gtag.js only after the page has fully loaded so it cannot
+  // block the LCP paint. Events queued in dataLayer are replayed.
+  function _loadGtag() {
+    var s = document.createElement('script');
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-SH7NCTZDJE';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+  if (document.readyState === 'complete') {
+    _loadGtag();
+  } else {
+    window.addEventListener('load', _loadGtag);
+  }
+
+  // Delegated click tracking for mailto:, tel:, and outbound links.
   (function () {
-    // Hostnames that map to a friendly `destination` slug. Anything
-    // not in this map falls back to the raw hostname so new outbound
-    // links still produce a usable event without a code change.
     var DEST_MAP = {
       'open.spotify.com': 'spotify',
       'music.apple.com': 'apple_music',
@@ -47,8 +60,6 @@
         return;
       }
 
-      // Outbound: absolute http(s) URL whose host differs from the
-      // current page. Skip relative / anchor / non-http schemes.
       try {
         var url = new URL(href, window.location.href);
         if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
