@@ -39,7 +39,7 @@ const albumArtSocialUrl = new URL(albumArtSocial.src, SITE_URL).toString();
 // but it competed with other early-load bytes and dropped Speed Index
 // without helping LCP (image was already small enough that fetch time
 // wasn't the bottleneck).
-const lcpQuality = 65;
+const lcpQuality = 55;
 const lcpWidths = [280, 420, 480, 560];
 const lcpImageSizes = '(max-width: 860px) 240px, 280px';
 
