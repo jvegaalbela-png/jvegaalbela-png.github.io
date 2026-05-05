@@ -530,7 +530,11 @@ const graph = {
   // Iframe facade — swap the placeholder button for the real iframe on
   // the user's first click. Until then, the third-party players never
   // load, saving ~1 MB of JS and ~1 s of script eval per page load.
+  // The isTrusted guard rejects synthetic clicks (e.g. element.click()
+  // calls from Lighthouse's accessibility audits or other automation),
+  // which were otherwise booting the iframes during measurement.
   document.addEventListener('click', function (e) {
+    if (!e.isTrusted) return;
     var btn = e.target && e.target.closest ? e.target.closest('.media-facade') : null;
     if (!btn) return;
     var kind = btn.getAttribute('data-facade');
