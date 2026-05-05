@@ -4,9 +4,7 @@ backend:
   branch: main
   base_url: https://sveltia-cms-auth.jvegaalbela.workers.dev
 
-# Where uploaded images get committed in the repo
 media_folder: src/assets/blog
-# How that path is referenced from inside content files (relative path that Astro can resolve)
 public_folder: ../../assets/blog
 
 collections:
@@ -18,12 +16,33 @@ collections:
     extension: mdx
     format: frontmatter
     slug: "{{slug}}"
-    summary: "{{title}} — {{pubDate | date('YYYY-MM-DD')}}"
-    sortable_fields: [pubDate, title]
     fields:
-      - { label: Title, name: title, widget: string }
-      - { label: Description, name: description, widget: text, hint: "Shown in previews and search results. Aim for 120-160 characters." }
-      - { label: Publish Date, name: pubDate, widget: datetime }
-      - { label: Updated Date, name: updatedDate, widget: datetime, required: false }
-      - { label: Hero Image, name: heroImage, widget: image, required: false, choose_url: false }
-      - { label: Tags,
+      - label: Title
+        name: title
+        widget: string
+      - label: Description
+        name: description
+        widget: text
+      - label: Publish Date
+        name: pubDate
+        widget: datetime
+      - label: Updated Date
+        name: updatedDate
+        widget: datetime
+        required: false
+      - label: Hero Image
+        name: heroImage
+        widget: image
+        required: false
+      - label: Tags
+        name: tags
+        widget: list
+        default: []
+        required: false
+      - label: Draft
+        name: draft
+        widget: boolean
+        default: false
+      - label: Body
+        name: body
+        widget: markdown
