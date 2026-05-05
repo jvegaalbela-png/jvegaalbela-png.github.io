@@ -314,42 +314,79 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
 </style>
 
 <script is:inline define:vars={{ formId, formIdSlug, submitEvent, submitEventParams }}>
+  // Queue stub so any pre-load formspree() calls are replayed once the
+  // real Formspree script loads. Identical to what the gtag stub does.
   window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
-  formspree('initForm', { formElement: '#' + formIdSlug, formId: formId, useDefaultStyles: false });
+
+  // Formspree script (12 KiB) is lazy-loaded — on first interaction with
+  // the form, or on first browser-idle moment after load, whichever comes
+  // first. This keeps it off the LCP critical path. The single load is
+  // guarded globally so multiple LessonForm instances don't double-fetch.
+  function _loadFormspreeScript() {
+    if (window._fsLoaded) return;
+    window._fsLoaded = true;
+    var s = document.createElement('script');
+    s.src = '/formspree-ajax.min.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
 
   (function () {
     const form = document.getElementById(formIdSlug);
     if (!form) return;
+
+    // initForm goes through the queue stub; replayed when the real
+    // script lands. Order is preserved.
+    formspree('initForm', { formElement: '#' + formIdSlug, formId: formId, useDefaultStyles: false });
+
+    // Lazy-load triggers — first focus or first submit on this form.
+    form.addEventListener('focusin', _loadFormspreeScript, { once: true });
+    form.addEventListener('submit', _loadFormspreeScript, { once: true });
+
     const select = form.querySelector('[data-fs-experience-select]');
     const notice = form.querySelector('[data-fs-experience-notice]');
-    if (!select || !notice) return;
-    const update = () => {
-      const v = select.value;
-      notice.hidden = !(v === 'Intermediate' || v === 'Advanced');
-    };
-    select.addEventListener('change', update);
-    update();
+    if (select && notice) {
+      const update = () => {
+        const v = select.value;
+        notice.hidden = !(v === 'Intermediate' || v === 'Advanced');
+      };
+      select.addEventListener('change', update);
+      update();
+    }
+
+    // Fire GA4 event when Formspree marks the form as successfully submitted.
+    // Formspree adds [data-fs-active] to the [data-fs-success] element on
+    // success — that's the only state that distinguishes a real submission
+    // from a network/validation failure.
+    if (submitEvent) {
+      const successEl = form.querySelector('[data-fs-success]');
+      if (successEl) {
+        const observer = new MutationObserver(function () {
+          if (successEl.hasAttribute('data-fs-active')) {
+            if (typeof gtag === 'function') {
+              gtag('event', submitEvent, submitEventParams || {});
+            }
+            observer.disconnect();
+          }
+        });
+        observer.observe(successEl, { attributes: true, attributeFilter: ['data-fs-active'] });
+      }
+    }
   })();
 
-  // Fire GA4 event when Formspree marks the form as successfully submitted.
-  // Formspree adds [data-fs-active] to the [data-fs-success] element on
-  // success — that's the only state that distinguishes a real submission
-  // from a network/validation failure.
-  (function () {
-    if (!submitEvent || typeof window === 'undefined') return;
-    const form = document.getElementById(formIdSlug);
-    if (!form) return;
-    const successEl = form.querySelector('[data-fs-success]');
-    if (!successEl) return;
-    const observer = new MutationObserver(function () {
-      if (successEl.hasAttribute('data-fs-active')) {
-        if (typeof gtag === 'function') {
-          gtag('event', submitEvent, submitEventParams || {});
-        }
-        observer.disconnect();
-      }
-    });
-    observer.observe(successEl, { attributes: true, attributeFilter: ['data-fs-active'] });
-  })();
+  // Idle fallback so the script is ready even if the user never focuses
+  // the form (e.g. they tab away and back). 5 s timeout matches the
+  // gtag.js loader so the two don't compete for the same idle window.
+  function _scheduleFormspree() {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(_loadFormspreeScript, { timeout: 5000 });
+    } else {
+      setTimeout(_loadFormspreeScript, 2000);
+    }
+  }
+  if (document.readyState === 'complete') {
+    _scheduleFormspree();
+  } else {
+    window.addEventListener('load', _scheduleFormspree);
+  }
 </script>
-<script is:inline src="/formspree-ajax.min.js" defer></script>
