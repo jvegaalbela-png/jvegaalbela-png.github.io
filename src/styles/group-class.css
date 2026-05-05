@@ -4,7 +4,7 @@
   --orange:#e8650a; --orange-lt:#f5882a; --lime:#8db820;
   --cream:#f5f3ee; --ink:#0e0d0b; --muted:#6b6560; --rule:#d8d3cb;
   --serif:'Cormorant Garamond',Georgia,serif;
-  --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --sans:'Inter Variable',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   --maxw:1100px;
   --pad:clamp(1.25rem,4vw,3.5rem);
 }

@@ -14,7 +14,7 @@
       --muted:   #6b6560;
       --rule:    #d8d3cb;
       --serif:   'Cormorant Garamond', Georgia, serif;
-      --sans:    'Inter', system-ui, sans-serif;
+      --sans:    'Inter Variable', system-ui, sans-serif;
     }
 
     html { scroll-behavior: smooth; }

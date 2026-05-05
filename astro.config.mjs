@@ -9,4 +9,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
  site: 'https://jva-music.com',
  integrations: [mdx(), sitemap()],
+ build: {
+  inlineStylesheets: 'always',
+ },
 });
