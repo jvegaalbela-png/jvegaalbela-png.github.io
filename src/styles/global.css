@@ -8,6 +8,7 @@
       --blue-lt: #5b8de8;        /* bright blue highlight */
       --orange:  #e8650a;        /* warm orange from painting */
       --orange-lt: #f5882a;
+      --orange-dk: #b04600;      /* AA-contrast on cream for small text */
       --lime:    #8db820;        /* lime green dots in painting */
       --cream:   #f5f3ee;
       --ink:     #0e0d0b;
@@ -265,7 +266,7 @@
       font-weight: 700;
       letter-spacing: 0.24em;
       text-transform: uppercase;
-      color: var(--orange);
+      color: var(--orange-dk);
       white-space: nowrap;
     }
 
@@ -491,7 +492,7 @@
     .track-num {
       font-family: var(--serif);
       font-size: 12px;
-      color: var(--orange);
+      color: var(--orange-dk);
       min-width: 20px;
     }
 
@@ -553,7 +554,7 @@
       font-weight: 700;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--orange);
+      color: var(--orange-dk);
       margin-bottom: 18px;
       padding-bottom: 10px;
       border-bottom: 1px solid var(--rule);
@@ -628,7 +629,7 @@
     }
 
     .c-blue .highlight-eyebrow   { color: var(--cobalt); }
-    .c-orange .highlight-eyebrow { color: var(--orange); }
+    .c-orange .highlight-eyebrow { color: var(--orange-dk); }
     .c-lime .highlight-eyebrow   { color: var(--lime); }
 
     /* ── EDUCATION ───────────────────────────────────── */
@@ -649,7 +650,7 @@
       font-family: var(--serif);
       font-size: 14px;
       font-style: italic;
-      color: var(--orange);
+      color: var(--orange-dk);
       padding-top: 3px;
     }
 
@@ -690,7 +691,7 @@
       font-family: var(--serif);
       font-size: 13px;
       font-style: italic;
-      color: var(--orange);
+      color: var(--orange-dk);
       min-width: 40px;
     }
 
