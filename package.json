@@ -6,11 +6,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/sync-blog-assets.mjs && astro dev",
+    "build": "node scripts/sync-blog-assets.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "pdfs:thumbs": "node scripts/generate-pdf-thumbs.mjs"
+    "pdfs:thumbs": "node scripts/generate-pdf-thumbs.mjs",
+    "blog:sync": "node scripts/sync-blog-assets.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.4",

@@ -5,6 +5,7 @@ import '../../styles/global.css';
 import Layout from '../../layouts/Layout.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION, ORGANIZATION_ID } from '../../data/schema';
+import { resolveHeroImage } from '../../data/heroImages';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -25,9 +26,11 @@ const dateFmt = new Intl.DateTimeFormat('en-US', {
 
 const postUrl = `${SITE_URL}/blog/${post.id}`;
 
+const heroAsset = resolveHeroImage(post.data.heroImage);
+
 let heroImage: { url: string; width: number; height: number; type: string; alt: string } | undefined;
-if (post.data.heroImage) {
-  const optimized = await getImage({ src: post.data.heroImage, width: 1200 });
+if (heroAsset) {
+  const optimized = await getImage({ src: heroAsset, width: 1200 });
   heroImage = {
     url: new URL(optimized.src, SITE_URL).toString(),
     width: optimized.attributes.width as number,
@@ -138,10 +141,10 @@ const graph = {
           }
         </div>
         {
-          post.data.heroImage && (
+          heroAsset && (
             <figure class="post-hero-img">
               <Image
-                src={post.data.heroImage}
+                src={heroAsset}
                 alt=""
                 widths={[600, 900, 1200]}
                 sizes="(min-width: 900px) 420px, 100vw"

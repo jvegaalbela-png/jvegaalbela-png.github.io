@@ -5,6 +5,7 @@ import '../../styles/global.css';
 import Layout from '../../layouts/Layout.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION_ID, ORGANIZATION } from '../../data/schema';
+import { resolveHeroImage } from '../../data/heroImages';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
@@ -91,13 +92,15 @@ const graph = {
             <p class="blog-empty">No posts yet — check back soon.</p>
           ) : (
             <ul class="post-list">
-              {posts.map((post) => (
+              {posts.map((post) => {
+                const heroAsset = resolveHeroImage(post.data.heroImage);
+                return (
                 <li class="post-card">
                   <a class="post-card-link" href={`/blog/${post.id}`}>
-                    {post.data.heroImage && (
+                    {heroAsset && (
                       <figure class="post-card-img">
                         <Image
-                          src={post.data.heroImage}
+                          src={heroAsset}
                           alt=""
                           widths={[400, 800, 1200]}
                           sizes="(min-width: 760px) 360px, 100vw"
@@ -123,7 +126,8 @@ const graph = {
                     </div>
                   </a>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )
         }

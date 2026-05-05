@@ -4,8 +4,8 @@ backend:
   branch: main
   base_url: https://sveltia-cms-auth.jvegaalbela.workers.dev
 
-media_folder: public/blog-uploads
-public_folder: /blog-uploads
+media_folder: public/uploads/blog
+public_folder: /uploads/blog
 
 collections:
   - name: blog
@@ -16,8 +16,6 @@ collections:
     extension: mdx
     format: frontmatter
     slug: "{{slug}}"
-    media_folder: "../../assets/blog"
-    public_folder: "../../assets/blog"
     fields:
       - label: Title
         name: title
