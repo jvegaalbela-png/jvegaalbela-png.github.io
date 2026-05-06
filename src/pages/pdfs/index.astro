@@ -61,10 +61,11 @@ const ABOUT_BY_FILE: AboutMap = {
   },
 };
 
-function pdfFileSize(categoryId: string, file: string): string | undefined {
+function pdfFileSize(filePath: string): string | undefined {
   try {
+    // filePath is an absolute public path like /pdfs/single-surface/file.pdf
     const path = fileURLToPath(
-      new URL(`../../../public/pdfs/${categoryId}/${file}`, import.meta.url)
+      new URL(`../../../public${filePath}`, import.meta.url)
     );
     const bytes = statSync(path).size;
     return `${Math.round(bytes / 1024)} kB`;
@@ -78,11 +79,11 @@ const allItems = manifest.categories.flatMap((cat) =>
     title: item.title,
     description: item.description,
     file: item.file,
-    url: `${SITE_URL}/pdfs/${cat.id}/${item.file}`,
+    url: `${SITE_URL}${item.file}`,
     category: cat.title,
     categoryId: cat.id,
-    fileSize: pdfFileSize(cat.id, item.file),
-    about: ABOUT_BY_FILE[item.file],
+    fileSize: pdfFileSize(item.file),
+    about: ABOUT_BY_FILE[item.file.split('/').pop()!],
   }))
 );
 
@@ -164,8 +165,8 @@ const graph = {
           {cat.blurb && <p class="pdf-section-blurb">{cat.blurb}</p>}
           <div class="pdf-grid">
             {cat.items.map((item) => {
-              const href = `/pdfs/${cat.id}/${item.file}`;
-              const thumb = `/pdfs/_thumbs/${cat.id}/${item.file.replace(/\.pdf$/i, '.png')}`;
+              const href = item.file;
+              const thumb = item.thumbnail ?? '';
               return (
                 <a class="pdf-card" href={href} target="_blank" rel="noopener" aria-label={`Open ${item.title} (PDF) in a new tab`}>
                   <div class="pdf-thumb">

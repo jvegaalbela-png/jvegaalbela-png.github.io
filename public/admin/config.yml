@@ -53,6 +53,8 @@ collections:
       - name: pdfs_data
         label: PDF Library
         file: src/data/pdfs.json
+        media_folder: public/pdfs
+        public_folder: /pdfs
         fields:
           - label: Categories
             name: categories
@@ -71,9 +73,15 @@ collections:
                 name: items
                 widget: list
                 fields:
-                  - label: File
+                  - label: PDF File
                     name: file
-                    widget: string
+                    widget: file
+                  - label: Thumbnail
+                    name: thumbnail
+                    widget: image
+                    media_folder: public/pdfs/_thumbs
+                    public_folder: /pdfs/_thumbs
+                    required: false
                   - label: Title
                     name: title
                     widget: string
@@ -92,9 +100,9 @@ collections:
                 name: items
                 widget: list
                 fields:
-                  - label: File
+                  - label: PDF File
                     name: file
-                    widget: string
+                    widget: file
                   - label: Title
                     name: title
                     widget: string

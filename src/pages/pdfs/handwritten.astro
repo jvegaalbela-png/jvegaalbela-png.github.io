@@ -26,7 +26,7 @@ const { handwritten } = manifest;
 
   <ul class="hw-list">
     {handwritten.items.map((item) => {
-      const href = `/pdfs/handwritten/${item.file}`;
+      const href = item.file;
       return (
         <li class="hw-item">
           <a class="hw-link" href={href} target="_blank" rel="noopener">

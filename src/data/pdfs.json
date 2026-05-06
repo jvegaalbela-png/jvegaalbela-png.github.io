@@ -5,10 +5,10 @@
       "title": "Single Surface Exercises",
       "blurb": "Snare-drum and pad-based exercises for technique, reading, and rudimental development.",
       "items": [
-        { "file": "tech-routine-1.pdf",   "title": "Tech Routine 1", "description": "" },
-        { "file": "tech-routine-2.pdf",   "title": "Tech Routine 2", "description": "" },
-        { "file": "rtsk.pdf",             "title": "RTSK",           "description": "" },
-        { "file": "eighth-note-rests.pdf","title": "Eighth Note Rests", "description": "" }
+        { "file": "/pdfs/single-surface/tech-routine-1.pdf",    "thumbnail": "/pdfs/_thumbs/single-surface/tech-routine-1.png",    "title": "Tech Routine 1",       "description": "" },
+        { "file": "/pdfs/single-surface/tech-routine-2.pdf",    "thumbnail": "/pdfs/_thumbs/single-surface/tech-routine-2.png",    "title": "Tech Routine 2",       "description": "" },
+        { "file": "/pdfs/single-surface/rtsk.pdf",              "thumbnail": "/pdfs/_thumbs/single-surface/rtsk.png",              "title": "RTSK",                 "description": "" },
+        { "file": "/pdfs/single-surface/eighth-note-rests.pdf", "thumbnail": "/pdfs/_thumbs/single-surface/eighth-note-rests.png", "title": "Eighth Note Rests",    "description": "" }
       ]
     },
     {
@@ -16,10 +16,10 @@
       "title": "Drumset Exercises",
       "blurb": "Coordination, independence, and groove studies for the full kit.",
       "items": [
-        { "file": "three-basic-rock-beats.pdf",            "title": "Three Basic Rock Beats", "description": "" },
-        { "file": "bass-drum-eighth-note-partials.pdf",    "title": "Bass Drum Eighth Note Partials", "description": "" },
-        { "file": "bass-drum-sixteenth-note-partials.pdf", "title": "Bass Drum Sixteenth Note Partials", "description": "" },
-        { "file": "independence-exercise-pamphlet.pdf",    "title": "Independence Exercise Pamphlet", "description": "" }
+        { "file": "/pdfs/drumset/three-basic-rock-beats.pdf",            "thumbnail": "/pdfs/_thumbs/drumset/three-basic-rock-beats.png",            "title": "Three Basic Rock Beats",              "description": "" },
+        { "file": "/pdfs/drumset/bass-drum-eighth-note-partials.pdf",    "thumbnail": "/pdfs/_thumbs/drumset/bass-drum-eighth-note-partials.png",    "title": "Bass Drum Eighth Note Partials",       "description": "" },
+        { "file": "/pdfs/drumset/bass-drum-sixteenth-note-partials.pdf", "thumbnail": "/pdfs/_thumbs/drumset/bass-drum-sixteenth-note-partials.png", "title": "Bass Drum Sixteenth Note Partials",    "description": "" },
+        { "file": "/pdfs/drumset/independence-exercise-pamphlet.pdf",    "thumbnail": "/pdfs/_thumbs/drumset/independence-exercise-pamphlet.png",    "title": "Independence Exercise Pamphlet",       "description": "" }
       ]
     },
     {
@@ -27,22 +27,22 @@
       "title": "Transcriptions",
       "blurb": "Drum and comping transcriptions from records I love.",
       "items": [
-        { "file": "daahoud.pdf",                              "title": "Daahoud", "description": "" },
-        { "file": "tony-williams-seven-steps-solos.pdf",      "title": "Tony Williams — Seven Steps Solos (Chronological)", "description": "" },
-        { "file": "marcus-gilmore-chorale-comping-sample.pdf","title": "Marcus Gilmore — Chorale Comping Sample", "description": "" },
-        { "file": "island-in-the-sun.pdf",                    "title": "Island In The Sun", "description": "" },
-        { "file": "undone-the-sweater-song.pdf",              "title": "Undone (The Sweater Song)", "description": "" }
+        { "file": "/pdfs/transcriptions/daahoud.pdf",                               "thumbnail": "/pdfs/_thumbs/transcriptions/daahoud.png",                               "title": "Daahoud",                                        "description": "" },
+        { "file": "/pdfs/transcriptions/tony-williams-seven-steps-solos.pdf",       "thumbnail": "/pdfs/_thumbs/transcriptions/tony-williams-seven-steps-solos.png",       "title": "Tony Williams — Seven Steps Solos (Chronological)", "description": "" },
+        { "file": "/pdfs/transcriptions/marcus-gilmore-chorale-comping-sample.pdf", "thumbnail": "/pdfs/_thumbs/transcriptions/marcus-gilmore-chorale-comping-sample.png", "title": "Marcus Gilmore — Chorale Comping Sample",          "description": "" },
+        { "file": "/pdfs/transcriptions/island-in-the-sun.pdf",                     "thumbnail": "/pdfs/_thumbs/transcriptions/island-in-the-sun.png",                     "title": "Island In The Sun",                              "description": "" },
+        { "file": "/pdfs/transcriptions/undone-the-sweater-song.pdf",               "thumbnail": "/pdfs/_thumbs/transcriptions/undone-the-sweater-song.png",               "title": "Undone (The Sweater Song)",                      "description": "" }
       ]
     }
   ],
   "handwritten": {
     "blurb": "A handful of older worksheets in my own handwriting. To be digitized eventually.",
     "items": [
-      { "file": "come-as-you-are.pdf",     "title": "Come As You Are", "description": "" },
-      { "file": "in-bloom.pdf",            "title": "In Bloom", "description": "" },
-      { "file": "oakland-beats.pdf",       "title": "Oakland Beats", "description": "" },
-      { "file": "potluck.pdf",             "title": "Potluck", "description": "" },
-      { "file": "grooves-worksheet-2.pdf", "title": "Grooves Worksheet 2", "description": "" }
+      { "file": "/pdfs/handwritten/come-as-you-are.pdf",     "title": "Come As You Are",     "description": "" },
+      { "file": "/pdfs/handwritten/in-bloom.pdf",            "title": "In Bloom",            "description": "" },
+      { "file": "/pdfs/handwritten/oakland-beats.pdf",       "title": "Oakland Beats",       "description": "" },
+      { "file": "/pdfs/handwritten/potluck.pdf",             "title": "Potluck",             "description": "" },
+      { "file": "/pdfs/handwritten/grooves-worksheet-2.pdf", "title": "Grooves Worksheet 2", "description": "" }
     ]
   }
 }
