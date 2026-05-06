@@ -215,7 +215,15 @@ const graph = {
     flex-direction: column;
   }
 
-  .post-card { border-top: 1px solid var(--rule); }
+  /* Defer layout/paint of post cards until they scroll into view.
+     The first card is in the initial viewport so the browser still
+     paints it; subsequent cards skip layout work until scrolled.
+     Same pattern as /drum-lessons. */
+  .post-card {
+    border-top: 1px solid var(--rule);
+    content-visibility: auto;
+    contain-intrinsic-size: 0 360px;
+  }
   .post-card:last-child { border-bottom: 1px solid var(--rule); }
 
   .post-card-link {

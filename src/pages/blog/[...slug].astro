@@ -146,9 +146,11 @@ const graph = {
               <Image
                 src={heroAsset}
                 alt=""
-                widths={[600, 900, 1200]}
+                widths={[400, 600, 900, 1200]}
                 sizes="(min-width: 900px) 420px, 100vw"
+                loading="eager"
                 fetchpriority="high"
+                quality={55}
               />
             </figure>
           )
@@ -284,10 +286,16 @@ const graph = {
   }
 
   /* ── ARTICLE ──────────────────────────────── */
+  /* Defer layout/paint of the article body until it scrolls into
+     view. The hero is the LCP element on mobile (image order:-1),
+     and the long prose below shouldn't compete for the 4× CPU
+     throttle Lighthouse uses. Same pattern as /drum-lessons. */
   .post-article {
     max-width: 760px;
     margin: 0 auto;
     padding: 72px 56px 96px;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 2400px;
   }
 
   /* Prose styles — applied to rendered MDX content. */
