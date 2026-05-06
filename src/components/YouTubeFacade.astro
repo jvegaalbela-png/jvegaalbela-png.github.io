@@ -1,0 +1,124 @@
+---
+// Click-to-load YouTube facade. Renders a lightweight placeholder
+// (CSS-only — no external image) with a YouTube-style play button.
+// On click, replaces itself with the real <iframe>, in-place. This
+// keeps ~1 MB and ~1 s of main-thread JS off the initial load while
+// preserving the "click play and watch right here" UX.
+//
+// Use for both single videos and playlists. Pass the full embed URL
+// (e.g. .../embed/videoseries?list=...) as `src`.
+
+interface Props {
+  /** Full https://www.youtube.com/embed/... URL to load on click. */
+  src: string;
+  /** Accessible title for the embedded iframe. */
+  title: string;
+  /** Optional poster image. If omitted, a dark CSS gradient is used. */
+  poster?: string;
+}
+
+const { src, title, poster } = Astro.props;
+---
+
+<button
+  type="button"
+  class="yt-facade"
+  data-yt-facade
+  data-src={src}
+  data-title={title}
+  aria-label={`Play: ${title}`}
+  style={poster ? `background-image:url(${poster})` : undefined}
+>
+  <span class="yt-facade-play" aria-hidden="true">
+    <svg viewBox="0 0 68 48" focusable="false">
+      <path class="yt-facade-bg" d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.63-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z"/>
+      <path d="M 45,24 27,14 27,34" fill="#fff"/>
+    </svg>
+  </span>
+</button>
+
+<style>
+  .yt-facade {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    display: block;
+    background-color: #1a1a1a;
+    background-image: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: filter .18s ease;
+  }
+  .yt-facade:hover,
+  .yt-facade:focus-visible {
+    filter: brightness(1.08);
+    outline: none;
+  }
+  .yt-facade-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 68px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    transition: transform .18s ease;
+    pointer-events: none;
+  }
+  .yt-facade:hover .yt-facade-play,
+  .yt-facade:focus-visible .yt-facade-play {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  .yt-facade-play svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .yt-facade-bg {
+    fill: #212121;
+    fill-opacity: .82;
+    transition: fill .18s ease, fill-opacity .18s ease;
+  }
+  .yt-facade:hover .yt-facade-bg,
+  .yt-facade:focus-visible .yt-facade-bg {
+    fill: #f00;
+    fill-opacity: 1;
+  }
+</style>
+
+<script is:inline>
+  // Self-contained: looks up every facade on the page and swaps in
+  // the real iframe on first interaction. Idempotent — if this script
+  // runs twice (HMR, view transitions), already-replaced facades are
+  // skipped. No deps, ~600 bytes minified.
+  (function () {
+    function activate(btn) {
+      if (!btn || btn.dataset.ytLoaded === '1') return;
+      btn.dataset.ytLoaded = '1';
+      var src = btn.getAttribute('data-src');
+      var title = btn.getAttribute('data-title') || '';
+      var iframe = document.createElement('iframe');
+      // autoplay=1 so the click feels responsive (the user clicked play)
+      iframe.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'autoplay=1';
+      iframe.title = title;
+      iframe.loading = 'eager';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.style.position = 'absolute';
+      iframe.style.inset = '0';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = '0';
+      iframe.style.display = 'block';
+      btn.replaceWith(iframe);
+    }
+    document.querySelectorAll('[data-yt-facade]').forEach(function (btn) {
+      btn.addEventListener('click', function () { activate(btn); }, { once: true });
+    });
+  })();
+</script>

@@ -93,9 +93,15 @@ const ogType = og?.type ?? 'website';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {/*
+    Only Inter is preloaded. The hero-sub paragraph (the LCP element on
+    /drum-lessons mobile) renders in Inter, so this preload is on the
+    LCP critical path. Cormorant (used for headings) loads via @font-face
+    with font-display: swap — headings paint in Georgia immediately and
+    swap to Cormorant when ready, freeing simulated-Slow-4G bandwidth
+    for the LCP-critical font and the hero image fetch.
+  */}
   <link rel="preload" as="font" type="font/woff2" href={interLatinUrl} crossorigin />
-  <link rel="preload" as="font" type="font/woff2" href={cormorantLatinUrl} crossorigin />
-  <link rel="preload" as="font" type="font/woff2" href={cormorantLatinItalicUrl} crossorigin />
   {description && <meta name="description" content={description} />}
   {themeColor && <meta name="theme-color" content={themeColor} />}
   {noindex && <meta name="robots" content="noindex" />}
