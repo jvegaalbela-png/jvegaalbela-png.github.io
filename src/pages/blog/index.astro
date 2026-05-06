@@ -92,8 +92,14 @@ const graph = {
             <p class="blog-empty">No posts yet — check back soon.</p>
           ) : (
             <ul class="post-list">
-              {posts.map((post) => {
+              {posts.map((post, idx) => {
                 const heroAsset = resolveHeroImage(post.data.heroImage);
+                // The first post card's image is the LCP element on mobile
+                // (above the fold, below the small text-only hero). Make it
+                // eager + high priority so the browser fetches it immediately
+                // instead of waiting on lazy-load layout checks. Subsequent
+                // cards stay lazy.
+                const isLcp = idx === 0;
                 return (
                 <li class="post-card">
                   <a class="post-card-link" href={`/blog/${post.id}`}>
@@ -104,7 +110,9 @@ const graph = {
                           alt=""
                           widths={[400, 800, 1200]}
                           sizes="(min-width: 760px) 360px, 100vw"
-                          loading="lazy"
+                          loading={isLcp ? 'eager' : 'lazy'}
+                          fetchpriority={isLcp ? 'high' : undefined}
+                          quality={55}
                         />
                       </figure>
                     )}
@@ -215,16 +223,15 @@ const graph = {
     flex-direction: column;
   }
 
-  /* Defer layout/paint of post cards until they scroll into view.
-     The first card is in the initial viewport so the browser still
-     paints it; subsequent cards skip layout work until scrolled.
-     Same pattern as /drum-lessons. */
-  .post-card {
-    border-top: 1px solid var(--rule);
+  .post-card { border-top: 1px solid var(--rule); }
+  .post-card:last-child { border-bottom: 1px solid var(--rule); }
+  /* Defer layout/paint of below-fold cards. Skip the first card —
+     it's the LCP element on mobile, and we don't want the
+     content-visibility intersection check on the LCP critical path. */
+  .post-card:not(:first-child) {
     content-visibility: auto;
     contain-intrinsic-size: 0 360px;
   }
-  .post-card:last-child { border-bottom: 1px solid var(--rule); }
 
   .post-card-link {
     display: grid;
