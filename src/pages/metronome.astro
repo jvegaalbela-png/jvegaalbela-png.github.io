@@ -245,6 +245,9 @@ const graph = {
       font-family: inherit;
       transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.08s;
       user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .metronome-shell .btn:hover {
@@ -1808,6 +1811,34 @@ const graph = {
     schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
   }
 
+  // Screen Wake Lock — keep the device awake while the metronome is running,
+  // otherwise the screen sleeping (and on most mobile browsers, the audio
+  // context with it) would silence the click. Mobile browsers don't reliably
+  // keep Web Audio scheduling alive once the screen is fully off, so the best
+  // we can do is prevent the screen from auto-locking during playback.
+  let wakeLock = null;
+  async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (_) {
+      wakeLock = null;
+    }
+  }
+  async function releaseWakeLock() {
+    if (!wakeLock) return;
+    try { await wakeLock.release(); } catch (_) {}
+    wakeLock = null;
+  }
+  // The OS releases the wake lock when the tab is hidden; re-request it when
+  // we come back so the screen stays awake for a long practice session.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.isPlaying && !wakeLock) {
+      requestWakeLock();
+    }
+  });
+
   function startMetronome() {
     const ctx = getAudioCtx();
     state.isPlaying = true;
@@ -1821,6 +1852,7 @@ const graph = {
     scheduler();
     requestAnimationFrame(visualLoop);
     updatePlayButton();
+    requestWakeLock();
   }
 
   function stopMetronome() {
@@ -1834,6 +1866,7 @@ const graph = {
     updateGapVisual('idle', 0);
     updateFormVisual(-1);
     if (adv.formEnabled && adv.form.length > 0) renderBeatGridForEntry(adv.form[0]);
+    releaseWakeLock();
   }
 
   function togglePlay() {
@@ -1939,9 +1972,12 @@ const graph = {
     }
   });
 
-  // Tap Tempo
+  // Tap Tempo — fire on pointerdown so the tap registers when the finger
+  // contacts the screen (not on lift), which is what users intuitively time
+  // to a beat. Combined with `touch-action: manipulation` on .btn, this also
+  // sidesteps mobile double-tap zoom on rapid taps.
   let tapTimes = [];
-  document.getElementById('tap-tempo').addEventListener('click', () => {
+  function registerTap() {
     const now = Date.now();
     tapTimes.push(now);
     tapTimes = tapTimes.filter(t => now - t < 4000).slice(-8);
@@ -1950,6 +1986,19 @@ const graph = {
       for (let i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i - 1]);
       const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
       setBPM(Math.round(60000 / avg));
+    }
+  }
+  const tapBtn = document.getElementById('tap-tempo');
+  tapBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    registerTap();
+  });
+  // Enter activates the tap button via keyboard. Space is reserved for the
+  // global play/stop shortcut, so don't register a tap on Space here.
+  tapBtn.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      registerTap();
     }
   });
 
