@@ -38,8 +38,11 @@ section:first-of-type{border-top:0}
   text-decoration:none;cursor:pointer;min-height:44px;
   transition:background .2s,color .2s,border-color .2s,transform .2s;
 }
-.btn-primary{background:var(--orange);color:var(--cream);border-color:var(--orange)}
-.btn-primary:hover{background:var(--orange-lt);border-color:var(--orange-lt);transform:translateY(-1px)}
+/* --orange-dk is the AA-compliant orange for cream text (5.4:1).
+   --orange (#e8650a) failed AA at 3.01:1 — we kept it for the
+   hover state where brightness matters less for legibility. */
+.btn-primary{background:var(--orange-dk);color:var(--cream);border-color:var(--orange-dk)}
+.btn-primary:hover{background:var(--orange);border-color:var(--orange);transform:translateY(-1px)}
 .btn-ghost{background:transparent;color:var(--cream);border-color:rgba(245,243,238,.4)}
 .btn-ghost:hover{background:rgba(245,243,238,.08);border-color:rgba(245,243,238,.75)}
 .btn-outline{background:transparent;color:var(--cobalt);border-color:var(--cobalt)}
