@@ -1,6 +1,61 @@
 ---
 import '../styles/global.css';
 import Layout from '../layouts/Layout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION, ORGANIZATION_ID } from '../data/schema';
+
+const pageUrl = `${SITE_URL}/metronome`;
+const toolId = `${pageUrl}#tool`;
+
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    PERSON,
+    ORGANIZATION,
+    {
+      '@type': 'WebApplication',
+      '@id': toolId,
+      name: 'JVA Music Metronome',
+      url: pageUrl,
+      applicationCategory: 'MultimediaApplication',
+      applicationSubCategory: 'Music practice tool',
+      operatingSystem: 'Any (modern web browser)',
+      browserRequirements: 'Requires JavaScript and the Web Audio API',
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      creator: { '@id': PERSON_ID },
+      publisher: { '@id': ORGANIZATION_ID },
+      description:
+        'Free online metronome with subdivisions, per-beat accents and mutes, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
+      featureList: [
+        'Custom time signatures (any beats / any unit)',
+        'Subdivisions: duplet, triplet, quadruplet',
+        'Per-beat accent and mute toggles',
+        'Gap click — silent measures for internal-clock practice',
+        'Random mute — probabilistic beat dropouts',
+        'Custom form generator — up to 256 measures with shifting time signatures',
+        'Tap tempo',
+        'Electronic and clave sound options',
+      ],
+      keywords:
+        'metronome, online metronome, free metronome, drummer metronome, gap click, polyrhythm, odd meter, custom time signature, practice tool',
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: 'Free Online Metronome — Subdivisions, Gap Click, Custom Forms',
+      mainEntity: { '@id': toolId },
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Metronome', item: pageUrl },
+        ],
+      },
+    },
+  ],
+};
 ---
 
 <Layout
@@ -9,6 +64,7 @@ import Layout from '../layouts/Layout.astro';
   themeColor="#0d0d1a"
   bodyClass="metronome-page"
 >
+  <JsonLd slot="head" data={graph} />
 
 <style is:global>
     /* Metronome tool — uses the site's brand palette (navy / cobalt /
@@ -84,8 +140,8 @@ import Layout from '../layouts/Layout.astro';
     }
 
     .metronome-shell .card {
-      background: rgba(91, 141, 232, 0.04);
-      border: 1px solid rgba(91, 141, 232, 0.16);
+      background: rgba(91, 141, 232, 0.08);
+      border: 1px solid rgba(91, 141, 232, 0.26);
       border-radius: 14px;
       padding: 1.25rem 1.5rem;
       margin-bottom: 0.875rem;
@@ -95,14 +151,14 @@ import Layout from '../layouts/Layout.astro';
       font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.25em;
-      color: rgba(245, 243, 238, 0.45);
+      color: rgba(245, 243, 238, 0.65);
       margin-bottom: 1rem;
     }
 
     .metronome-shell .btn {
-      background: rgba(91, 141, 232, 0.08);
-      border: 1px solid rgba(91, 141, 232, 0.25);
-      color: rgba(245, 243, 238, 0.7);
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.34);
+      color: rgba(245, 243, 238, 0.88);
       border-radius: 8px;
       padding: 0.45rem 0.9rem;
       cursor: pointer;
@@ -161,7 +217,7 @@ import Layout from '../layouts/Layout.astro';
     .metronome-shell .bpm-unit {
       font-size: 0.75rem;
       letter-spacing: 0.2em;
-      color: rgba(245, 243, 238, 0.4);
+      color: rgba(245, 243, 238, 0.65);
       text-transform: uppercase;
       margin-top: 0.2rem;
     }
@@ -187,7 +243,7 @@ import Layout from '../layouts/Layout.astro';
 
     .metronome-shell .slider-label {
       font-size: 0.75rem;
-      color: rgba(245, 243, 238, 0.35);
+      color: rgba(245, 243, 238, 0.62);
       min-width: 2.5ch;
       text-align: center;
     }
@@ -334,9 +390,9 @@ import Layout from '../layouts/Layout.astro';
       width: 68px;
       height: 68px;
       border-radius: 50%;
-      border: 3px solid rgba(91, 141, 232, 0.3);
-      background: rgba(91, 141, 232, 0.06);
-      color: rgba(245, 243, 238, 0.6);
+      border: 3px solid rgba(91, 141, 232, 0.42);
+      background: rgba(91, 141, 232, 0.1);
+      color: rgba(245, 243, 238, 0.82);
       cursor: pointer;
       font-family: inherit;
       transition: border-color 0.12s, background 0.12s, color 0.12s, transform 0.12s, box-shadow 0.12s;
@@ -378,9 +434,9 @@ import Layout from '../layouts/Layout.astro';
     }
 
     .metronome-shell .beat-btn.state-mute {
-      border-color: rgba(245, 243, 238, 0.07);
-      background: rgba(0, 0, 0, 0.28);
-      color: rgba(245, 243, 238, 0.18);
+      border-color: rgba(245, 243, 238, 0.18);
+      background: rgba(0, 0, 0, 0.38);
+      color: rgba(245, 243, 238, 0.5);
     }
 
     .metronome-shell .beat-btn.active.state-normal {
@@ -433,7 +489,7 @@ import Layout from '../layouts/Layout.astro';
 
     .metronome-shell .beat-grid-hint {
       font-size: 0.65rem;
-      color: rgba(245, 243, 238, 0.35);
+      color: rgba(245, 243, 238, 0.62);
       text-align: center;
       margin-top: 0.75rem;
       letter-spacing: 0.05em;
@@ -459,7 +515,7 @@ import Layout from '../layouts/Layout.astro';
 
     .metronome-shell .spacebar-hint {
       font-size: 0.6rem;
-      color: rgba(245, 243, 238, 0.3);
+      color: rgba(245, 243, 238, 0.62);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       border: 1px solid rgba(91, 141, 232, 0.22);
@@ -1029,7 +1085,7 @@ import Layout from '../layouts/Layout.astro';
   <div class="basic-grid">
 
   <!-- BPM -->
-  <div class="card card-tempo">
+  <div class="card card-tempo" id="tempo">
     <div class="section-label">Tempo</div>
     <div class="bpm-row">
       <div class="bpm-step-group">
@@ -1061,7 +1117,7 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <!-- Time Signature -->
-  <div class="card card-timesig">
+  <div class="card card-timesig" id="time-signature">
     <div class="section-label">Time Signature</div>
     <div class="time-sig-presets" id="time-sig-presets">
       <button class="btn btn-sig" data-beats="2" data-unit="4">2/4</button>
@@ -1084,7 +1140,7 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <!-- Subdivision -->
-  <div class="card card-subdiv">
+  <div class="card card-subdiv" id="subdivisions">
     <div class="section-label">Subdivision</div>
     <div class="subdivision-grid">
       <button class="btn btn-sub active" data-sub="1">
@@ -1107,7 +1163,7 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <!-- Sound Library -->
-  <div class="card card-sound">
+  <div class="card card-sound" id="sound">
     <div class="section-label">Sound</div>
     <div class="sound-grid">
       <button class="btn btn-sound active" data-sound="electronic">
@@ -1122,7 +1178,7 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <!-- Beat Grid -->
-  <div class="card card-beats">
+  <div class="card card-beats" id="beats">
     <div class="section-label">Beats</div>
     <div id="beat-grid"></div>
     <div class="sub-indicators" id="sub-indicators"></div>
@@ -1145,7 +1201,7 @@ import Layout from '../layouts/Layout.astro';
     <div class="adv-grid">
 
     <!-- Gap Click -->
-    <div class="card card-gap">
+    <div class="card card-gap" id="gap-click">
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Gap Click</div>
@@ -1177,7 +1233,7 @@ import Layout from '../layouts/Layout.astro';
     </div>
 
     <!-- Random Mute -->
-    <div class="card card-random">
+    <div class="card card-random" id="random-mute">
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Random Mute</div>
@@ -1199,7 +1255,7 @@ import Layout from '../layouts/Layout.astro';
     </div>
 
     <!-- Custom Form -->
-    <div class="card card-form">
+    <div class="card card-form" id="custom-form">
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Custom Form</div>
