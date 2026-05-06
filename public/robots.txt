@@ -1,4 +1,6 @@
-User-agent: *
-Allow: /
-
+# Cloudflare prepends its AI-bot management block (User-agent: * with
+# Allow:/ plus per-bot Disallow rules) to this file before serving it
+# at /robots.txt. We only need to add the Sitemap directive — adding
+# our own User-agent: * block here would create a duplicate group
+# that Lighthouse SEO flags as a syntax issue.
 Sitemap: https://jva-music.com/sitemap-index.xml
