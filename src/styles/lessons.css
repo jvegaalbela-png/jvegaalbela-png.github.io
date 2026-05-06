@@ -85,7 +85,11 @@ main > section:not(.hero){
   font-size:clamp(2rem,5.5vw,3.5rem);margin-bottom:1rem;
 }
 .hero h1 em{font-style:italic;color:var(--blue-lt)}
-.hero-sub{font-size:clamp(1rem,1.6vw,1.125rem);line-height:1.55;color:rgba(245,243,238,.82);max-width:34ch;margin-bottom:1rem}
+/* max-width in em (relative to font-size) instead of ch (relative
+   to "0"-glyph width) so the paragraph's wrap point stays stable
+   through the Inter font swap — ch values can differ by ~10% between
+   Inter and the fallback Arial, which was causing CLS. */
+.hero-sub{font-size:clamp(1rem,1.6vw,1.125rem);line-height:1.55;color:rgba(245,243,238,.82);max-width:28em;margin-bottom:1rem}
 .chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
 .chip{
   display:inline-flex;align-items:center;gap:.5rem;

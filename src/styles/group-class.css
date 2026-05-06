@@ -78,7 +78,9 @@ main > section:not(.hero){
   font-size:clamp(2rem,5.5vw,3.5rem);margin-bottom:1rem;
 }
 .hero h1 em{font-style:italic;color:var(--blue-lt)}
-.hero-sub{font-size:clamp(1rem,1.6vw,1.125rem);line-height:1.55;color:rgba(245,243,238,.82);max-width:38ch;margin-bottom:1.5rem}
+/* em instead of ch — see lessons.css for rationale (ch unit
+   resolves differently in Inter vs fallback Arial, causing CLS). */
+.hero-sub{font-size:clamp(1rem,1.6vw,1.125rem);line-height:1.55;color:rgba(245,243,238,.82);max-width:32em;margin-bottom:1.5rem}
 .chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.75rem;list-style:none}
 .chip{
   display:inline-flex;align-items:center;gap:.5rem;
