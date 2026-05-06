@@ -36,6 +36,18 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* Defer layout/paint of below-the-fold sections on the homepage.
+       The album-art image is the LCP element; isolating the hero with
+       contain:layout and skipping layout/paint of the 8 wrapper
+       sections until they scroll into view stops them from competing
+       for the 4× CPU throttle Lighthouse uses for mobile. Same fix
+       that took /drum-lessons mobile LCP green. Only the homepage
+       uses .wrapper, so this rule is scoped naturally. */
+    .wrapper > section {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 800px;
+    }
+
     /* ── HERO ────────────────────────────────────────── */
     .hero {
       background: var(--navy);
@@ -43,6 +55,7 @@
       padding: 80px 56px 0;
       display: grid;
       grid-template-columns: 1fr auto;
+      contain: layout;
       gap: 64px;
       align-items: end;
       min-height: 58vh;
