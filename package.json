@@ -22,6 +22,7 @@
     "astro": "^6.2.0"
   },
   "devDependencies": {
-    "pdf-to-img": "^4.5.0"
+    "pdf-to-img": "^4.5.0",
+    "sharp": "^0.34.5"
   }
 }
