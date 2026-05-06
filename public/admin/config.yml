@@ -46,3 +46,59 @@ collections:
       - label: Body
         name: body
         widget: markdown
+
+  - name: pdfs
+    label: PDFs
+    files:
+      - name: pdfs_data
+        label: PDF Library
+        file: src/data/pdfs.json
+        fields:
+          - label: Categories
+            name: categories
+            widget: list
+            fields:
+              - label: ID
+                name: id
+                widget: string
+              - label: Title
+                name: title
+                widget: string
+              - label: Blurb
+                name: blurb
+                widget: text
+              - label: Items
+                name: items
+                widget: list
+                fields:
+                  - label: File
+                    name: file
+                    widget: string
+                  - label: Title
+                    name: title
+                    widget: string
+                  - label: Description
+                    name: description
+                    widget: text
+                    required: false
+          - label: Handwritten Section
+            name: handwritten
+            widget: object
+            fields:
+              - label: Blurb
+                name: blurb
+                widget: text
+              - label: Items
+                name: items
+                widget: list
+                fields:
+                  - label: File
+                    name: file
+                    widget: string
+                  - label: Title
+                    name: title
+                    widget: string
+                  - label: Description
+                    name: description
+                    widget: text
+                    required: false
