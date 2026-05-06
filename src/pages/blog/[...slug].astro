@@ -146,8 +146,11 @@ const graph = {
               <Image
                 src={heroAsset}
                 alt=""
-                widths={[600, 900, 1200]}
+                width={900}
+                height={1200}
+                widths={[420, 640, 900]}
                 sizes="(min-width: 900px) 420px, 100vw"
+                loading="eager"
                 fetchpriority="high"
               />
             </figure>
