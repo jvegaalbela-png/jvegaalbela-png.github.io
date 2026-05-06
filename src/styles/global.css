@@ -55,7 +55,6 @@
       padding: 80px 56px 0;
       display: grid;
       grid-template-columns: 1fr auto;
-      contain: layout;
       gap: 64px;
       align-items: end;
       min-height: 58vh;
@@ -180,14 +179,11 @@
       overflow: hidden;
       border-radius: 2px;
       box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-      background: linear-gradient(145deg,
-        #0e2060 0%,
-        #1a4caa 25%,
-        #2a70cc 40%,
-        #c04020 60%,
-        #e87030 78%,
-        #6a9010 95%
-      );
+      /* Solid color instead of a 6-stop gradient — the image covers it
+         once loaded (object-fit: cover, eager + fetchpriority high), so
+         the gradient was only visible for a few hundred ms but cost
+         significant rasterization on simulated-mobile CPU. */
+      background: var(--navy);
     }
 
     .album-art-wrap img {
