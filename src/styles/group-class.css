@@ -45,11 +45,24 @@ section:first-of-type{border-top:0}
 .btn-outline{background:transparent;color:var(--cobalt);border-color:var(--cobalt)}
 .btn-outline:hover{background:var(--cobalt);color:#fff}
 
+/* Defer layout/paint for below-the-fold sections. Same fix that
+   took /drum-lessons mobile LCP from 4.1s to green — see lessons.css
+   for the rationale. */
+main > section:not(.hero){
+  content-visibility:auto;
+  contain-intrinsic-size:0 800px;
+}
+.cta-band{
+  content-visibility:auto;
+  contain-intrinsic-size:0 320px;
+}
+
 /* hero */
 .hero{
   background:var(--navy);color:var(--cream);
   padding:clamp(2.5rem,6vw,4.5rem) 0 clamp(2rem,5vw,3.5rem);
   position:relative;overflow:hidden;border-top:0;
+  contain:layout;
 }
 .hero::before{
   content:"";position:absolute;inset:0;pointer-events:none;
