@@ -11,18 +11,36 @@ import sitemap from '@astrojs/sitemap';
 // Console and wastes crawl budget.
 const NOINDEX_PATHS = ['/book', '/join', '/pdfs/handwritten'];
 
+// Old Squarespace URLs that Google still has indexed. Astro's static-build
+// redirects generate HTML files with a <meta http-equiv="refresh"> plus a
+// <link rel="canonical"> pointing at the destination. Google treats those
+// like 301s for ranking-signal consolidation.
+const REDIRECTS = {
+ '/lessons-landing': '/drum-lessons',
+ '/cart': '/',
+};
+
 // https://astro.build/config
 export default defineConfig({
  site: 'https://jva-music.com',
+ redirects: REDIRECTS,
  integrations: [
   mdx(),
   sitemap({
-   filter: (page) =>
-    !NOINDEX_PATHS.some(
+   filter: (page) => {
+    if (NOINDEX_PATHS.some(
      (p) =>
       page === `https://jva-music.com${p}/` ||
       page === `https://jva-music.com${p}`,
-    ),
+    )) return false;
+    // Redirect source paths shouldn't be in the sitemap either.
+    if (Object.keys(REDIRECTS).some(
+     (p) =>
+      page === `https://jva-music.com${p}/` ||
+      page === `https://jva-music.com${p}`,
+    )) return false;
+    return true;
+   },
   }),
  ],
  build: {
