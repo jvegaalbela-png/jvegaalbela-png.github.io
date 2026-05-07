@@ -72,24 +72,28 @@ const testimonials = [
     author: 'Joseph',
     role: 'hobbyist',
     body: 'My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.',
+    excerpt: 'He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.',
   },
   {
     author: 'Patrick M.',
     role: 'via Google',
     source: 'Google',
     body: "Super down to earth guy that knows his stuff. He even figured out why my back pain. I've taken lessons from a few different people and he has been the best.",
+    excerpt: "Super down to earth guy that knows his stuff. I've taken lessons from a few different people and he has been the best.",
   },
   {
     author: 'Naomi',
     role: 'via Google',
     source: 'Google',
     body: 'I had an awesome first drum lesson! Jacobo was thorough, covering everything from reading music to teaching me my first drum beat. We also went over technique, which was super helpful. Highly recommend!',
+    excerpt: 'An awesome first drum lesson! Jacobo was thorough, covering everything from reading music to my first drum beat. Highly recommend!',
   },
   {
     author: 'Nisaa R.',
     role: 'via Google',
     source: 'Google',
     body: "I recently started drumming, and going into it, I was very anxious since this was something completely new to me. However, Jacob made me feel comfortable from the very first lesson. He was incredibly patient and understanding, knowing it was my first time ever playing the drums. If you're looking for a drum instructor who is kind, patient, and supportive, I highly recommend taking lessons with Jacabo!!!",
+    excerpt: 'Jacobo made me feel comfortable from the very first lesson. He was incredibly patient and understanding. I highly recommend taking lessons with him!',
   },
 ];
 
@@ -289,7 +293,7 @@ const graph = {
     <div class="testimonials-grid">
       {testimonials.map((t) => (
         <figure class="tcard">
-          <blockquote>{t.body}</blockquote>
+          <blockquote>{t.excerpt ?? t.body}</blockquote>
           <figcaption>&mdash; <strong>{t.author}</strong>, {t.role}</figcaption>
         </figure>
       ))}
