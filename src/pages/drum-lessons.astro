@@ -53,16 +53,45 @@ const faqs = [
   },
   {
     q: 'Where are you located?',
-    a: "Rochester, NY (South Wedge neighborhood). The studio address is shared after booking. I also do house calls and virtual lessons over Zoom.",
+    a: "My studio is in the South Wedge neighborhood of Rochester, NY (14620) — close to Park Ave, Highland Park, the East End, Mt. Hope, Swillburg, and a short drive from Pittsford and Brighton. The exact address is shared after booking. I also do house calls and virtual lessons over Zoom.",
   },
 ];
+
+const testimonials = [
+  {
+    author: 'Will',
+    body: 'I had an audition for a jazz camp and decided to have a lesson with Jacobo. In one lesson he helped me improve so much, and I ended up getting into the camp. Highly recommended!',
+  },
+  {
+    author: 'Annie',
+    body: 'I got into the conservatory in Brussels! Thank you so much for all your support — I learned a lot from you.',
+  },
+  {
+    author: 'Joseph',
+    body: 'My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.',
+  },
+];
+
+const reviews = testimonials.map((t, i) => ({
+  '@type': 'Review',
+  '@id': `${pageUrl}#review-${i + 1}`,
+  author: { '@type': 'Person', name: t.author },
+  reviewBody: t.body,
+  reviewRating: {
+    '@type': 'Rating',
+    ratingValue: '5',
+    bestRating: '5',
+    worstRating: '1',
+  },
+  itemReviewed: { '@id': LOCAL_BUSINESS_ID },
+}));
 
 const localBusiness = {
   '@type': ['LocalBusiness', 'MusicSchool'],
   '@id': LOCAL_BUSINESS_ID,
   name: 'Jacobo Vega-Albela — Private Drum Lessons',
   description:
-    'Private drum lessons in Rochester, NY with Jacobo Vega-Albela. By appointment only. K–12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
+    'Private drum lessons in Rochester, NY with Eastman-trained jazz drummer Jacobo Vega-Albela. Studio in the South Wedge — convenient to Park Ave, Highland Park, the East End, Mt. Hope, Swillburg, Pittsford, and Brighton. By appointment only. K–12 and adults, beginners through advanced, in jazz, rock, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
   url: pageUrl,
   image: heroSocialUrl,
   telephone: '+1-585-802-4247',
@@ -87,6 +116,14 @@ const localBusiness = {
   hasMap: 'https://www.google.com/maps/place/Mt+Hope+Ave+%26+Alexander+St,+Rochester,+NY+14620/',
   areaServed: [
     ROCHESTER_AREA,
+    { '@type': 'Place', name: 'South Wedge, Rochester, NY' },
+    { '@type': 'Place', name: 'Park Ave, Rochester, NY' },
+    { '@type': 'Place', name: 'Highland Park, Rochester, NY' },
+    { '@type': 'Place', name: 'East End, Rochester, NY' },
+    { '@type': 'Place', name: 'Mt. Hope, Rochester, NY' },
+    { '@type': 'Place', name: 'Swillburg, Rochester, NY' },
+    { '@type': 'City', name: 'Pittsford, NY' },
+    { '@type': 'City', name: 'Brighton, NY' },
     {
       '@type': 'AdministrativeArea',
       name: 'Worldwide (virtual lessons over Zoom)',
@@ -136,6 +173,7 @@ const graph = {
   '@graph': [
     PERSON,
     localBusiness,
+    ...reviews,
     {
       '@type': 'WebPage',
       '@id': `${pageUrl}#webpage`,
@@ -379,7 +417,7 @@ const graph = {
       </details>
       <details>
         <summary>Where are you located?</summary>
-        <div class="faq-body">Rochester, NY. The studio address is shared after booking. I also do house calls (see pricing) and virtual lessons over Zoom.</div>
+        <div class="faq-body">My studio is in the South Wedge neighborhood of Rochester, NY (14620) &mdash; close to Park Ave, Highland Park, the East End, Mt. Hope, and Swillburg, and a short drive from Pittsford and Brighton. The exact address is shared after booking. I also do house calls (see pricing) and virtual lessons over Zoom.</div>
       </details>
     </div>
   </div>
