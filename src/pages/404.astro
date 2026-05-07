@@ -1,0 +1,84 @@
+---
+import '../styles/global.css';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Page Not Found — Jacobo Vega-Albela"
+  description="That page doesn't exist on jva-music.com. Try one of the links below."
+  themeColor="#091528"
+  noindex={true}
+>
+  <main class="notfound">
+    <div class="nf-inner">
+      <p class="nf-eyebrow">404</p>
+      <h1 class="nf-title">Page not found.</h1>
+      <p class="nf-sub">
+        The page you're looking for doesn't exist or has moved. Try one of these:
+      </p>
+      <ul class="nf-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/drum-lessons">Drum Lessons in Rochester, NY</a></li>
+        <li><a href="/group-classes">Online Group Drum Class (DJ1)</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/pdfs">Free Teaching PDFs</a></li>
+        <li><a href="/metronome">Metronome</a></li>
+      </ul>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .notfound {
+    background: var(--navy);
+    color: var(--cream);
+    min-height: calc(100vh - var(--header-h));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 28px;
+  }
+  .nf-inner { max-width: 560px; }
+  .nf-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+    margin-bottom: 16px;
+  }
+  .nf-title {
+    font-family: var(--serif);
+    font-size: clamp(40px, 6vw, 64px);
+    font-weight: 300;
+    line-height: 1.05;
+    margin: 0 0 18px;
+  }
+  .nf-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.55;
+    color: rgba(245, 243, 238, 0.78);
+    margin-bottom: 28px;
+  }
+  .nf-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .nf-links a {
+    color: var(--blue-lt);
+    text-decoration: none;
+    font-size: 16px;
+    border-bottom: 1px solid transparent;
+    transition: color 0.18s, border-color 0.18s;
+  }
+  .nf-links a:hover {
+    color: var(--orange-lt);
+    border-bottom-color: var(--orange-lt);
+  }
+</style>
