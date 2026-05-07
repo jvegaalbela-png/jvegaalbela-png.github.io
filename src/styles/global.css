@@ -144,17 +144,17 @@
       transform: translateY(-1px);
     }
 
-    /* --orange-dk for AA contrast on small-text CTAs (cream on
-       #b04600 = 5.4:1). The brighter --orange is reserved for hover. */
+    /* Loud bright orange — unified primary CTA across the site.
+       Hover steps one shade lighter to --orange-lt. */
     .hero-link-btn.primary {
-      background: var(--orange-dk);
-      border-color: var(--orange-dk);
+      background: var(--orange);
+      border-color: var(--orange);
       color: var(--cream);
     }
 
     .hero-link-btn.primary:hover {
-      background: var(--orange);
-      border-color: var(--orange);
+      background: var(--orange-lt);
+      border-color: var(--orange-lt);
     }
 
     .hero-link-btn .icon {
@@ -478,8 +478,8 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid var(--cobalt);
-      color: var(--cobalt);
+      border: 1px solid var(--orange);
+      color: var(--orange-dk);
       font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.12em;
@@ -487,10 +487,10 @@
       padding: 10px 20px;
       text-decoration: none;
       border-radius: 2px;
-      transition: background 0.2s, color 0.2s;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
     }
 
-    .listen-btn:hover { background: var(--cobalt); color: #fff; }
+    .listen-btn:hover { background: var(--orange); border-color: var(--orange); color: var(--cream); }
 
     .album-right { display: flex; flex-direction: column; gap: 24px; }
 
@@ -752,7 +752,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: var(--cobalt);
+      background: var(--orange);
       color: var(--cream);
       font-size: 10px;
       font-weight: 600;
@@ -765,7 +765,7 @@
       transition: background 0.2s;
     }
 
-    .photos-cta-btn:hover { background: var(--blue); }
+    .photos-cta-btn:hover { background: var(--orange-lt); }
 
     /* Footer styles live in Footer.astro (declared is:global). */
 

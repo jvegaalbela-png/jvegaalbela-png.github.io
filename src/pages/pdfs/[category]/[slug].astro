@@ -338,16 +338,14 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     margin-top: 8px;
   }
 
-  /* Cobalt-filled CTA with cream text — ~8.8:1 contrast, well above
-     AA. Cobalt also pairs cleanly with the navy hero (no warm-on-warm
-     muddiness) and lets the orange palette stay reserved for accent
-     details (eyebrows, "PDF" chip on cards). */
+  /* Loud bright orange — unified primary CTA across the site.
+     Hover steps one shade lighter to --orange-lt. */
   .pdf-detail-cta {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: var(--cobalt);
+    background: var(--orange);
     color: var(--cream);
     text-decoration: none;
     font: 600 0.8125rem/1 var(--sans);
@@ -355,7 +353,7 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     text-transform: uppercase;
     padding: 0.875rem 2rem;
     border-radius: 2px;
-    border: 1px solid var(--cobalt);
+    border: 1px solid var(--orange);
     min-height: 44px;
     cursor: pointer;
     transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
@@ -363,8 +361,8 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
 
   .pdf-detail-cta:hover,
   .pdf-detail-cta:focus-visible {
-    background: var(--blue);
-    border-color: var(--blue);
+    background: var(--orange-lt);
+    border-color: var(--orange-lt);
     color: var(--cream);
     transform: translateY(-1px);
   }
@@ -431,18 +429,18 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
 
   .pdf-detail-figure-caption { display: block; }
 
-  /* Small btn-outline-style chip — uses cobalt outline (blue-lt
-     in dark mode via the override below). Reads as a secondary
-     "open in new tab" affordance distinct from the primary orange
+  /* Small btn-outline-style chip — orange border with --orange-dk
+     text for AA on cream, fills loud orange on hover. Reads as a
+     secondary "open in new tab" affordance below the primary
      Download CTA in the hero. */
   .pdf-detail-figure-cta {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 8px 14px;
-    border: 1px solid var(--cobalt);
+    border: 1px solid var(--orange);
     border-radius: 2px;
-    color: var(--cobalt);
+    color: var(--orange-dk);
     background: transparent;
     text-decoration: none;
     font: 600 11px/1 var(--sans);
@@ -453,7 +451,8 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
 
   .pdf-detail-figure-cta:hover,
   .pdf-detail-figure-cta:focus-visible {
-    background: var(--cobalt);
+    background: var(--orange);
+    border-color: var(--orange);
     color: var(--cream);
     transform: translateY(-1px);
     outline: none;
@@ -610,12 +609,12 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     color: var(--muted);
   }
 
-  /* Featured CTA card — cobalt fill with cream text, matching the
-     .pdf-detail-cta hero button. */
+  /* Featured CTA card — loud bright orange fill with cream text,
+     matching the .pdf-detail-cta hero button. */
   .pdf-detail-related-card--cta {
-    background: var(--cobalt);
-    border-color: var(--cobalt);
-    border-left-color: var(--cobalt);
+    background: var(--orange);
+    border-color: var(--orange);
+    border-left-color: var(--orange);
     color: var(--cream);
   }
 
@@ -633,10 +632,10 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
 
   .pdf-detail-related-card--cta:hover,
   .pdf-detail-related-card--cta:focus-visible {
-    background: var(--blue);
-    border-color: var(--blue);
-    border-left-color: var(--blue);
-    box-shadow: 0 14px 32px rgba(26, 58, 138, 0.45);
+    background: var(--orange-lt);
+    border-color: var(--orange-lt);
+    border-left-color: var(--orange-lt);
+    box-shadow: 0 14px 32px rgba(232, 101, 10, 0.45);
   }
 
   .pdf-detail-related-card--cta:hover .pdf-detail-related-card-arrow,
@@ -678,15 +677,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
       color: #fff;
       border-bottom-color: var(--blue-lt);
     }
-    .pdf-detail-figure-cta {
-      color: var(--blue-lt);
-      border-color: var(--blue-lt);
-    }
-    .pdf-detail-figure-cta:hover,
-    .pdf-detail-figure-cta:focus-visible {
-      background: var(--blue-lt);
-      color: var(--navy);
-    }
+    /* .pdf-detail-figure-cta keeps its loud-orange tokens in dark
+       mode — --orange-dk already remaps to --orange via :root,
+       so the light-mode rules already work. */
     .pdf-detail-placeholder {
       background: rgba(91, 141, 232, 0.08);
       border-left-color: var(--blue-lt);
@@ -715,9 +708,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     }
 
     .pdf-detail-related-card--cta {
-      background: var(--cobalt);
-      border-color: var(--cobalt);
-      border-left-color: var(--cobalt);
+      background: var(--orange);
+      border-color: var(--orange);
+      border-left-color: var(--orange);
       color: var(--cream);
     }
     .pdf-detail-related-card--cta .pdf-detail-related-card-title,
@@ -725,9 +718,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     .pdf-detail-related-card--cta .pdf-detail-related-card-desc { color: rgba(245, 243, 238, 0.82); }
     .pdf-detail-related-card--cta:hover,
     .pdf-detail-related-card--cta:focus-visible {
-      background: var(--blue);
-      border-color: var(--blue);
-      border-left-color: var(--blue);
+      background: var(--orange-lt);
+      border-color: var(--orange-lt);
+      border-left-color: var(--orange-lt);
     }
   }
 </style>
