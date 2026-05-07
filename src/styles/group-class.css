@@ -38,9 +38,10 @@ section:first-of-type{border-top:0}
   text-decoration:none;cursor:pointer;min-height:44px;
   transition:background .2s,color .2s,border-color .2s,transform .2s;
 }
-/* See lessons.css for the AA contrast rationale. */
-.btn-primary{background:var(--orange-dk);color:var(--cream);border-color:var(--orange-dk)}
-.btn-primary:hover{background:var(--orange);border-color:var(--orange);transform:translateY(-1px)}
+/* See lessons.css for the cobalt-fill rationale (~8.8:1, no
+   warm-on-warm muddiness). */
+.btn-primary{background:var(--cobalt);color:var(--cream);border-color:var(--cobalt)}
+.btn-primary:hover{background:var(--blue);border-color:var(--blue);transform:translateY(-1px)}
 .btn-ghost{background:transparent;color:var(--cream);border-color:rgba(245,243,238,.4)}
 .btn-ghost:hover{background:rgba(245,243,238,.08);border-color:rgba(245,243,238,.75)}
 .btn-outline{background:transparent;color:var(--cobalt);border-color:var(--cobalt)}
@@ -76,7 +77,10 @@ main > section:not(.hero){
 .hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-lt);margin-bottom:.75rem}
 .hero h1{
   font-family:var(--serif);font-weight:300;line-height:1.05;letter-spacing:-.01em;
-  font-size:clamp(2rem,5.5vw,3.5rem);margin-bottom:1rem;
+  /* Capped lower than /drum-lessons (which uses 3.5rem) — the
+     copy here is longer and would otherwise wrap "drum class"
+     onto its own line, pushing the form's CTA below the fold. */
+  font-size:clamp(2rem,4.4vw,2.75rem);margin-bottom:1rem;
 }
 .hero h1 em{font-style:italic;color:var(--blue-lt)}
 /* em instead of ch — see lessons.css for rationale (ch unit
@@ -248,6 +252,12 @@ main > section:not(.hero){
     --ink:#ece7da;
     --muted:#908a7e;
     --rule:#1d2a48;
+    /* The -dk accent variants are tuned for AA contrast on the
+       cream body. On dark backgrounds they go too dim and read as
+       a rusty brown rather than orange — remap to the brighter
+       brand colors. Mirrors the same override in global.css. */
+    --orange-dk:var(--orange);
+    --lime-dk:var(--lime);
   }
   body{background:#060d1c}
   .tcard,.pcard,.tile,.faq-list details{background:#0d1830;border-color:var(--rule)}

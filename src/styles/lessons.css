@@ -38,11 +38,13 @@ section:first-of-type{border-top:0}
   text-decoration:none;cursor:pointer;min-height:44px;
   transition:background .2s,color .2s,border-color .2s,transform .2s;
 }
-/* --orange-dk is the AA-compliant orange for cream text (5.4:1).
-   --orange (#e8650a) failed AA at 3.01:1 — we kept it for the
-   hover state where brightness matters less for legibility. */
-.btn-primary{background:var(--orange-dk);color:var(--cream);border-color:var(--orange-dk)}
-.btn-primary:hover{background:var(--orange);border-color:var(--orange);transform:translateY(-1px)}
+/* Cobalt fill with cream text — ~8.8:1 contrast, well above AA.
+   Cobalt + cream avoids the warm-on-warm muddiness of the previous
+   orange-dk treatment, leaves orange for accent details (eyebrows,
+   small chips), and pairs cleanly with the navy hero. Hover steps
+   one shade lighter to --blue so the button still feels alive. */
+.btn-primary{background:var(--cobalt);color:var(--cream);border-color:var(--cobalt)}
+.btn-primary:hover{background:var(--blue);border-color:var(--blue);transform:translateY(-1px)}
 .btn-ghost{background:transparent;color:var(--cream);border-color:rgba(245,243,238,.4)}
 .btn-ghost:hover{background:rgba(245,243,238,.08);border-color:rgba(245,243,238,.75)}
 .btn-outline{background:transparent;color:var(--cobalt);border-color:var(--cobalt)}
@@ -306,6 +308,12 @@ footer{
     --ink:#ece7da;
     --muted:#908a7e;
     --rule:#1d2a48;
+    /* The -dk accent variants are tuned for AA contrast on the
+       cream body. On dark backgrounds they go too dim and read as
+       a rusty brown rather than orange — remap to the brighter
+       brand colors. Mirrors the same override in global.css. */
+    --orange-dk:var(--orange);
+    --lime-dk:var(--lime);
   }
   body{background:#060d1c}
 
