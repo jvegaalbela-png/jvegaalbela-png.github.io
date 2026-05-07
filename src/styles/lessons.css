@@ -132,8 +132,8 @@ main > section:not(.hero){
   background:#fff;border:1px solid var(--rule);border-left:3px solid var(--cobalt);
   padding:1.5rem 1.5rem 1.25rem;border-radius:2px;display:flex;flex-direction:column;gap:1rem;
 }
-.tcard:nth-child(2){border-left-color:var(--orange)}
-.tcard:nth-child(3){border-left-color:var(--lime)}
+.tcard:nth-child(3n+2){border-left-color:var(--orange)}
+.tcard:nth-child(3n+3){border-left-color:var(--lime)}
 .tcard blockquote{
   font-family:var(--serif);font-style:italic;font-size:1.0625rem;line-height:1.55;color:#252018;
   position:relative;padding-left:1.5rem;
@@ -322,8 +322,8 @@ footer{
   .epk-link a{border-bottom-color:rgba(91,141,232,.35)}
   .epk-link a:hover{color:#fff;border-bottom-color:var(--blue-lt)}
   .tcard{border-left-color:var(--blue-lt)}
-  .tcard:nth-child(2){border-left-color:var(--orange)}
-  .tcard:nth-child(3){border-left-color:var(--lime)}
+  .tcard:nth-child(3n+2){border-left-color:var(--orange)}
+  .tcard:nth-child(3n+3){border-left-color:var(--lime)}
 
   /* outline button: cobalt -> blue-lt */
   .btn-outline{color:var(--blue-lt);border-color:var(--blue-lt)}

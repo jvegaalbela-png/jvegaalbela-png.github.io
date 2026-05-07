@@ -60,15 +60,36 @@ const faqs = [
 const testimonials = [
   {
     author: 'Will',
+    role: 'college student',
     body: 'I had an audition for a jazz camp and decided to have a lesson with Jacobo. In one lesson he helped me improve so much, and I ended up getting into the camp. Highly recommended!',
   },
   {
     author: 'Annie',
+    role: 'music school graduate',
     body: 'I got into the conservatory in Brussels! Thank you so much for all your support — I learned a lot from you.',
   },
   {
     author: 'Joseph',
+    role: 'hobbyist',
     body: 'My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.',
+  },
+  {
+    author: 'Patrick M.',
+    role: 'via Google',
+    source: 'Google',
+    body: "Super down to earth guy that knows his stuff. He even figured out why my back pain. I've taken lessons from a few different people and he has been the best.",
+  },
+  {
+    author: 'Naomrtz',
+    role: 'via Google',
+    source: 'Google',
+    body: 'I had an awesome first drum lesson! Jacobo was thorough, covering everything from reading music to teaching me my first drum beat. We also went over technique, which was super helpful. Highly recommend!',
+  },
+  {
+    author: 'Nisaa R.',
+    role: 'via Google',
+    source: 'Google',
+    body: "I recently started drumming, and going into it, I was very anxious since this was something completely new to me. However, Jacob made me feel comfortable from the very first lesson. He was incredibly patient and understanding, knowing it was my first time ever playing the drums. If you're looking for a drum instructor who is kind, patient, and supportive, I highly recommend taking lessons with Jacabo!!!",
   },
 ];
 
@@ -84,6 +105,9 @@ const reviews = testimonials.map((t, i) => ({
     worstRating: '1',
   },
   itemReviewed: { '@id': LOCAL_BUSINESS_ID },
+  ...(t.source && {
+    publisher: { '@type': 'Organization', name: t.source },
+  }),
 }));
 
 const localBusiness = {
@@ -152,6 +176,14 @@ const localBusiness = {
       url: `${SITE_URL}/book`,
       seller: { '@id': PERSON_ID },
     })),
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5.0',
+    bestRating: '5',
+    worstRating: '1',
+    ratingCount: testimonials.length,
+    reviewCount: testimonials.length,
   },
 };
 
@@ -255,18 +287,12 @@ const graph = {
       <span class="section-rule" aria-hidden="true"></span>
     </div>
     <div class="testimonials-grid">
-      <figure class="tcard">
-        <blockquote>I had an audition for a jazz camp and decided to have a lesson with Jacobo. In one lesson he helped me improve so much, and I ended up getting into the camp. Highly recommended!</blockquote>
-        <figcaption>&mdash; <strong>Will</strong>, college student</figcaption>
-      </figure>
-      <figure class="tcard">
-        <blockquote>I got into the conservatory in Brussels! Thank you so much for all your support &mdash; I learned a lot from you.</blockquote>
-        <figcaption>&mdash; <strong>Annie</strong>, music school graduate</figcaption>
-      </figure>
-      <figure class="tcard">
-        <blockquote>My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.</blockquote>
-        <figcaption>&mdash; <strong>Joseph</strong>, hobbyist</figcaption>
-      </figure>
+      {testimonials.map((t) => (
+        <figure class="tcard">
+          <blockquote>{t.body}</blockquote>
+          <figcaption>&mdash; <strong>{t.author}</strong>, {t.role}</figcaption>
+        </figure>
+      ))}
     </div>
   </div>
 </section>
