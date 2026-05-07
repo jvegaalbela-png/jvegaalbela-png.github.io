@@ -1,0 +1,564 @@
+---
+import { statSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import '../../../styles/global.css';
+import Layout from '../../../layouts/Layout.astro';
+import JsonLd from '../../../components/JsonLd.astro';
+import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION, ORGANIZATION_ID } from '../../../data/schema';
+import {
+  INDEXABLE_CATEGORIES,
+  ABOUT_BY_FILE,
+  CATEGORY_LEAD_IN,
+  CATEGORY_EDUCATIONAL_LEVEL,
+  slugFromFile,
+} from '../../../data/pdf-meta';
+import pdfContent from '../../../data/pdf-content.json';
+
+export function getStaticPaths() {
+  return INDEXABLE_CATEGORIES.flatMap((cat) =>
+    cat.items.map((item) => ({
+      params: { category: cat.id, slug: slugFromFile(item.file) },
+      props: { categoryId: cat.id, file: item.file },
+    }))
+  );
+}
+
+interface Props {
+  categoryId: string;
+  file: string;
+}
+
+const { categoryId, file } = Astro.props;
+
+const category = INDEXABLE_CATEGORIES.find((c) => c.id === categoryId)!;
+const item = category.items.find((i) => i.file === file)!;
+const slug = slugFromFile(file);
+
+const pageUrl = `${SITE_URL}/pdfs/${categoryId}/${slug}/`;
+const pdfUrl = `${SITE_URL}${item.file}`;
+const thumbUrl = new URL(item.thumbnail, SITE_URL).toString();
+
+function pdfFileSize(filePath: string): { size: string; bytes: number } | undefined {
+  try {
+    const path = fileURLToPath(
+      new URL(`../../../../public${filePath}`, import.meta.url)
+    );
+    const bytes = statSync(path).size;
+    return { size: `${Math.round(bytes / 1024)} kB`, bytes };
+  } catch {
+    return undefined;
+  }
+}
+
+const fileSize = pdfFileSize(item.file);
+
+const intakeKey = `${categoryId}/${slug}`;
+const intakeRaw = (pdfContent as Record<string, string>)[intakeKey] ?? '';
+const intakeParagraphs = intakeRaw
+  .trim()
+  .split(/\n{2,}/)
+  .map((p) => p.trim())
+  .filter(Boolean);
+const hasIntake = intakeParagraphs.length > 0;
+
+const aboutFragment = ABOUT_BY_FILE[file.split('/').pop()!];
+const educationalLevel = CATEGORY_EDUCATIONAL_LEVEL[categoryId];
+const leadIn = CATEGORY_LEAD_IN[categoryId] ?? category.title;
+
+const metaTitle = `${item.title} — ${category.title} PDF | Jacobo Vega-Albela`;
+const metaDescription = item.description
+  ? item.description
+  : `Free downloadable PDF: ${item.title}. ${category.title} from Jacobo Vega-Albela's drum teaching library.`;
+
+const digitalDocumentId = `${pageUrl}#document`;
+const learningResourceId = `${pageUrl}#resource`;
+
+const digitalDocument: Record<string, unknown> = {
+  '@type': 'DigitalDocument',
+  '@id': digitalDocumentId,
+  name: item.title,
+  url: pdfUrl,
+  encodingFormat: 'application/pdf',
+  inLanguage: 'en-US',
+  creator: { '@id': PERSON_ID },
+  publisher: { '@id': ORGANIZATION_ID },
+  isAccessibleForFree: true,
+  thumbnailUrl: thumbUrl,
+};
+if (item.description) digitalDocument.description = item.description;
+if (fileSize) digitalDocument.contentSize = fileSize.size;
+if (aboutFragment) digitalDocument.about = aboutFragment;
+
+const learningResource: Record<string, unknown> = {
+  '@type': 'LearningResource',
+  '@id': learningResourceId,
+  name: item.title,
+  url: pageUrl,
+  inLanguage: 'en-US',
+  learningResourceType: category.title,
+  educationalUse: 'Practice',
+  isAccessibleForFree: true,
+  author: { '@id': PERSON_ID },
+  publisher: { '@id': ORGANIZATION_ID },
+  thumbnailUrl: thumbUrl,
+  mainEntity: { '@id': digitalDocumentId },
+  about: { '@id': digitalDocumentId },
+};
+if (educationalLevel) learningResource.educationalLevel = educationalLevel;
+if (item.description) learningResource.description = item.description;
+
+const webPage = {
+  '@type': 'WebPage',
+  '@id': `${pageUrl}#webpage`,
+  url: pageUrl,
+  name: metaTitle,
+  description: metaDescription,
+  inLanguage: 'en-US',
+  primaryImageOfPage: thumbUrl,
+  mainEntity: { '@id': learningResourceId },
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'PDFs', item: `${SITE_URL}/pdfs/` },
+      { '@type': 'ListItem', position: 3, name: category.title, item: `${SITE_URL}/pdfs/#${categoryId}` },
+      { '@type': 'ListItem', position: 4, name: item.title, item: pageUrl },
+    ],
+  },
+};
+
+const graph: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@graph': [PERSON, ORGANIZATION, webPage, learningResource, digitalDocument],
+};
+
+if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'MusicComposition') {
+  (graph['@graph'] as unknown[]).push({
+    ...aboutFragment,
+    '@id': `${pageUrl}#composition`,
+  });
+}
+---
+
+<Layout
+  title={metaTitle}
+  description={metaDescription}
+  themeColor="#091528"
+  image={{
+    url: thumbUrl,
+    alt: `${item.title} — first page preview`,
+    type: 'image/webp',
+  }}
+>
+  <JsonLd slot="head" data={graph} />
+  <main class="pdf-detail">
+    <header class="pdf-detail-hero">
+      <div class="pdf-detail-hero-inner">
+        <nav class="pdf-detail-crumbs" aria-label="Breadcrumb">
+          <a href="/pdfs/">PDFs</a>
+          <span class="sep" aria-hidden="true">·</span>
+          <a href={`/pdfs/#${categoryId}`}>{category.title}</a>
+        </nav>
+        <span class="pdf-detail-eyebrow">{category.title}</span>
+        <h1 class="pdf-detail-title">{leadIn}<br /><em>{item.title}</em></h1>
+        {item.description && <p class="pdf-detail-lede">{item.description}</p>}
+        <div class="pdf-detail-cta-row">
+          <a class="pdf-detail-cta" href={item.file} target="_blank" rel="noopener" data-pdf-download>
+            <span class="pdf-detail-cta-label">Download PDF</span>
+            <span class="pdf-detail-cta-arrow" aria-hidden="true">↗</span>
+          </a>
+          {fileSize && <span class="pdf-detail-meta">PDF · {fileSize.size}</span>}
+        </div>
+      </div>
+    </header>
+
+    <section class="pdf-detail-body" aria-labelledby="pdf-figure-title">
+      <figure class="pdf-detail-figure">
+        <a href={item.file} target="_blank" rel="noopener" aria-label={`Open ${item.title} (PDF) in a new tab`}>
+          <img
+            src={item.thumbnail}
+            alt={`First-page preview of ${item.title}`}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </a>
+        <figcaption id="pdf-figure-title">First page of <em>{item.title}</em>. <a href={item.file} target="_blank" rel="noopener">Open the full PDF →</a></figcaption>
+      </figure>
+
+      <div class="pdf-detail-prose">
+        <h2>How to practice this</h2>
+        {hasIntake ? (
+          intakeParagraphs.map((p) => <p>{p}</p>)
+        ) : (
+          <p class="pdf-detail-placeholder">
+            <strong>Coming soon.</strong> Practice notes and context for this PDF are on the way. In the meantime, download the sheet and work through it slowly with a <a href="/metronome/">metronome</a> — that's almost always the right starting point.
+          </p>
+        )}
+      </div>
+    </section>
+
+    <aside class="pdf-detail-related" aria-labelledby="related-title">
+      <h2 id="related-title" class="pdf-detail-related-title">Keep going</h2>
+      <ul class="pdf-detail-related-list">
+        <li>
+          <a href="/pdfs/">Browse all teaching PDFs</a>
+          <span class="pdf-detail-related-desc">Single-surface exercises, drumset studies, and transcriptions.</span>
+        </li>
+        <li>
+          <a href={`/pdfs/#${categoryId}`}>More {category.title.toLowerCase()}</a>
+          <span class="pdf-detail-related-desc">{category.blurb}</span>
+        </li>
+        <li>
+          <a href="/metronome/">Use the practice metronome</a>
+          <span class="pdf-detail-related-desc">A free, no-frills metronome for working through these sheets.</span>
+        </li>
+        <li>
+          <a href="/drum-lessons/">Take a drum lesson with me</a>
+          <span class="pdf-detail-related-desc">Private lessons in Rochester, NY or virtual over Zoom — first lesson half off.</span>
+        </li>
+      </ul>
+    </aside>
+  </main>
+
+<style is:global>
+  .pdf-detail { background: var(--cream); }
+
+  .pdf-detail-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: calc(var(--header-h, 64px) + 56px) 56px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pdf-detail-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 85% 110%, rgba(26, 58, 138, 0.55) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 5% -10%, rgba(232, 101, 10, 0.16) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .pdf-detail-hero-inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .pdf-detail-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 18px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.7);
+  }
+
+  .pdf-detail-crumbs a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(245, 243, 238, 0.3);
+    padding-bottom: 2px;
+    transition: color 0.18s, border-color 0.18s;
+  }
+
+  .pdf-detail-crumbs a:hover {
+    color: var(--cream);
+    border-bottom-color: var(--cream);
+  }
+
+  .pdf-detail-crumbs .sep { opacity: 0.5; }
+
+  .pdf-detail-eyebrow {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+    margin-bottom: 14px;
+  }
+
+  .pdf-detail-title {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 18px;
+  }
+
+  .pdf-detail-title em {
+    font-style: italic;
+    color: var(--blue-lt);
+  }
+
+  .pdf-detail-lede {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.55;
+    color: rgba(245, 243, 238, 0.82);
+    max-width: 60ch;
+    margin: 0 0 24px;
+  }
+
+  .pdf-detail-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .pdf-detail-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--orange-dk);
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 14px 24px;
+    border-radius: 2px;
+    border: 1px solid var(--orange-dk);
+    min-height: 44px;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+
+  .pdf-detail-cta:hover,
+  .pdf-detail-cta:focus-visible {
+    background: var(--orange);
+    border-color: var(--orange);
+    transform: translateY(-1px);
+  }
+
+  .pdf-detail-cta-arrow { font-size: 14px; line-height: 1; }
+
+  .pdf-detail-meta {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.55);
+  }
+
+  .pdf-detail-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 64px 56px 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 56px;
+    align-items: start;
+  }
+
+  .pdf-detail-figure {
+    margin: 0;
+    position: sticky;
+    top: 96px;
+  }
+
+  .pdf-detail-figure a {
+    display: block;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    background: #fafaf6;
+    box-shadow: 0 18px 40px rgba(9, 21, 40, 0.12);
+    transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+  }
+
+  .pdf-detail-figure a:hover,
+  .pdf-detail-figure a:focus-visible {
+    border-color: var(--cobalt);
+    box-shadow: 0 22px 46px rgba(9, 21, 40, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .pdf-detail-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .pdf-detail-figure figcaption {
+    margin-top: 12px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .pdf-detail-figure figcaption a {
+    color: var(--cobalt);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(26, 58, 138, 0.3);
+    transition: color 0.18s, border-color 0.18s;
+  }
+
+  .pdf-detail-figure figcaption a:hover {
+    color: var(--blue);
+    border-color: var(--cobalt);
+  }
+
+  .pdf-detail-prose h2 {
+    font-family: var(--serif);
+    font-size: clamp(24px, 3vw, 30px);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+    margin: 0 0 18px;
+  }
+
+  .pdf-detail-prose p {
+    font-size: 16.5px;
+    line-height: 1.78;
+    color: #252018;
+    margin: 0 0 18px;
+  }
+
+  .pdf-detail-prose p:last-child { margin-bottom: 0; }
+
+  .pdf-detail-prose a {
+    color: var(--cobalt);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(26, 58, 138, 0.3);
+    transition: color 0.18s, border-color 0.18s;
+  }
+
+  .pdf-detail-prose a:hover {
+    color: var(--blue);
+    border-color: var(--cobalt);
+  }
+
+  .pdf-detail-placeholder {
+    background: rgba(26, 58, 138, 0.06);
+    border-left: 3px solid var(--cobalt);
+    padding: 14px 18px;
+    border-radius: 2px;
+    color: #3a342c;
+  }
+
+  .pdf-detail-placeholder strong {
+    color: var(--cobalt);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .pdf-detail-related {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 56px 80px;
+    border-top: 1px solid var(--rule);
+    margin-top: 48px;
+  }
+
+  .pdf-detail-related-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(22px, 2.6vw, 28px);
+    margin: 24px 0 18px;
+    color: var(--ink);
+  }
+
+  .pdf-detail-related-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .pdf-detail-related-list li {
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 16px 18px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pdf-detail-related-list a {
+    color: var(--cobalt);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(26, 58, 138, 0.3);
+    align-self: flex-start;
+    transition: color 0.18s, border-color 0.18s;
+  }
+
+  .pdf-detail-related-list a:hover {
+    color: var(--blue);
+    border-color: var(--cobalt);
+  }
+
+  .pdf-detail-related-desc {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  @media (max-width: 760px) {
+    .pdf-detail-hero { padding: calc(var(--header-h, 64px) + 28px) 28px 40px; }
+    .pdf-detail-body {
+      padding: 40px 28px 16px;
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .pdf-detail-figure { position: static; max-width: 380px; }
+    .pdf-detail-related { padding: 24px 28px 64px; }
+    .pdf-detail-cta { width: 100%; justify-content: center; }
+    .pdf-detail-cta-row { gap: 12px; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .pdf-detail { background: #060d1c; }
+    .pdf-detail-figure a {
+      background: #142544;
+      border-color: rgba(91, 141, 232, 0.16);
+    }
+    .pdf-detail-figure a:hover,
+    .pdf-detail-figure a:focus-visible {
+      border-color: var(--blue-lt);
+      box-shadow: 0 22px 46px rgba(0, 0, 0, 0.5);
+    }
+    .pdf-detail-prose p,
+    .pdf-detail-placeholder { color: #d6d2c8; }
+    .pdf-detail-prose a,
+    .pdf-detail-figure figcaption a,
+    .pdf-detail-related-list a {
+      color: var(--blue-lt);
+      border-bottom-color: rgba(91, 141, 232, 0.35);
+    }
+    .pdf-detail-prose a:hover,
+    .pdf-detail-figure figcaption a:hover,
+    .pdf-detail-related-list a:hover {
+      color: #fff;
+      border-bottom-color: var(--blue-lt);
+    }
+    .pdf-detail-placeholder {
+      background: rgba(91, 141, 232, 0.08);
+      border-left-color: var(--blue-lt);
+    }
+    .pdf-detail-placeholder strong { color: var(--blue-lt); }
+    .pdf-detail-related-list li {
+      background: #0d1830;
+      border-color: var(--rule);
+    }
+  }
+</style>
+</Layout>

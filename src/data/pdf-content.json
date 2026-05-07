@@ -1,0 +1,19 @@
+{
+  "_README": "Per-PDF 'How to practice' / 'Context' copy for the landing pages at /pdfs/[category]/[slug]/. Keys are 'category-id/slug' where slug is the PDF filename without the .pdf extension. Values are markdown-ish strings (paragraphs split on blank lines). Empty strings render a 'Coming soon' placeholder on the page — that's fine; the page still ships and is indexable.",
+
+  "single-surface/tech-routine-1": "",
+  "single-surface/tech-routine-2": "",
+  "single-surface/rtsk": "",
+  "single-surface/eighth-note-rests": "",
+
+  "drumset/three-basic-rock-beats": "",
+  "drumset/bass-drum-eighth-note-partials": "",
+  "drumset/bass-drum-sixteenth-note-partials": "",
+  "drumset/independence-exercise-pamphlet": "",
+
+  "transcriptions/daahoud": "",
+  "transcriptions/tony-williams-seven-steps-solos": "",
+  "transcriptions/marcus-gilmore-chorale-comping-sample": "",
+  "transcriptions/island-in-the-sun": "",
+  "transcriptions/undone-the-sweater-song": ""
+}

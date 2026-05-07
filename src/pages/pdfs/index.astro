@@ -5,61 +5,10 @@ import '../../styles/global.css';
 import Layout from '../../layouts/Layout.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import manifest from '../../data/pdfs.json';
+import { ABOUT_BY_FILE, landingPathFor } from '../../data/pdf-meta';
 import { SITE_URL, PERSON, PERSON_ID } from '../../data/schema';
 
 const pageUrl = `${SITE_URL}/pdfs`;
-
-// `about` mappings for transcriptions — each transcription is a drum part
-// captured from a specific recording or composition. Keys match the file
-// stem in src/data/pdfs.json.
-type AboutMap = Record<string, object>;
-const ABOUT_BY_FILE: AboutMap = {
-  'daahoud.pdf': {
-    '@type': 'MusicComposition',
-    name: 'Daahoud',
-    composer: { '@type': 'Person', name: 'Clifford Brown' },
-    recordedAs: {
-      '@type': 'MusicRecording',
-      name: 'Daahoud',
-      byArtist: [
-        { '@type': 'Person', name: 'Clifford Brown' },
-        { '@type': 'Person', name: 'Max Roach' },
-      ],
-    },
-  },
-  'tony-williams-seven-steps-solos.pdf': {
-    '@type': 'MusicComposition',
-    name: 'Seven Steps to Heaven',
-    composer: [
-      { '@type': 'Person', name: 'Miles Davis' },
-      { '@type': 'Person', name: 'Victor Feldman' },
-    ],
-    recordedAs: {
-      '@type': 'MusicRecording',
-      name: 'Seven Steps to Heaven',
-      byArtist: [
-        { '@type': 'Person', name: 'Miles Davis' },
-        { '@type': 'Person', name: 'Tony Williams' },
-      ],
-    },
-  },
-  'marcus-gilmore-chorale-comping-sample.pdf': {
-    '@type': 'MusicRecording',
-    name: 'Chorale (comping sample)',
-    composer: { '@type': 'Person', name: 'Vijay Iyer' },
-    byArtist: { '@type': 'Person', name: 'Marcus Gilmore' },
-  },
-  'island-in-the-sun.pdf': {
-    '@type': 'MusicRecording',
-    name: 'Island in the Sun',
-    byArtist: { '@type': 'MusicGroup', name: 'Weezer' },
-  },
-  'undone-the-sweater-song.pdf': {
-    '@type': 'MusicRecording',
-    name: 'Undone (The Sweater Song)',
-    byArtist: { '@type': 'MusicGroup', name: 'Weezer' },
-  },
-};
 
 function pdfFileSize(filePath: string): string | undefined {
   try {
@@ -80,6 +29,8 @@ const allItems = manifest.categories.flatMap((cat) =>
     description: item.description,
     file: item.file,
     url: `${SITE_URL}${item.file}`,
+    landingPath: landingPathFor(cat.id, item.file),
+    landingUrl: `${SITE_URL}${landingPathFor(cat.id, item.file)}`,
     category: cat.title,
     categoryId: cat.id,
     fileSize: pdfFileSize(item.file),
@@ -114,18 +65,24 @@ const graph = {
         itemListElement: allItems.map((item, i) => ({
           '@type': 'ListItem',
           position: i + 1,
+          url: item.landingUrl,
           item: {
-            '@type': 'DigitalDocument',
+            '@type': 'LearningResource',
             name: item.title,
             ...(item.description && { description: item.description }),
-            url: item.url,
-            encodingFormat: 'application/pdf',
+            url: item.landingUrl,
             inLanguage: 'en-US',
-            creator: { '@id': PERSON_ID },
+            author: { '@id': PERSON_ID },
             isAccessibleForFree: true,
             learningResourceType: item.category,
-            ...(item.fileSize && { contentSize: item.fileSize }),
-            ...(item.about && { about: item.about }),
+            mainEntity: {
+              '@type': 'DigitalDocument',
+              name: item.title,
+              url: item.url,
+              encodingFormat: 'application/pdf',
+              ...(item.fileSize && { contentSize: item.fileSize }),
+              ...(item.about && { about: item.about }),
+            },
           },
         })),
       },
@@ -165,22 +122,27 @@ const graph = {
           {cat.blurb && <p class="pdf-section-blurb">{cat.blurb}</p>}
           <div class="pdf-grid">
             {cat.items.map((item) => {
-              const href = item.file;
+              const landing = landingPathFor(cat.id, item.file);
               const thumb = item.thumbnail ?? '';
               return (
-                <a class="pdf-card" href={href} target="_blank" rel="noopener" aria-label={`Open ${item.title} (PDF) in a new tab`}>
-                  <div class="pdf-thumb">
-                    <img src={thumb} alt="" loading="lazy" decoding="async" />
-                  </div>
-                  <div class="pdf-meta">
-                    <div class="pdf-card-title">{item.title}</div>
-                    {item.description && <div class="pdf-card-desc">{item.description}</div>}
-                    <div class="pdf-card-cta">
-                      <span class="pdf-card-cta-label">Open PDF</span>
-                      <span class="pdf-card-cta-arrow" aria-hidden="true">↗</span>
+                <div class="pdf-card-wrap">
+                  <a class="pdf-card" href={landing} aria-label={`View details for ${item.title}`}>
+                    <div class="pdf-thumb">
+                      <img src={thumb} alt="" loading="lazy" decoding="async" />
                     </div>
-                  </div>
-                </a>
+                    <div class="pdf-meta">
+                      <div class="pdf-card-title">{item.title}</div>
+                      {item.description && <div class="pdf-card-desc">{item.description}</div>}
+                      <div class="pdf-card-cta">
+                        <span class="pdf-card-cta-label">View &amp; download</span>
+                        <span class="pdf-card-cta-arrow" aria-hidden="true">→</span>
+                      </div>
+                    </div>
+                  </a>
+                  <a class="pdf-card-pdf-link" href={item.file} target="_blank" rel="noopener" aria-label={`Download ${item.title} PDF directly`}>
+                    PDF ↗
+                  </a>
+                </div>
               );
             })}
           </div>
@@ -324,6 +286,38 @@ const graph = {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 28px;
+  }
+
+  /* Wrapper holds the primary card link plus a small secondary "PDF"
+     direct-download chip so users can grab the file without bouncing
+     through the landing page. The chip floats over the card top-right;
+     it's removed from the card's layout flow so card sizing stays put. */
+  .pdf-card-wrap {
+    position: relative;
+    display: flex;
+  }
+  .pdf-card-wrap > .pdf-card { flex: 1; }
+
+  .pdf-card-pdf-link {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 6;
+    background: rgba(9, 21, 40, 0.85);
+    color: var(--cream);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    border-radius: 2px;
+    text-decoration: none;
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+  .pdf-card-pdf-link:hover,
+  .pdf-card-pdf-link:focus-visible {
+    background: var(--orange-dk);
+    color: var(--cream);
   }
 
   .pdf-card {
