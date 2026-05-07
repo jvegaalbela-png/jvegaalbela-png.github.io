@@ -18,6 +18,7 @@ const NOINDEX_PATHS = ['/book', '/join', '/pdfs/handwritten'];
 const REDIRECTS = {
  '/lessons-landing': '/drum-lessons',
  '/lessons-landing-3': '/drum-lessons',
+ '/lessons-landing-3-mobile-1': '/drum-lessons',
  '/cart': '/',
 };
 
