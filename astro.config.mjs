@@ -17,6 +17,7 @@ const NOINDEX_PATHS = ['/book', '/join', '/pdfs/handwritten'];
 // like 301s for ranking-signal consolidation.
 const REDIRECTS = {
  '/lessons-landing': '/drum-lessons',
+ '/lessons-landing-3': '/drum-lessons',
  '/cart': '/',
 };
 
