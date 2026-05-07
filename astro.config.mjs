@@ -16,10 +16,20 @@ const NOINDEX_PATHS = ['/book', '/join', '/pdfs/handwritten'];
 // <link rel="canonical"> pointing at the destination. Google treats those
 // like 301s for ranking-signal consolidation.
 const REDIRECTS = {
+ // Old lessons / education landings
  '/lessons-landing': '/drum-lessons',
  '/lessons-landing-3': '/drum-lessons',
  '/lessons-landing-3-mobile-1': '/drum-lessons',
+ '/lessons-landing-3-old': '/drum-lessons',
+ '/lessons-landing-3-dark': '/drum-lessons',
+ '/education-1': '/drum-lessons',
+ // Old "listen" pages — collapse to the homepage where the album lives
+ '/listen/unbelonging': '/',
+ '/listen/jacobo-vegaalbela-quartet': '/',
+ // Old commerce / form URLs
+ '/book-now-form': '/',
  '/cart': '/',
+ '/store/category-2': '/',
 };
 
 // https://astro.build/config
