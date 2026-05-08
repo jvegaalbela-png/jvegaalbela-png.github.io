@@ -1,0 +1,145 @@
+---
+// Global persistent CTA band — sits fixed at the bottom of every
+// page on every viewport. Two equal buttons: email (mailto) and
+// call (tel). Slides out of view at the very top of the page so
+// the hero feels uncluttered, slides back in once the user has
+// scrolled past it. GA4 events fire on tap so we can attribute
+// conversions back to the band.
+---
+
+<aside class="sticky-cta" id="stickyCta" aria-label="Contact Jacobo">
+  <div class="sticky-cta-inner">
+    <a
+      class="sticky-cta-btn sticky-cta-email"
+      href="mailto:jacobovamusic@gmail.com"
+      onclick="gtag('event', 'cta_email_click', { location: 'sticky_cta' })"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3 5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm0 1 7 5 7-5"/></svg>
+      <span>Email</span>
+    </a>
+    <a
+      class="sticky-cta-btn sticky-cta-call"
+      href="tel:+15858024247"
+      aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7"
+      onclick="gtag('event', 'cta_call_click', { location: 'sticky_cta' })"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M5.5 3h2.4a1 1 0 0 1 1 .8l.6 2.4a1 1 0 0 1-.27.95L7.7 8.6a11 11 0 0 0 4.7 4.7l1.45-1.53a1 1 0 0 1 .95-.27l2.4.6a1 1 0 0 1 .8 1V15.5A2.5 2.5 0 0 1 15.5 18 14 14 0 0 1 2 4.5 2.5 2.5 0 0 1 4.5 2"/></svg>
+      <span>Call or text</span>
+    </a>
+  </div>
+</aside>
+
+<style>
+  /* Persistent contact band, always visible at the foot of the
+     viewport. iOS safe-area padding keeps it above the home
+     indicator on notched phones. */
+  .sticky-cta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    pointer-events: none;
+    padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
+    transform: translateY(0);
+    transition: transform .26s ease, opacity .2s ease;
+  }
+  .sticky-cta.is-hidden {
+    transform: translateY(140%);
+    opacity: 0;
+  }
+  .sticky-cta-inner {
+    pointer-events: auto;
+    max-width: 520px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: rgba(9, 21, 40, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(91, 141, 232, 0.18);
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  }
+  .sticky-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    font: 600 13px/1 var(--sans);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 12px 14px;
+    min-height: 44px;
+    border-radius: 6px;
+    transition: background .18s, transform .18s;
+  }
+  .sticky-cta-btn svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+  .sticky-cta-email {
+    background: rgba(245, 243, 238, 0.08);
+    color: var(--cream);
+    border: 1px solid rgba(245, 243, 238, 0.28);
+  }
+  .sticky-cta-email:hover,
+  .sticky-cta-email:focus-visible {
+    background: rgba(245, 243, 238, 0.14);
+  }
+  .sticky-cta-call {
+    background: var(--orange);
+    color: #fff;
+    border: 1px solid var(--orange);
+  }
+  .sticky-cta-call:hover,
+  .sticky-cta-call:focus-visible {
+    background: var(--orange-lt);
+    border-color: var(--orange-lt);
+    transform: translateY(-1px);
+  }
+
+  /* Print: hide the band — irrelevant on paper. */
+  @media print { .sticky-cta { display: none; } }
+
+  /* Reduced-motion: skip the slide-in animation. */
+  @media (prefers-reduced-motion: reduce) {
+    .sticky-cta { transition: none; }
+  }
+</style>
+
+<script>
+  // Hide the band when the user is at the very top of the page (so
+  // the hero gets a clean first impression) and reveal it once they
+  // start scrolling. Same scroll-listener pattern as the header.
+  (function () {
+    function init() {
+      const band = document.getElementById('stickyCta');
+      if (!band) return;
+      const SHOW_AFTER = 200;
+      let ticking = false;
+      function update() {
+        const y = window.scrollY;
+        if (y < SHOW_AFTER) band.classList.add('is-hidden');
+        else band.classList.remove('is-hidden');
+        ticking = false;
+      }
+      update();
+      window.addEventListener('scroll', function () {
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>

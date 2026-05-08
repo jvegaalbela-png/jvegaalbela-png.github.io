@@ -171,20 +171,27 @@ const graph = {
         <p class="hero-eyebrow">Online group drum class</p>
         <h1 id="heroTitle">A 10-week online drum class<br />for <em>complete beginners</em>.</h1>
         <p class="hero-sub">Drumset Jumpstart 1 (DJ1) is a small online cohort taught over Zoom &mdash; no drumset required to start.</p>
+        <a class="hero-rating" href="#testimonialsTitle">
+          <span class="hero-rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <span class="hero-rating-text"><strong>5.0</strong> &middot; 6 Google reviews</span>
+        </a>
         <ul class="chips" aria-label="Credentials">
           <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Master's, Eastman School of Music</li>
-          <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>9 years teaching</li>
+          <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>10+ years teaching</li>
           <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Small group, capped at 10</li>
         </ul>
         <LessonForm
           formId="xkoyjkzk"
           formIdSlug="hero-waitlist-form"
-          submitLabel="Join the Waitlist"
+          submitLabel="Request a Waitlist Spot"
           submitEvent="dj1_waitlist_submit"
-          submitEventParams={{ form_location: 'group_classes_hero' }}
+          submitEventParams={{ form_location: 'group_classes_hero', value: 250, currency: 'USD' }}
         />
-        <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
-        <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
+        <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'group_classes_hero' })">Text or call (585) 802-4247</a>
+        <p class="trust-line">
+          <svg class="trust-check" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>
+          <span>Google Business Screened &middot; Background-checked &amp; verified</span>
+        </p>
       </div>
       <figure class="hero-img">
         <Image
@@ -238,22 +245,22 @@ const graph = {
   <section aria-labelledby="testimonialsTitle">
     <div class="wrap">
       <div class="section-head">
-        <span class="section-tag">What private students say</span>
-        <h2 id="testimonialsTitle">Wins from the private studio.</h2>
+        <span class="section-tag">What beginners say</span>
+        <h2 id="testimonialsTitle">First-time drummers, real wins.</h2>
         <span class="section-rule" aria-hidden="true"></span>
       </div>
       <div class="testimonials-grid">
         <figure class="tcard">
-          <blockquote>I had an audition for a jazz camp and decided to take one lesson with Jacobo. He helped me improve so much that I ended up getting in.</blockquote>
-          <figcaption>&mdash; <strong>Will</strong>, college student</figcaption>
+          <blockquote>An awesome first drum lesson! Jacobo was thorough, covering everything from reading music to my first drum beat. Highly recommend!</blockquote>
+          <figcaption>&mdash; <strong>Naomi</strong>, via Google</figcaption>
         </figure>
         <figure class="tcard">
-          <blockquote>I got into the conservatory in Brussels &mdash; thank you so much for all your support. I learned a lot from you.</blockquote>
-          <figcaption>&mdash; <strong>Annie</strong>, music school graduate</figcaption>
+          <blockquote>Jacobo made me feel comfortable from the very first lesson. He was incredibly patient and understanding. I highly recommend taking lessons with him!</blockquote>
+          <figcaption>&mdash; <strong>Nisaa R.</strong>, via Google</figcaption>
         </figure>
         <figure class="tcard">
-          <blockquote>He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.</blockquote>
-          <figcaption>&mdash; <strong>Joseph</strong>, hobbyist</figcaption>
+          <blockquote>Super down to earth guy that knows his stuff. I've taken lessons from a few different people and he has been the best.</blockquote>
+          <figcaption>&mdash; <strong>Patrick M.</strong>, via Google</figcaption>
         </figure>
       </div>
     </div>
@@ -284,7 +291,7 @@ const graph = {
       <p class="pricing-fineprint">Payment via Venmo, Zelle, or PayPal. Full course due before the first class; drop-in pays per session.</p>
       <div class="mid-cta">
         <p><strong>Ready to claim a seat?</strong> The pilot cohort is capped at 10 &mdash; get on the waitlist and I'll be in touch with dates.</p>
-        <a class="btn btn-outline" href="/join" onclick="gtag('event', 'dj1_waitlist_cta_click', { location: 'pricing_mid' })">Join the Pilot Cohort Waitlist</a>
+        <a class="btn btn-primary" href="/join" onclick="gtag('event', 'dj1_waitlist_cta_click', { location: 'pricing_mid' })">Join the Pilot Cohort Waitlist</a>
       </div>
     </div>
   </section>

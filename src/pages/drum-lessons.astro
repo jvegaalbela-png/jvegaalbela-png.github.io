@@ -251,17 +251,25 @@ const graph = {
       <p class="hero-eyebrow">Private drum instruction</p>
       <h1 id="heroTitle">Drum Lessons in<br /><em>Rochester, NY</em></h1>
       <p class="hero-sub">Personalized instruction for every age and skill level.</p>
+      <a class="hero-rating" href="#testimonialsTitle">
+        <span class="hero-rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <span class="hero-rating-text"><strong>5.0</strong> &middot; 6 Google reviews</span>
+      </a>
+      <p class="hero-promo">
+        <span class="hero-promo-tag">New students</span>
+        <span class="hero-promo-text">First lesson <strong>50% off</strong> &mdash; just $25 for an hour.</span>
+      </p>
       <ul class="chips" aria-label="Credentials">
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Master's, Eastman School of Music</li>
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>10+ years teaching</li>
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>All ages &amp; levels</li>
       </ul>
-      <p class="hero-price"><strong>$50/hr</strong> &middot; <strong>$30/30min</strong> &nbsp;&middot;&nbsp; <span class="hero-price-promo">First lesson half off</span></p>
+      <p class="hero-price"><strong>$50</strong> <span class="hero-price-unit">/ 60 min</span> &nbsp;&middot;&nbsp; <strong>$30</strong> <span class="hero-price-unit">/ 30 min</span></p>
       <LessonForm
         formId="xjglgjjj"
         formIdSlug="hero-lesson-form"
         submitEvent="lesson_inquiry_submit"
-        submitEventParams={{ form_location: 'lessons_hero' }}
+        submitEventParams={{ form_location: 'lessons_hero', value: 25, currency: 'USD' }}
       />
     </div>
     <figure class="hero-img">
@@ -277,8 +285,11 @@ const graph = {
       />
     </figure>
     <div class="hero-aside">
-      <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
-      <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
+      <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'lessons_hero' })">Text or call (585) 802-4247</a>
+      <p class="trust-line">
+        <svg class="trust-check" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>
+        <span>Google Business Screened &middot; Background-checked &amp; verified</span>
+      </p>
     </div>
   </div>
 </section>
@@ -332,29 +343,34 @@ const graph = {
         <p class="price">Standard <small>+ $0.75/min commute</small></p>
         <p>Round-trip travel time billed transparently &mdash; ideal for younger students.</p>
       </div>
-      <div class="pcard">
-        <span class="pcard-tag">Collegiate</span>
-        <h3>Student discount</h3>
-        <p class="price">3 + 1<small> &nbsp;at 50% off</small></p>
-        <p>Book three lessons at full price, get the 4th half off. Proof of enrollment required.</p>
-      </div>
-      <div class="pcard">
-        <span class="pcard-tag">K&ndash;12 special</span>
-        <h3>Back-to-school</h3>
-        <p class="price">Buy 5, get 1<small> free</small></p>
-        <p>Runs Jul&ndash;Sep and Jan&ndash;Mar. Great for kids building a habit around the school year.</p>
-      </div>
-      <div class="pcard">
-        <span class="pcard-tag">Referral bonus</span>
-        <h3>Bring a friend</h3>
-        <p class="price">Both get 1<small> free lesson</small></p>
-        <p>Refer a student. Once they complete 3 lessons, you both get a free lesson on me.</p>
-      </div>
     </div>
+    <details class="pricing-more">
+      <summary>More options &mdash; student, K&ndash;12, and referral discounts</summary>
+      <div class="pricing-grid pricing-grid-secondary">
+        <div class="pcard">
+          <span class="pcard-tag">Collegiate</span>
+          <h3>Student discount</h3>
+          <p class="price">3 + 1<small> &nbsp;at 50% off</small></p>
+          <p>Book three lessons at full price, get the 4th half off. Proof of enrollment required.</p>
+        </div>
+        <div class="pcard">
+          <span class="pcard-tag">K&ndash;12 special</span>
+          <h3>Back-to-school</h3>
+          <p class="price">Buy 5, get 1<small> free</small></p>
+          <p>Runs Jul&ndash;Sep and Jan&ndash;Mar. Great for kids building a habit around the school year.</p>
+        </div>
+        <div class="pcard">
+          <span class="pcard-tag">Referral bonus</span>
+          <h3>Bring a friend</h3>
+          <p class="price">Both get 1<small> free lesson</small></p>
+          <p>Refer a student. Once they complete 3 lessons, you both get a free lesson on me.</p>
+        </div>
+      </div>
+    </details>
     <p class="pricing-fineprint">Bulk packs are non-refundable but fully reschedulable with 24 hours notice. Illness exceptions always apply.</p>
     <div class="mid-cta">
       <p><strong>Not sure which option fits?</strong> Try a half-price first lesson &mdash; drum with me, then decide.</p>
-      <a class="btn btn-outline" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'pricing_mid' })">Book Your Half-Price Lesson</a>
+      <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'pricing_mid' })">Book Your Half-Price Lesson</a>
     </div>
   </div>
 </section>
@@ -463,23 +479,5 @@ const graph = {
     <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'cta_band' })">Book Your Half-Price Lesson</a>
   </div>
 </section>
-
-<style>
-  .hero-price {
-    font-size: .9375rem;
-    line-height: 1.4;
-    color: rgba(245, 243, 238, 0.85);
-    margin: -0.25rem 0 0.75rem;
-    letter-spacing: .01em;
-  }
-  .hero-price strong {
-    color: var(--cream);
-    font-weight: 600;
-  }
-  .hero-price-promo {
-    color: var(--orange-lt);
-    font-weight: 500;
-  }
-</style>
 
 </Layout>

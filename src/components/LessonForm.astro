@@ -29,7 +29,7 @@ interface Props {
 const {
   formId,
   formIdSlug = 'lesson-form',
-  submitLabel = 'Book Your Half-Price Lesson',
+  submitLabel = 'Request My Half-Price Lesson',
   showLessonType = false,
   showLocation = false,
   showTimezone = false,
@@ -151,7 +151,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
     font-weight: 600;
     letter-spacing: .14em;
     text-transform: uppercase;
-    color: rgba(245, 243, 238, 0.78);
+    color: rgba(245, 243, 238, 0.92);
   }
   .lesson-form-field .optional {
     font-weight: 400;
@@ -162,8 +162,8 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   .lesson-form-field input,
   .lesson-form-field textarea,
   .lesson-form-field select {
-    background: rgba(245, 243, 238, 0.06);
-    border: 1px solid rgba(245, 243, 238, 0.22);
+    background: rgba(245, 243, 238, 0.12);
+    border: 1px solid rgba(245, 243, 238, 0.32);
     color: var(--cream);
     font: 400 15px/1.5 var(--sans);
     padding: 10px 12px;
@@ -194,7 +194,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   .lesson-form-field select:focus {
     outline: none;
     border-color: var(--orange-lt);
-    background: rgba(245, 243, 238, 0.1);
+    background: rgba(245, 243, 238, 0.16);
   }
   .lesson-form-field input[aria-invalid="true"],
   .lesson-form-field textarea[aria-invalid="true"],

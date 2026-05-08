@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import StickyCTA from '../components/StickyCTA.astro';
 import GoogleAnalytics from '../components/GoogleAnalytics.astro';
 // English-only site, so we skip fontsource's full unicode coverage
 // (cyrillic, greek, vietnamese, latin-ext) and write minimal latin-only
@@ -167,5 +168,6 @@ const ogType = og?.type ?? 'website';
   <Header />
   <slot />
   <Footer />
+  <StickyCTA />
 </body>
 </html>
