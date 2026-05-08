@@ -236,7 +236,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
       <div class="pdf-detail-prose">
         <h2>How to practice this</h2>
         {hasIntake ? (
-          intakeParagraphs.map((p) => <p>{p}</p>)
+          intakeParagraphs.map((p) =>
+            p.startsWith('### ') ? <h3>{p.slice(4)}</h3> : <p>{p}</p>
+          )
         ) : (
           <p class="pdf-detail-placeholder">
             <strong>Coming soon.</strong> Practice notes and context for this PDF are on the way. In the meantime, download the sheet and work through it slowly with a <a href="/metronome/">metronome</a> — that's almost always the right starting point.
@@ -509,6 +511,20 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     color: var(--ink);
     margin: 0 0 18px;
   }
+
+  /* Sub-headings inside the intake prose (rendered when an intake
+     paragraph in pdf-content.json starts with "### "). Smaller and
+     lighter than h2; generous top margin so sections breathe. */
+  .pdf-detail-prose h3 {
+    font-family: var(--serif);
+    font-size: clamp(18px, 2.2vw, 21px);
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--ink);
+    margin: 32px 0 10px;
+  }
+
+  .pdf-detail-prose h3:first-child { margin-top: 0; }
 
   .pdf-detail-prose p {
     font-size: 16.5px;
