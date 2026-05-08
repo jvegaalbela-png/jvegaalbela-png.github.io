@@ -609,12 +609,15 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     color: var(--muted);
   }
 
-  /* Featured CTA card — loud bright orange fill with cream text,
-     matching the .pdf-detail-cta hero button. */
+  /* Featured CTA card — cobalt fill with cream text. Intentionally
+     keeps the older deep-blue treatment (rather than the loud
+     orange used by .pdf-detail-cta) so the bottom-of-page lesson
+     pitch reads as "warmer / more considered" than the immediate
+     "download" action up top. */
   .pdf-detail-related-card--cta {
-    background: var(--orange);
-    border-color: var(--orange);
-    border-left-color: var(--orange);
+    background: var(--cobalt);
+    border-color: var(--cobalt);
+    border-left-color: var(--cobalt);
     color: var(--cream);
   }
 
@@ -632,10 +635,10 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
 
   .pdf-detail-related-card--cta:hover,
   .pdf-detail-related-card--cta:focus-visible {
-    background: var(--orange-lt);
-    border-color: var(--orange-lt);
-    border-left-color: var(--orange-lt);
-    box-shadow: 0 14px 32px rgba(232, 101, 10, 0.45);
+    background: var(--blue);
+    border-color: var(--blue);
+    border-left-color: var(--blue);
+    box-shadow: 0 14px 32px rgba(26, 58, 138, 0.45);
   }
 
   .pdf-detail-related-card--cta:hover .pdf-detail-related-card-arrow,
@@ -708,9 +711,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     }
 
     .pdf-detail-related-card--cta {
-      background: var(--orange);
-      border-color: var(--orange);
-      border-left-color: var(--orange);
+      background: var(--cobalt);
+      border-color: var(--cobalt);
+      border-left-color: var(--cobalt);
       color: var(--cream);
     }
     .pdf-detail-related-card--cta .pdf-detail-related-card-title,
@@ -718,9 +721,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     .pdf-detail-related-card--cta .pdf-detail-related-card-desc { color: rgba(245, 243, 238, 0.82); }
     .pdf-detail-related-card--cta:hover,
     .pdf-detail-related-card--cta:focus-visible {
-      background: var(--orange-lt);
-      border-color: var(--orange-lt);
-      border-left-color: var(--orange-lt);
+      background: var(--blue);
+      border-color: var(--blue);
+      border-left-color: var(--blue);
     }
   }
 </style>
