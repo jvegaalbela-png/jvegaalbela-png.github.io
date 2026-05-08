@@ -262,6 +262,29 @@
 
     .section-rule { flex: 1; height: 1px; background: var(--rule); }
 
+    .section-header h2 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+      line-height: 1.2;
+      color: var(--ink);
+      margin: 0;
+      letter-spacing: 0.005em;
+    }
+
+    @media (max-width: 720px) {
+      .section-header {
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        margin-bottom: 32px;
+      }
+      .section-header h2 {
+        flex: 1 1 100%;
+        font-size: 1.25rem;
+      }
+      .section-header .section-rule { display: none; }
+    }
+
     /* ── BIOGRAPHY ───────────────────────────────────── */
     .bio-text p {
       font-size: 15.5px;
