@@ -4,6 +4,26 @@
 // variables defined in each page's stylesheet (--navy, --cream,
 // --serif, --sans, --blue-lt, --orange-lt). Exposes --header-h so
 // pages can offset hero content from behind the fixed header.
+
+const NAV_LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '/drum-lessons', label: 'Drum Lessons' },
+  { href: '/group-classes', label: 'Group Classes' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/pdfs', label: 'PDFs' },
+  { href: '/metronome', label: 'Metronome' },
+];
+
+// Normalize the current path so /drum-lessons, /drum-lessons/, and
+// child routes (e.g. /blog/some-post) all resolve back to the
+// top-level nav link they belong to. Sub-routes resolve to the
+// nearest matching nav root so the parent stays highlighted.
+const rawPath = Astro.url.pathname;
+const stripped = rawPath.length > 1 ? rawPath.replace(/\/$/, '') : rawPath;
+function isCurrent(href: string) {
+  if (href === '/') return stripped === '/';
+  return stripped === href || stripped.startsWith(href + '/');
+}
 ---
 
 <header class="site-header" id="siteHeader">
@@ -13,12 +33,9 @@
   </a>
 
   <nav class="site-nav" aria-label="Primary">
-    <a href="/">Home</a>
-    <a href="/drum-lessons">Drum Lessons</a>
-    <a href="/group-classes">Group Classes</a>
-    <a href="/blog">Blog</a>
-    <a href="/pdfs">PDFs</a>
-    <a href="/metronome">Metronome</a>
+    {NAV_LINKS.map((link) => (
+      <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>{link.label}</a>
+    ))}
   </nav>
 
   <button
@@ -36,12 +53,9 @@
 </header>
 
 <nav class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation">
-  <a href="/">Home</a>
-  <a href="/drum-lessons">Drum Lessons</a>
-  <a href="/group-classes">Group Classes</a>
-  <a href="/blog">Blog</a>
-  <a href="/pdfs">PDFs</a>
-  <a href="/metronome">Metronome</a>
+  {NAV_LINKS.map((link) => (
+    <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>{link.label}</a>
+  ))}
 </nav>
 
 <style is:global>
@@ -148,8 +162,13 @@
   }
 
   .site-nav a:hover::after,
-  .site-nav a:focus-visible::after {
+  .site-nav a:focus-visible::after,
+  .site-nav a[aria-current="page"]::after {
     transform: scaleX(1);
+  }
+
+  .site-nav a[aria-current="page"] {
+    color: var(--cream);
   }
 
   /* Hamburger toggle — hidden on desktop, shown on mobile. */
@@ -242,6 +261,13 @@
     color: var(--cream);
   }
 
+  .mobile-menu a[aria-current="page"] {
+    color: var(--cream);
+    border-left: 2px solid var(--orange-lt);
+    padding-left: 12px;
+    margin-left: -14px;
+  }
+
   /* Light mode: cream-tinted header with dark text. */
   @media (prefers-color-scheme: light) {
     .site-header {
@@ -257,7 +283,8 @@
     }
 
     .site-nav a:hover,
-    .site-nav a:focus-visible {
+    .site-nav a:focus-visible,
+    .site-nav a[aria-current="page"] {
       color: var(--ink);
     }
 
@@ -274,7 +301,8 @@
     }
 
     .mobile-menu a:hover,
-    .mobile-menu a:focus-visible {
+    .mobile-menu a:focus-visible,
+    .mobile-menu a[aria-current="page"] {
       color: var(--ink);
     }
   }

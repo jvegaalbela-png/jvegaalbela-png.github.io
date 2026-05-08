@@ -153,13 +153,13 @@ const graph = {
     <div class="hero-role">Jazz Drummer &nbsp;·&nbsp; Composer &nbsp;·&nbsp; Bandleader</div>
     <div class="hero-links">
       <a class="hero-link-btn primary" href="https://577records.bandcamp.com/album/un-belonging" target="_blank" rel="noopener">
-        <span class="icon">▶</span><span class="label-full">Listen to the Album</span><span class="label-short">Listen</span>
+        <span class="icon" aria-hidden="true">▶</span><span class="label-full">Listen to the Album</span><span class="label-short">Listen</span>
       </a>
       <a class="hero-link-btn" href="https://youtube.com/playlist?list=PLr4sdvgtCCMcfSZHuTscc1YX61tsUFaJt" target="_blank" rel="noopener">
-        <span class="icon">▶</span><span class="label-full">Watch on YouTube</span><span class="label-short">Watch</span>
+        <span class="icon" aria-hidden="true">▶</span><span class="label-full">Watch on YouTube</span><span class="label-short">Watch</span>
       </a>
       <a class="hero-link-btn" href="https://linktr.ee/jvegaalbela" target="_blank" rel="noopener">
-        <span class="icon">↗</span><span class="label-full">All Links · Linktree</span><span class="label-short">Links</span>
+        <span class="icon" aria-hidden="true">↗</span><span class="label-full">All Links · Linktree</span><span class="label-short">Links</span>
       </a>
     </div>
   </div>
@@ -202,10 +202,10 @@ const graph = {
 <div class="wrapper">
 
   <!-- ════════════════════════════════════════ BIOGRAPHY -->
-  <section>
+  <section aria-labelledby="bio-heading">
     <div class="section-header">
-      <span class="section-tag">Biography</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="bio-heading">Biography</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
     <div class="bio-text">
       <p>
@@ -264,10 +264,10 @@ const graph = {
   </section>
 
   <!-- ════════════════════════════════════════ PRESS & RADIO -->
-  <section>
+  <section aria-labelledby="press-heading">
     <div class="section-header">
-      <span class="section-tag">Press &amp; Radio</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="press-heading">Press &amp; Radio</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
     <div class="press-grid">
       <div>
@@ -294,10 +294,10 @@ const graph = {
   </section>
 
   <!-- ════════════════════════════════════════ HIGHLIGHTS -->
-  <section>
+  <section aria-labelledby="highlights-heading">
     <div class="section-header">
-      <span class="section-tag">Career Highlights</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="highlights-heading">Career Highlights</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
     <div class="highlights-grid">
       <div class="highlight-card c-blue">
@@ -332,10 +332,10 @@ const graph = {
   </section>
 
   <!-- ════════════════════════════════════════ ALBUM -->
-  <section>
+  <section aria-labelledby="discography-heading">
     <div class="section-header">
-      <span class="section-tag">Discography</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="discography-heading">Discography</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
     <div class="album-grid">
       <div class="album-left">
@@ -368,25 +368,25 @@ const graph = {
         </div>
         <div class="listen-links">
           <a class="listen-btn" href="https://577records.bandcamp.com/album/un-belonging" target="_blank">
-            ▶ Listen on Bandcamp
+            <span aria-hidden="true">▶</span> Listen on Bandcamp
           </a>
           <a class="listen-btn" href="https://youtube.com/playlist?list=PLr4sdvgtCCMcfSZHuTscc1YX61tsUFaJt" target="_blank">
-            ▶ Watch on YouTube
+            <span aria-hidden="true">▶</span> Watch on YouTube
           </a>
         </div>
       </div>
 
       <div class="album-right">
-        <div class="track-list">
-          <div class="track-item"><span class="track-num">01</span><span class="track-name">Moonbeams</span><span class="track-type">Trio</span></div>
-          <div class="track-item"><span class="track-num">02</span><span class="track-name">To Hope</span><span class="track-type">Trio</span></div>
-          <div class="track-item"><span class="track-num">03</span><span class="track-name">Plonqs</span><span class="track-type">Quintet</span></div>
-          <div class="track-item"><span class="track-num">04</span><span class="track-name">390S</span><span class="track-type">Trio</span></div>
-          <div class="track-item"><span class="track-num">05</span><span class="track-name">I Fall In Love Too Easily</span><span class="track-type">Trio</span></div>
-          <div class="track-item"><span class="track-num">06</span><span class="track-name">Carousel</span><span class="track-type">Quartet</span></div>
-          <div class="track-item"><span class="track-num">07</span><span class="track-name">High Priest</span><span class="track-type">Quintet</span></div>
-          <div class="track-item"><span class="track-num">08</span><span class="track-name">Birthday Week</span><span class="track-type">Quintet</span></div>
-        </div>
+        <ol class="track-list">
+          <li class="track-item"><span class="track-num" aria-hidden="true">01</span><span class="track-name">Moonbeams</span><span class="track-type">Trio</span></li>
+          <li class="track-item"><span class="track-num" aria-hidden="true">02</span><span class="track-name">To Hope</span><span class="track-type">Trio</span></li>
+          <li class="track-item"><span class="track-num" aria-hidden="true">03</span><span class="track-name">Plonqs</span><span class="track-type">Quintet</span></li>
+          <li class="track-item"><span class="track-num" aria-hidden="true">04</span><span class="track-name">390S</span><span class="track-type">Trio</span></li>
+          <li class="track-item"><span class="track-num" aria-hidden="true">05</span><span class="track-name">I Fall In Love Too Easily</span><span class="track-type">Trio</span></li>
+          <li class="track-item"><span class="track-num" aria-hidden="true">06</span><span class="track-name">Carousel</span><span class="track-type">Quartet</span></li>
+          <li class="track-item"><span class="track-num" aria-hidden="true">07</span><span class="track-name">High Priest</span><span class="track-type">Quintet</span></li>
+          <li class="track-item"><span class="track-num" aria-hidden="true">08</span><span class="track-name">Birthday Week</span><span class="track-type">Quintet</span></li>
+        </ol>
 
         <div class="personnel-block">
           <div class="personnel-label">Personnel</div>
@@ -410,7 +410,7 @@ const graph = {
     </div>
 
     <div class="bandcamp-blurb">
-      <a class="bandcamp-eyebrow" href="https://577records.bandcamp.com/album/un-belonging" target="_blank" rel="noopener">From Bandcamp ↗</a>
+      <a class="bandcamp-eyebrow" href="https://577records.bandcamp.com/album/un-belonging" target="_blank" rel="noopener">From Bandcamp <span aria-hidden="true">↗</span></a>
       <div class="bandcamp-copy">
         <p>
           When Jacobo Vega-Albela left New Mexico for upstate New York to pursue a
@@ -442,10 +442,10 @@ const graph = {
   </section>
 
   <!-- ════════════════════════════════════════ ARTIST STATEMENT -->
-  <section>
+  <section aria-labelledby="statement-heading">
     <div class="section-header">
-      <span class="section-tag">Artist Statement</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="statement-heading">Artist Statement</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
     <div class="statement-block">
       <p>
@@ -478,10 +478,10 @@ const graph = {
   </section>
 
   <!-- ════════════════════════════════════════ EDUCATION -->
-  <section>
+  <section aria-labelledby="education-heading">
     <div class="section-header">
-      <span class="section-tag">Education</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="education-heading">Education</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
     <div class="edu-timeline">
       <div class="edu-item">
@@ -529,10 +529,10 @@ const graph = {
   </section>
 
   <!-- ════════════════════════════════════════ AWARDS -->
-  <section>
+  <section aria-labelledby="awards-heading">
     <div class="section-header">
-      <span class="section-tag">Awards &amp; Recognition</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="awards-heading">Awards &amp; Recognition</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
     <div>
       <div class="award-item">
@@ -554,10 +554,10 @@ const graph = {
   </section>
 
   <!-- ════════════════════════════════════════ PRESS PHOTOS -->
-  <section style="padding-bottom: 72px;">
+  <section style="padding-bottom: 72px;" aria-labelledby="photos-heading">
     <div class="section-header">
-      <span class="section-tag">Press Photos</span>
-      <div class="section-rule"></div>
+      <h2 class="section-tag" id="photos-heading">Press Photos</h2>
+      <div class="section-rule" aria-hidden="true"></div>
     </div>
 
     <!-- Carousel -->
@@ -605,7 +605,7 @@ const graph = {
         <div class="photos-cta-sub">Portrait and landscape favorites — print-ready resolution.</div>
       </div>
       <a class="photos-cta-btn" href="https://drive.google.com/drive/folders/1A-m6Ny-eqMybXyHYLNbCr_3kn5JazFEI" target="_blank">
-        Open in Google Drive →
+        Open in Google Drive <span aria-hidden="true">→</span>
       </a>
     </div>
   </section>
@@ -622,11 +622,18 @@ const graph = {
     let current = 0;
     let timer;
 
+    // Honor prefers-reduced-motion: when the user has the OS-level
+    // setting on, the autoplay timer never starts and the slide
+    // transitions still work via prev/next/dot/swipe. The matchMedia
+    // listener picks up runtime toggles too.
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
     // Build dots
     slides.forEach((_, i) => {
       const dot = document.createElement('button');
       dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
       dot.setAttribute('aria-label', 'Photo ' + (i + 1));
+      if (i === 0) dot.setAttribute('aria-current', 'true');
       dot.addEventListener('click', () => goTo(i));
       dotsContainer.appendChild(dot);
     });
@@ -636,14 +643,17 @@ const graph = {
     function goTo(n) {
       slides[current].classList.remove('active');
       dots[current].classList.remove('active');
+      dots[current].removeAttribute('aria-current');
       current = (n + slides.length) % slides.length;
       slides[current].classList.add('active');
       dots[current].classList.add('active');
+      dots[current].setAttribute('aria-current', 'true');
       resetTimer();
     }
 
     function resetTimer() {
       clearInterval(timer);
+      if (reducedMotion.matches) return;
       timer = setInterval(() => goTo(current + 1), 4000);
     }
 
@@ -662,6 +672,13 @@ const graph = {
       const dx = e.changedTouches[0].clientX - touchStartX;
       if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
     });
+
+    // React to runtime changes of the reduced-motion preference.
+    if (reducedMotion.addEventListener) {
+      reducedMotion.addEventListener('change', resetTimer);
+    } else if (reducedMotion.addListener) {
+      reducedMotion.addListener(resetTimer);
+    }
 
     resetTimer();
   })();

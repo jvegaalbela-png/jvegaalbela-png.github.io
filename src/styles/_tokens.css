@@ -1,0 +1,76 @@
+/* Shared design tokens — palette, universal reset, base typography,
+   focus indicator, dark-mode token remap, and reduced-motion + print
+   rules. Imported by global.css (homepage, blog, /pdfs, /post,
+   /404, pdf-detail), lessons.css (/drum-lessons, /book), and
+   group-class.css (/group-classes, /join). Page-specific body
+   sizing/line-height stays in each file's own `body` rule. */
+
+:root {
+  /* Pulled directly from the Un-Belonging album painting */
+  --navy:    #091528;        /* deepest background */
+  --cobalt:  #1a3a8a;        /* dominant blue */
+  --blue:    #2a5cc8;        /* mid blue */
+  --blue-lt: #5b8de8;        /* bright blue highlight */
+  --orange:  #e8650a;        /* warm orange from painting */
+  --orange-lt: #f5882a;
+  --orange-dk: #b04600;      /* AA-contrast on cream for small text */
+  --lime:    #8db820;        /* lime green dots in painting */
+  --lime-dk: #506e10;        /* AA-contrast on cream for small text */
+  --cream:   #f5f3ee;
+  --ink:     #0e0d0b;
+  --muted:   #6b6560;
+  --rule:    #d8d3cb;
+  /* Each font stack lists the real font, then a metric-overridden
+     fallback declared in Layout.astro that sizes Georgia/Arial to
+     match the real font's x-height, ascent, and descent. The
+     system fallback never gets used in practice, but is there as
+     a final safety net. Keeping the swap dimensionally invisible
+     is what gets mobile LCP under control on /drum-lessons. */
+  --serif:   'Cormorant Garamond Variable', 'Cormorant Fallback', Georgia, serif;
+  --sans:    'Inter Variable', 'Inter Fallback', system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  a { color: inherit !important; text-decoration: none; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:   #ece7da;
+    --muted: #908a7e;
+    --rule:  #1d2a48;
+    /* The -dk accent variants are tuned for AA contrast on the cream
+       body. On dark backgrounds they go too dim, so map them back to
+       the brighter brand colors here. */
+    --orange-dk: var(--orange);
+    --lime-dk:   var(--lime);
+  }
+  body { background: #060d1c; }
+}
