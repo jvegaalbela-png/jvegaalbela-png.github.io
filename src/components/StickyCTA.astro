@@ -113,18 +113,29 @@
 </style>
 
 <script>
-  // Hide the band when the user is at the very top of the page (so
-  // the hero gets a clean first impression) and reveal it once they
-  // start scrolling. Same scroll-listener pattern as the header.
+  // Hide the band while the hero is on screen (it duplicates the
+  // hero's tel link), then reveal it once the hero has fully
+  // scrolled out of view. Pages without a `.hero` element fall
+  // back to a simple scroll-position threshold.
   (function () {
     function init() {
       const band = document.getElementById('stickyCta');
       if (!band) return;
-      const SHOW_AFTER = 200;
+      band.classList.add('is-hidden');
+      const hero = document.querySelector('.hero');
+      if (hero && 'IntersectionObserver' in window) {
+        const obs = new IntersectionObserver(function (entries) {
+          const entry = entries[0];
+          if (entry.isIntersecting) band.classList.add('is-hidden');
+          else band.classList.remove('is-hidden');
+        }, { threshold: 0 });
+        obs.observe(hero);
+        return;
+      }
+      const SHOW_AFTER = 320;
       let ticking = false;
       function update() {
-        const y = window.scrollY;
-        if (y < SHOW_AFTER) band.classList.add('is-hidden');
+        if (window.scrollY < SHOW_AFTER) band.classList.add('is-hidden');
         else band.classList.remove('is-hidden');
         ticking = false;
       }
