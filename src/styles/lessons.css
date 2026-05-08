@@ -74,10 +74,48 @@ main > section:not(.hero){
     radial-gradient(ellipse 25% 30% at 95% 5%,rgba(141,184,32,.12),transparent 50%);
 }
 .hero .wrap{position:relative;display:grid;gap:1rem 2rem;grid-template-columns:1fr;align-items:start;grid-template-areas:"text" "aside" "image"}
-.hero-text{grid-area:text}
+.hero-text{grid-area:text;display:flex;flex-direction:column}
 .hero-img{grid-area:image}
 .hero-aside{grid-area:aside;display:flex;flex-direction:column;gap:.875rem}
 .hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-lt);margin-bottom:.75rem}
+
+/* Inline 5-star Google review chip; lives between hero-sub and the
+   form so social proof reads above the fold without crowding the
+   credential chips. */
+.hero-rating{
+  display:inline-flex;align-items:center;gap:.5rem;
+  align-self:flex-start;
+  margin:0 0 .875rem;padding:.25rem 0;
+  color:rgba(245,243,238,.92);text-decoration:none;
+  font-size:.8125rem;letter-spacing:.01em;
+  border-bottom:1px solid transparent;transition:border-color .15s,color .15s;
+}
+.hero-rating:hover,.hero-rating:focus-visible{border-bottom-color:rgba(245,243,238,.4);color:#fff}
+.hero-rating-stars{color:#f5b955;letter-spacing:.05em;font-size:.9375rem;line-height:1}
+.hero-rating-text strong{color:var(--cream);font-weight:600}
+
+/* Loud promo banner — the half-off offer is the hero's strongest
+   conversion lever, so it gets its own callout above the form. */
+.hero-promo{
+  display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .65rem;
+  background:rgba(232,101,10,.16);
+  border-left:3px solid var(--orange-lt);
+  padding:.55rem .75rem;border-radius:2px;
+  font-size:.875rem;line-height:1.4;color:rgba(245,243,238,.95);
+  margin:0 0 .875rem;
+}
+.hero-promo-tag{
+  font-size:.625rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  background:var(--orange);color:#fff;padding:.2rem .45rem;border-radius:2px;line-height:1.2;
+}
+.hero-promo-text strong{color:#fff;font-weight:700}
+
+.hero-price{
+  font-size:.875rem;line-height:1.4;color:rgba(245,243,238,.78);
+  margin:0 0 .875rem;letter-spacing:.01em;
+}
+.hero-price strong{color:var(--cream);font-weight:600;font-size:1rem}
+.hero-price-unit{color:rgba(245,243,238,.6)}
 .hero h1{
   font-family:var(--serif);font-weight:300;line-height:1.05;letter-spacing:-.01em;
   font-size:clamp(2rem,5.5vw,3.5rem);margin-bottom:1rem;
@@ -112,8 +150,12 @@ main > section:not(.hero){
 }
 .hero-img img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
 .trust-line{
-  margin-top:0;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;
-  color:rgba(245,243,238,.55);
+  margin-top:0;font-size:.8125rem;letter-spacing:.01em;
+  color:rgba(245,243,238,.82);
+  display:inline-flex;align-items:center;gap:.45rem;
+}
+.trust-line .trust-check{
+  width:14px;height:14px;color:var(--lime);flex:none;
 }
 @media (min-width:780px){
   .hero .wrap{grid-template-columns:1.15fr .85fr;gap:0.75rem 3rem;align-items:stretch;grid-template-areas:"text image" "aside ."}
@@ -165,6 +207,25 @@ main > section:not(.hero){
 .pcard .price small{font-size:.8125rem;color:var(--muted);font-family:var(--sans);margin-left:.25rem}
 .pcard p{font-size:.9375rem;color:#3a342c;line-height:1.55}
 .pricing-fineprint{margin-top:1.5rem;font-size:.8125rem;color:var(--muted);line-height:1.6}
+
+/* "More options" disclosure — secondary discount cards. Collapsed
+   by default so the three primary rate cards lead the section. */
+.pricing-more{margin-top:1.25rem}
+.pricing-more > summary{
+  list-style:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:.5rem;
+  font:600 .8125rem/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--orange-dk);padding:.625rem .25rem;
+  border-bottom:1px solid var(--rule);
+}
+.pricing-more > summary::-webkit-details-marker{display:none}
+.pricing-more > summary::after{
+  content:"+";font-family:var(--serif);font-size:1.25rem;line-height:1;
+  color:var(--orange);transition:transform .18s;
+}
+.pricing-more[open] > summary::after{content:"\2013"}
+.pricing-more > summary:hover{color:var(--orange)}
+.pricing-grid-secondary{margin-top:1.25rem}
 .mid-cta{margin-top:2rem;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;justify-content:flex-start}
 .mid-cta p{font-size:.9375rem;color:#3a342c;margin:0}
 .mid-cta strong{color:var(--cobalt);font-weight:600}
@@ -266,11 +327,16 @@ footer{
 
   .hero{padding-top:calc(var(--header-h) + 16px);padding-bottom:2rem}
   .hero h1{font-size:2rem;margin-bottom:.75rem}
-  .hero-sub{font-size:1rem;margin-bottom:1.25rem}
-  .chips{margin-bottom:1.25rem;gap:.4rem}
+  .hero-sub{font-size:1rem;margin-bottom:1rem}
+  /* Push credential chips below the form on mobile so the form CTA
+     sits closer to the fold. flex order on .hero-text. */
+  .chips{order:1;margin-top:1rem;margin-bottom:0;gap:.4rem}
   .chip{font-size:.6875rem;padding:.4rem .65rem}
-  .trust-line{margin-top:0;font-size:.6875rem}
+  .trust-line{margin-top:0;font-size:.75rem}
   .hero-img{margin-top:1.25rem}
+  .hero-rating{font-size:.8125rem;margin-bottom:.75rem}
+  .hero-promo{font-size:.875rem;padding:.5rem .65rem;margin-bottom:.875rem}
+  .hero-price{margin-bottom:.875rem}
 
   .promo-banner{flex-direction:column;align-items:flex-start;gap:.4rem;padding:.875rem 1rem;font-size:.9375rem;text-align:left}
   .pcard{padding:1.25rem}

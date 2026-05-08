@@ -25,7 +25,7 @@ import LessonForm from '../components/LessonForm.astro';
     <LessonForm
       formId="xkoyjkzk"
       formIdSlug="join-waitlist-form"
-      submitLabel="Join the Waitlist"
+      submitLabel="Request a Waitlist Spot"
       showTimezone={true}
       showExperience={true}
       submitEvent="dj1_waitlist_submit"
@@ -33,7 +33,7 @@ import LessonForm from '../components/LessonForm.astro';
     />
 
     <div class="join-aside">
-      <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7">Text or call (585) 802-4247</a>
+      <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'join_page' })">Text or call (585) 802-4247</a>
       <p class="trust-line">Google Business Screened &nbsp;·&nbsp; Background-checked &amp; verified</p>
       <p class="join-back"><a href="/group-classes">&larr; Back to group classes</a></p>
     </div>
