@@ -205,6 +205,16 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     <section class="pdf-detail-body" aria-labelledby="pdf-figure-title">
       <figure class="pdf-detail-figure">
         <a href={item.file} target="_blank" rel="noopener" aria-label={`Open ${item.title} (PDF) in a new tab`}>
+          {/*
+            decoding is intentionally omitted (defaulting to "auto").
+            decoding="async" tells the browser it may paint the
+            document first and come back to paint the image later —
+            which on slow CPU can cost ~2s of LCP "element render
+            delay" because the document paints quickly without the
+            image, then the image paints separately once decoded.
+            For above-the-fold/LCP images, sync/auto decoding lets
+            the browser paint the image inline with the document.
+          */}
           <img
             src={item.thumbnail}
             alt={`First-page preview of ${item.title}`}
@@ -212,7 +222,6 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
             height={thumbDims?.h}
             loading="eager"
             fetchpriority="high"
-            decoding="async"
           />
         </a>
         <figcaption id="pdf-figure-title">
