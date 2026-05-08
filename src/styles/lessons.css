@@ -57,7 +57,12 @@ main > section:not(.hero){
 /* hero */
 .hero{
   background:var(--navy);color:var(--cream);
-  padding:clamp(2.5rem,6vw,4.5rem) 0 clamp(2rem,5vw,3.5rem);
+  /* Anchor the top padding to var(--header-h) so the eyebrow always
+     clears the fixed translucent nav. The previous clamp resolved
+     to as little as 40px on 601-1066px viewports, leaving the
+     eyebrow tucked behind the 64px header — fix matches the
+     header-aware padding pattern used on every other hero. */
+  padding:calc(var(--header-h) + clamp(1rem,3vw,2rem)) 0 clamp(2rem,5vw,3.5rem);
   position:relative;overflow:hidden;border-top:0;
   contain:layout;
 }
