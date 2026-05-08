@@ -1,6 +1,7 @@
 ---
 import { statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import sharp from 'sharp';
 import '../../../styles/global.css';
 import Layout from '../../../layouts/Layout.astro';
 import JsonLd from '../../../components/JsonLd.astro';
@@ -38,12 +39,17 @@ const pageUrl = `${SITE_URL}/pdfs/${categoryId}/${slug}/`;
 const pdfUrl = `${SITE_URL}${item.file}`;
 const thumbUrl = new URL(item.thumbnail, SITE_URL).toString();
 
+// Resolve a `/public/...` URL path to an absolute on-disk path during
+// build. Using `process.cwd()` rather than `import.meta.url` because
+// Astro's compiled page modules don't preserve the source file
+// location on disk — relative URLs there resolve to the wrong tree.
+function publicPath(urlPath: string): string {
+  return join(process.cwd(), 'public', urlPath.replace(/^\/+/, ''));
+}
+
 function pdfFileSize(filePath: string): { size: string; bytes: number } | undefined {
   try {
-    const path = fileURLToPath(
-      new URL(`../../../../public${filePath}`, import.meta.url)
-    );
-    const bytes = statSync(path).size;
+    const bytes = statSync(publicPath(filePath)).size;
     return { size: `${Math.round(bytes / 1024)} kB`, bytes };
   } catch {
     return undefined;
@@ -51,6 +57,23 @@ function pdfFileSize(filePath: string): { size: string; bytes: number } | undefi
 }
 
 const fileSize = pdfFileSize(item.file);
+
+// Read the LCP thumbnail's intrinsic dimensions at build time so the
+// <img> can carry width/height attributes. Without these, the
+// browser can't commit layout for the figure until the image's HTTP
+// headers arrive, which on a slow connection becomes the dominant
+// "element render delay" component of LCP.
+async function thumbDimensions(thumbPath: string): Promise<{ w: number; h: number } | undefined> {
+  try {
+    const meta = await sharp(publicPath(thumbPath)).metadata();
+    if (meta.width && meta.height) return { w: meta.width, h: meta.height };
+  } catch {
+    /* swallow — we'll just omit the dimensions if sharp fails */
+  }
+  return undefined;
+}
+
+const thumbDims = await thumbDimensions(item.thumbnail);
 
 const intakeKey = `${categoryId}/${slug}`;
 const intakeRaw = (pdfContent as Record<string, string>)[intakeKey] ?? '';
@@ -151,6 +174,13 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
   }}
 >
   <JsonLd slot="head" data={graph} />
+  {/*
+    Preload the LCP thumbnail so the fetch starts during HTML
+    streaming, instead of waiting for the preload scanner to reach
+    the <img> in the body. Pairs with width/height + eager + high
+    fetchpriority to keep "element render delay" small.
+  */}
+  <link slot="head" rel="preload" as="image" href={item.thumbnail} fetchpriority="high" />
   <main class="pdf-detail">
     <header class="pdf-detail-hero">
       <div class="pdf-detail-hero-inner">
@@ -178,6 +208,8 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
           <img
             src={item.thumbnail}
             alt={`First-page preview of ${item.title}`}
+            width={thumbDims?.w}
+            height={thumbDims?.h}
             loading="eager"
             fetchpriority="high"
             decoding="async"
@@ -513,6 +545,12 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
   .pdf-detail-related {
     border-top: 1px solid var(--rule);
     margin-top: 48px;
+    /* Defer layout/paint of the below-fold related cards until they
+       scroll into view so they don't compete with the LCP thumbnail
+       for paint time. contain-intrinsic-size reserves space so the
+       scroll position stays stable. */
+    content-visibility: auto;
+    contain-intrinsic-size: 0 480px;
   }
 
   .pdf-detail-related-inner {
