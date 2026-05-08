@@ -1,6 +1,7 @@
 ---
 import { statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import sharp from 'sharp';
 import '../../styles/global.css';
 import Layout from '../../layouts/Layout.astro';
 import JsonLd from '../../components/JsonLd.astro';
@@ -10,17 +11,37 @@ import { SITE_URL, PERSON, PERSON_ID } from '../../data/schema';
 
 const pageUrl = `${SITE_URL}/pdfs`;
 
+// Resolve a `/public/...` URL path to an absolute on-disk path during
+// build. Uses process.cwd() rather than import.meta.url because
+// Astro's compiled page modules don't reliably preserve source file
+// locations (the same helper anchors the LCP-thumbnail dim lookup
+// in src/pages/pdfs/[category]/[slug].astro).
+function publicPath(urlPath: string): string {
+  return join(process.cwd(), 'public', urlPath.replace(/^\/+/, ''));
+}
+
 function pdfFileSize(filePath: string): string | undefined {
   try {
-    // filePath is an absolute public path like /pdfs/single-surface/file.pdf
-    const path = fileURLToPath(
-      new URL(`../../../public${filePath}`, import.meta.url)
-    );
-    const bytes = statSync(path).size;
+    const bytes = statSync(publicPath(filePath)).size;
     return `${Math.round(bytes / 1024)} kB`;
   } catch {
     return undefined;
   }
+}
+
+// Read each thumbnail's intrinsic dimensions at build time so the
+// card <img> can carry width/height attributes — prevents CLS as
+// images stream in, and lets the LCP candidate (the first card)
+// commit layout before the thumbnail's HTTP headers arrive.
+async function thumbDimensions(thumbPath: string | undefined): Promise<{ w: number; h: number } | undefined> {
+  if (!thumbPath) return undefined;
+  try {
+    const meta = await sharp(publicPath(thumbPath)).metadata();
+    if (meta.width && meta.height) return { w: meta.width, h: meta.height };
+  } catch {
+    /* ignore — img will render without dims if sharp fails */
+  }
+  return undefined;
 }
 
 const allItems = manifest.categories.flatMap((cat) =>
@@ -37,6 +58,24 @@ const allItems = manifest.categories.flatMap((cat) =>
     about: ABOUT_BY_FILE[item.file.split('/').pop()!],
   }))
 );
+
+// Pre-compute thumbnail dimensions for every card, keyed by file
+// path so the JSX render can look them up cheaply.
+const thumbDims = new Map<string, { w: number; h: number } | undefined>();
+for (const cat of manifest.categories) {
+  for (const item of cat.items) {
+    if (item.thumbnail) {
+      thumbDims.set(item.thumbnail, await thumbDimensions(item.thumbnail));
+    }
+  }
+}
+
+// Identify the first card's thumbnail — it's the LCP candidate on
+// mobile (just below the navy hero). We give it eager loading +
+// high fetchpriority + a <link rel="preload"> so the fetch starts
+// during HTML streaming, and we drop decoding="async" so the
+// browser paints it inline with the document instead of deferring.
+const firstThumb = manifest.categories[0]?.items[0]?.thumbnail;
 
 const graph = {
   '@context': 'https://schema.org',
@@ -97,6 +136,9 @@ const graph = {
   themeColor="#091528"
 >
   <JsonLd slot="head" data={graph} />
+  {firstThumb && (
+    <link slot="head" rel="preload" as="image" href={firstThumb} fetchpriority="high" />
+  )}
 
 <main>
 <header class="pdfs-hero">
@@ -124,11 +166,28 @@ const graph = {
             {cat.items.map((item) => {
               const landing = landingPathFor(cat.id, item.file);
               const thumb = item.thumbnail ?? '';
+              const dims = thumbDims.get(thumb);
+              const isLcp = thumb && thumb === firstThumb;
               return (
                 <div class="pdf-card-wrap">
                   <a class="pdf-card" href={landing} aria-label={`View details for ${item.title}`}>
                     <div class="pdf-thumb">
-                      <img src={thumb} alt="" loading="lazy" decoding="async" />
+                      {/*
+                        LCP card: eager + high priority, decoding default
+                        (auto/sync) so the browser paints inline with
+                        the document. Other cards: lazy + async since
+                        they're below the fold and the user may never
+                        scroll to them.
+                      */}
+                      <img
+                        src={thumb}
+                        alt=""
+                        width={dims?.w}
+                        height={dims?.h}
+                        loading={isLcp ? 'eager' : 'lazy'}
+                        fetchpriority={isLcp ? 'high' : undefined}
+                        decoding={isLcp ? undefined : 'async'}
+                      />
                     </div>
                     <div class="pdf-meta">
                       <div class="pdf-card-title">{item.title}</div>

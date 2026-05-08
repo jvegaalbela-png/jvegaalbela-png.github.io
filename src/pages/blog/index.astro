@@ -112,6 +112,7 @@ const graph = {
                           sizes="(min-width: 760px) 360px, 100vw"
                           loading={isLcp ? 'eager' : 'lazy'}
                           fetchpriority={isLcp ? 'high' : undefined}
+                          decoding={isLcp ? 'auto' : 'async'}
                           quality={55}
                         />
                       </figure>
