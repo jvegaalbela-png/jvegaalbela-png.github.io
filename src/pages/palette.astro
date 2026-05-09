@@ -1,0 +1,683 @@
+---
+// Unlisted (noindex) palette preview page. Renders each palette
+// variant in light + dark side-by-side with sample h1/h2/eyebrow/
+// body/link/button/card so the design owner can compare vibes.
+//
+// Each variant defines a flat token map (light + dark variants).
+// The CSS for the .sample blocks reads from CSS custom properties
+// scoped per panel via inline style="--token: value", so a single
+// stylesheet drives every preview without having to author per-
+// variant CSS.
+import '../styles/_tokens.css';
+import Layout from '../layouts/Layout.astro';
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  return [
+    parseInt(h.slice(0, 2), 16) / 255,
+    parseInt(h.slice(2, 4), 16) / 255,
+    parseInt(h.slice(4, 6), 16) / 255,
+  ];
+}
+function linearize(c: number) {
+  return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+function luminance(hex: string) {
+  const [r, g, b] = hexToRgb(hex).map(linearize);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function contrast(fg: string, bg: string) {
+  const l1 = luminance(fg);
+  const l2 = luminance(bg);
+  const [hi, lo] = l1 > l2 ? [l1, l2] : [l2, l1];
+  return (hi + 0.05) / (lo + 0.05);
+}
+function rating(r: number) {
+  if (r >= 7) return 'AAA';
+  if (r >= 4.5) return 'AA';
+  if (r >= 3) return 'AA L';
+  return 'fail';
+}
+
+interface Tokens {
+  navy: string; cobalt: string; blue: string; blueLt: string;
+  orange: string; orangeLt: string; orangeDk: string;
+  lime: string; limeDk: string;
+  cream: string; ink: string; muted: string; rule: string;
+  bodyBg: string; cardBg: string;
+  ctaBg: string; ctaText: string; ctaHoverBg: string;
+  // optional accents
+  crimson?: string; gold?: string;
+}
+
+interface Variant {
+  id: string;
+  name: string;
+  description: string;
+  light: Tokens;
+  dark: Tokens;
+}
+
+const VARIANTS: Variant[] = [
+  {
+    id: 'current',
+    name: 'Current — production today',
+    description:
+      "What's live on jva-music.com. Body-text contrast is on the high end of WCAG AAA (17.5:1 ink on cream), which reads as crisp but a touch clinical. Loud-orange primary CTA technically fails AA at 3.01:1 cream-on-orange — we chose loudness over WCAG conformance.",
+    light: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#b04600',
+      lime: '#8db820', limeDk: '#506e10',
+      cream: '#f5f3ee', ink: '#0e0d0b', muted: '#6b6560', rule: '#d8d3cb',
+      bodyBg: '#f5f3ee', cardBg: '#ffffff',
+      ctaBg: '#e8650a', ctaText: '#f5f3ee', ctaHoverBg: '#f5882a',
+    },
+    dark: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#e8650a',
+      lime: '#8db820', limeDk: '#8db820',
+      cream: '#f5f3ee', ink: '#ece7da', muted: '#908a7e', rule: '#1d2a48',
+      bodyBg: '#060d1c', cardBg: '#0d1830',
+      ctaBg: '#e8650a', ctaText: '#f5f3ee', ctaHoverBg: '#f5882a',
+    },
+  },
+  {
+    id: 'refined',
+    name: 'Refined — same hues, easier on the eyes',
+    description:
+      'Same palette, four targeted tweaks: (1) ink lifts from #0e0d0b → #1f1815 — still 13:1 on cream, easily AAA, but less crushing. (2) cream warms from #f5f3ee → #f7f1e3, more painterly less printerly. (3) dark-mode body bg lifts from #060d1c → #0e1830 (matches card bg) so the page is dark navy instead of near-black. (4) CTA text switches from cream to navy on the loud orange — same loud color, but contrast jumps from 3.01:1 fail to 4.97:1 AA pass.',
+    light: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#b04600',
+      lime: '#8db820', limeDk: '#506e10',
+      cream: '#f7f1e3', ink: '#1f1815', muted: '#6b6560', rule: '#d8d3cb',
+      bodyBg: '#f7f1e3', cardBg: '#ffffff',
+      ctaBg: '#e8650a', ctaText: '#091528', ctaHoverBg: '#f5882a',
+    },
+    dark: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#e8650a',
+      lime: '#8db820', limeDk: '#8db820',
+      cream: '#f5f3ee', ink: '#ece7da', muted: '#a39d8f', rule: '#1d2a48',
+      bodyBg: '#0e1830', cardBg: '#142544',
+      ctaBg: '#e8650a', ctaText: '#091528', ctaHoverBg: '#f5882a',
+    },
+  },
+  {
+    id: 'painterly',
+    name: 'Painterly — adds the missing painting accents',
+    description:
+      "Same primary scheme as Current. Adds two accents pulled directly from the album art that the existing palette doesn't capture: a crimson #b03a4c from the magenta brushstrokes scattered throughout the painting, and a gold #d4a017 from the central yellow shape. Used here in the highlight card and eyebrow examples; everything else is unchanged. Could replace the lime accent for a warmer overall feel, or stay alongside it.",
+    light: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#b04600',
+      lime: '#8db820', limeDk: '#506e10',
+      cream: '#f5f3ee', ink: '#0e0d0b', muted: '#6b6560', rule: '#d8d3cb',
+      bodyBg: '#f5f3ee', cardBg: '#ffffff',
+      ctaBg: '#e8650a', ctaText: '#f5f3ee', ctaHoverBg: '#f5882a',
+      crimson: '#a8344a', gold: '#9a7a16',
+    },
+    dark: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#e8650a',
+      lime: '#8db820', limeDk: '#8db820',
+      cream: '#f5f3ee', ink: '#ece7da', muted: '#908a7e', rule: '#1d2a48',
+      bodyBg: '#060d1c', cardBg: '#0d1830',
+      ctaBg: '#e8650a', ctaText: '#f5f3ee', ctaHoverBg: '#f5882a',
+      crimson: '#d65a6e', gold: '#e8b542',
+    },
+  },
+];
+
+// Build inline `style="--ink: #...; --cream: #..."` from a token bag.
+function styleFor(t: Tokens): string {
+  return Object.entries(t)
+    .map(([k, v]) => `--${k.replace(/([A-Z])/g, '-$1').toLowerCase()}:${v}`)
+    .join(';');
+}
+
+// Swatches we render per panel. Each has the token name + hex.
+function swatchesFor(t: Tokens) {
+  const base: { key: keyof Tokens; label: string }[] = [
+    { key: 'navy', label: 'navy' },
+    { key: 'cobalt', label: 'cobalt' },
+    { key: 'blue', label: 'blue' },
+    { key: 'blueLt', label: 'blue-lt' },
+    { key: 'orange', label: 'orange' },
+    { key: 'orangeLt', label: 'orange-lt' },
+    { key: 'orangeDk', label: 'orange-dk' },
+    { key: 'lime', label: 'lime' },
+    { key: 'limeDk', label: 'lime-dk' },
+    { key: 'cream', label: 'cream' },
+    { key: 'ink', label: 'ink' },
+    { key: 'muted', label: 'muted' },
+    { key: 'rule', label: 'rule' },
+  ];
+  if (t.crimson) base.push({ key: 'crimson', label: 'crimson' });
+  if (t.gold) base.push({ key: 'gold', label: 'gold' });
+  return base.map((s) => ({ ...s, value: t[s.key] as string }));
+}
+---
+
+<Layout
+  title="Palette preview — JVA Music"
+  description="Internal palette + contrast preview"
+  themeColor="#091528"
+  noindex={true}
+>
+  <main class="palette-page">
+    <header class="palette-hero">
+      <p class="palette-hero-eyebrow">Internal · noindex</p>
+      <h1>Palette preview</h1>
+      <p class="palette-hero-sub">
+        Each variant rendered in light + dark, with token swatches and
+        sample elements (eyebrow, h1, h2, body, link, primary CTA,
+        outline CTA, highlight card). Contrast ratios annotated next
+        to each swatch — vs the panel's body background — so failing
+        pairs jump out.
+      </p>
+    </header>
+
+    {VARIANTS.map((v) => (
+      <section class="variant" id={v.id}>
+        <header class="variant-header">
+          <h2>{v.name}</h2>
+          <p>{v.description}</p>
+        </header>
+
+        <div class="modes">
+          {(['light', 'dark'] as const).map((mode) => {
+            const tokens = v[mode];
+            const bodyBg = tokens.bodyBg;
+            return (
+              <article class={`mode mode-${mode}`} style={styleFor(tokens)}>
+                <div class="mode-label">
+                  <span class="mode-label-tag">{mode}</span>
+                  <span class="mode-label-bg">body bg {bodyBg}</span>
+                </div>
+
+                {/* Swatches */}
+                <div class="swatches">
+                  {swatchesFor(tokens).map((s) => {
+                    const r = contrast(s.value, bodyBg);
+                    const onSelf = s.value.toLowerCase() === bodyBg.toLowerCase();
+                    return (
+                      <div class="swatch">
+                        <div class="swatch-chip" style={`background:${s.value}`}></div>
+                        <div class="swatch-meta">
+                          <div class="swatch-name">{s.label}</div>
+                          <div class="swatch-hex">{s.value}</div>
+                          <div class="swatch-contrast">
+                            {onSelf ? '— body bg —' : `${r.toFixed(2)}:1 ${rating(r)}`}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Sample card */}
+                <div class="sample">
+                  <p class="s-eyebrow">Section eyebrow</p>
+                  <h3 class="s-h1">Drum lessons in <em>Rochester, NY</em></h3>
+                  <h4 class="s-h2">A working drummer first, a teacher second.</h4>
+                  <p class="s-body">
+                    Body copy in Inter. The quick brown fox jumps over the
+                    lazy dog 1234567890. Some <a class="s-link" href="#">inline link</a>
+                    text and a bit of <em>italic emphasis</em> for good measure. This is
+                    where most reading happens — the goal is "can read for ten minutes
+                    without straining."
+                  </p>
+                  <p class="s-meta">SMALL UPPERCASE METADATA · 9.5PX 700 WEIGHT</p>
+                  <div class="s-buttons">
+                    <a class="s-btn s-btn-primary" href="#">Primary CTA</a>
+                    <a class="s-btn s-btn-outline" href="#">Outline CTA</a>
+                  </div>
+
+                  <div class="s-cards">
+                    <div class="s-card s-card-blue">
+                      <div class="s-card-eyebrow">Highlight · Cobalt</div>
+                      <div class="s-card-title">Performed at the Kennedy Center</div>
+                      <div class="s-card-body">
+                        Selected for the Jazz Ahead residency, studying under
+                        Jason Moran, Clarence Penn, Benny Green.
+                      </div>
+                    </div>
+                    <div class="s-card s-card-orange">
+                      <div class="s-card-eyebrow">Highlight · Orange</div>
+                      <div class="s-card-title"><em>"Un-Belonging"</em></div>
+                      <div class="s-card-body">
+                        Debut album on 577 Records — five publications and five
+                        radio stations across U.S. and Canada.
+                      </div>
+                    </div>
+                    <div class="s-card s-card-lime">
+                      <div class="s-card-eyebrow">Highlight · Lime</div>
+                      <div class="s-card-title">Festival Circuit</div>
+                      <div class="s-card-body">
+                        Rochester International Jazz Festival, Burlington Discover
+                        Jazz Festival, Las Cruces Juneteenth.
+                      </div>
+                    </div>
+                    {tokens.crimson && (
+                      <div class="s-card s-card-crimson">
+                        <div class="s-card-eyebrow">Highlight · Crimson</div>
+                        <div class="s-card-title">A new accent from the painting</div>
+                        <div class="s-card-body">
+                          Pulled from the magenta brushstrokes scattered through the
+                          album art. Adds warmth alongside the existing blues.
+                        </div>
+                      </div>
+                    )}
+                    {tokens.gold && (
+                      <div class="s-card s-card-gold">
+                        <div class="s-card-eyebrow">Highlight · Gold</div>
+                        <div class="s-card-title">From the central yellow shape</div>
+                        <div class="s-card-body">
+                          A mustard accent picked up from the bright yellow form at
+                          the heart of the painting.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hero strip — cream-on-navy treatment */}
+                  <div class="s-hero-strip">
+                    <span class="s-hero-eyebrow">Hero eyebrow on navy</span>
+                    <div class="s-hero-name">
+                      Jacobo <em>Vega-Albela</em>
+                    </div>
+                    <div class="s-hero-role">Jazz Drummer · Composer · Bandleader</div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    ))}
+  </main>
+</Layout>
+
+<style is:global>
+  .palette-page {
+    background: #fafafa;
+    color: #1a1a1a;
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+
+  .palette-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: calc(var(--header-h) + 32px) 32px 40px;
+  }
+
+  .palette-hero-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+    margin-bottom: 12px;
+  }
+
+  .palette-hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 300;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+
+  .palette-hero-sub {
+    max-width: 780px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(245, 243, 238, 0.78);
+  }
+
+  .variant {
+    padding: 48px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .variant-header h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    color: #0e0d0b;
+  }
+
+  .variant-header p {
+    max-width: 900px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: #4a4a4a;
+    margin-bottom: 28px;
+  }
+
+  .modes {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 1100px) {
+    .modes {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* Each preview panel paints its own background so the user can see
+     the actual page surface a visitor would see. */
+  .mode {
+    background: var(--body-bg);
+    color: var(--ink);
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    overflow: hidden;
+    /* Reset panel-internal font-size so the samples render at site sizes */
+    font-family: var(--sans);
+  }
+
+  .mode-label {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #555;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .mode-dark .mode-label {
+    background: rgba(255, 255, 255, 0.06);
+    color: #aaa;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .mode-label-tag {
+    font-weight: 700;
+    color: inherit;
+  }
+
+  /* ── Swatches ────────────────────────────────── */
+  .swatches {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    border-bottom: 1px dashed rgba(127, 127, 127, 0.25);
+  }
+
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 10.5px;
+    color: var(--ink);
+  }
+
+  .swatch-chip {
+    width: 100%;
+    height: 36px;
+    border-radius: 2px;
+    border: 1px solid rgba(127, 127, 127, 0.2);
+  }
+
+  .swatch-name {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 9.5px;
+  }
+
+  .swatch-hex {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .swatch-contrast {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* ── Sample ──────────────────────────────────── */
+  .sample {
+    padding: 28px 24px 32px;
+  }
+
+  .s-eyebrow {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange-dk);
+    margin-bottom: 14px;
+  }
+
+  .s-h1 {
+    font-family: var(--serif);
+    font-size: clamp(28px, 3vw, 40px);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .s-h1 em {
+    font-style: italic;
+    color: var(--cobalt);
+  }
+
+  .s-h2 {
+    font-family: var(--serif);
+    font-size: clamp(20px, 2.2vw, 26px);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+
+  .s-body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink);
+    margin-bottom: 14px;
+    max-width: 60ch;
+  }
+
+  .s-body em { font-style: italic; }
+
+  .s-link {
+    color: var(--cobalt);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+
+  .mode-dark .s-link {
+    color: var(--blue-lt);
+  }
+
+  .s-meta {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 22px;
+  }
+
+  .s-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .s-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+  }
+
+  .s-btn-primary {
+    background: var(--cta-bg);
+    color: var(--cta-text);
+    border-color: var(--cta-bg);
+  }
+
+  .s-btn-primary:hover {
+    background: var(--cta-hover-bg);
+    border-color: var(--cta-hover-bg);
+  }
+
+  .s-btn-outline {
+    background: transparent;
+    color: var(--orange-dk);
+    border-color: var(--orange);
+  }
+
+  .s-btn-outline:hover {
+    background: var(--orange);
+    color: var(--cream);
+  }
+
+  /* ── Highlight cards ─────────────────────────── */
+  .s-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .s-card {
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    padding: 18px 18px;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .s-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .s-card-blue::before { background: var(--cobalt); }
+  .s-card-orange::before { background: var(--orange); }
+  .s-card-lime::before { background: var(--lime); }
+  .s-card-crimson::before { background: var(--crimson, transparent); }
+  .s-card-gold::before { background: var(--gold, transparent); }
+
+  .s-card-eyebrow {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .s-card-blue .s-card-eyebrow { color: var(--cobalt); }
+  .s-card-orange .s-card-eyebrow { color: var(--orange-dk); }
+  .s-card-lime .s-card-eyebrow { color: var(--lime-dk); }
+  .s-card-crimson .s-card-eyebrow { color: var(--crimson); }
+  .s-card-gold .s-card-eyebrow { color: var(--gold); }
+
+  .mode-dark .s-card-blue .s-card-eyebrow { color: var(--blue-lt); }
+
+  .s-card-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .s-card-body {
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  /* ── Hero strip (cream-on-navy preview) ─────── */
+  .s-hero-strip {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 28px 24px;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .s-hero-strip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 80% 110%, rgba(26,58,138,0.5), transparent 60%),
+      radial-gradient(ellipse 40% 50% at 5% -10%, rgba(232,101,10,0.16), transparent 55%);
+    pointer-events: none;
+  }
+
+  .s-hero-strip > * { position: relative; z-index: 1; }
+
+  .s-hero-eyebrow {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange-lt);
+    margin-bottom: 8px;
+  }
+
+  .s-hero-name {
+    font-family: var(--serif);
+    font-size: clamp(32px, 4vw, 44px);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .s-hero-name em {
+    font-style: italic;
+    color: var(--blue-lt);
+  }
+
+  .s-hero-role {
+    font-size: 10.5px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(245, 243, 238, 0.5);
+    margin-top: 10px;
+  }
+</style>

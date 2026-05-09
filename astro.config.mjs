@@ -9,7 +9,7 @@ import sitemap from '@astrojs/sitemap';
 // the sitemap — sending Google a list that includes URLs we then tell it
 // not to index produces "Excluded by 'noindex' tag" entries in Search
 // Console and wastes crawl budget.
-const NOINDEX_PATHS = ['/book', '/join', '/pdfs/handwritten'];
+const NOINDEX_PATHS = ['/book', '/join', '/pdfs/handwritten', '/palette'];
 
 // Old Squarespace URLs that Google still has indexed. Astro's static-build
 // redirects generate HTML files with a <meta http-equiv="refresh"> plus a
