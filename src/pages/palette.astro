@@ -127,6 +127,30 @@ const VARIANTS: Variant[] = [
       crimson: '#d65a6e', gold: '#e8b542',
     },
   },
+  {
+    id: 'painterly-refined',
+    name: 'Painterly Refined — combines the eye-comfort tuning with the painting accents',
+    description:
+      'The full package: Refined\'s ink/cream/dark-bg tuning + AA-passing CTA, plus Painterly\'s crimson and gold accents from the album art. This is the variant to ship if you want both "easier on the eyes for long reads" and "more chromatic range from the source painting" in the same palette.',
+    light: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#b04600',
+      lime: '#8db820', limeDk: '#506e10',
+      cream: '#f7f1e3', ink: '#1f1815', muted: '#6b6560', rule: '#d8d3cb',
+      bodyBg: '#f7f1e3', cardBg: '#ffffff',
+      ctaBg: '#e8650a', ctaText: '#091528', ctaHoverBg: '#f5882a',
+      crimson: '#a8344a', gold: '#9a7a16',
+    },
+    dark: {
+      navy: '#091528', cobalt: '#1a3a8a', blue: '#2a5cc8', blueLt: '#5b8de8',
+      orange: '#e8650a', orangeLt: '#f5882a', orangeDk: '#e8650a',
+      lime: '#8db820', limeDk: '#8db820',
+      cream: '#f5f3ee', ink: '#ece7da', muted: '#a39d8f', rule: '#1d2a48',
+      bodyBg: '#0e1830', cardBg: '#142544',
+      ctaBg: '#e8650a', ctaText: '#091528', ctaHoverBg: '#f5882a',
+      crimson: '#d65a6e', gold: '#e8b542',
+    },
+  },
 ];
 
 // Build inline `style="--ink: #...; --cream: #..."` from a token bag.
@@ -481,6 +505,14 @@ function swatchesFor(t: Tokens) {
   .s-h1 em {
     font-style: italic;
     color: var(--cobalt);
+  }
+
+  /* Cobalt on a dark navy bg is ~1.5:1 — invisible. The site already
+     remaps the same italic-em treatment to --blue-lt anywhere it lives
+     on a dark surface (hero h1, post hero, pdf-detail title). Mirror
+     that here so the sample matches site behavior. */
+  .mode-dark .s-h1 em {
+    color: var(--blue-lt);
   }
 
   .s-h2 {
