@@ -85,6 +85,23 @@ main > section:not(.hero){
 .hero-rating:hover,.hero-rating:focus-visible{border-bottom-color:rgba(245,243,238,.4);color:#fff}
 .hero-rating-stars{color:#f5b955;letter-spacing:.05em;font-size:.9375rem;line-height:1}
 .hero-rating-text strong{color:var(--cream);font-weight:600}
+
+/* Scarcity callout — same visual treatment as /drum-lessons hero
+   promo so the two pages feel like siblings. Carries the pilot
+   cohort + 10 seats hook here. */
+.hero-promo{
+  display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .65rem;
+  background:rgba(232,101,10,.16);
+  border-left:3px solid var(--orange-lt);
+  padding:.55rem .75rem;border-radius:2px;
+  font-size:.875rem;line-height:1.4;color:rgba(245,243,238,.95);
+  margin:0 0 .875rem;
+}
+.hero-promo-tag{
+  font-size:.625rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  background:var(--orange);color:#fff;padding:.2rem .45rem;border-radius:2px;line-height:1.2;
+}
+.hero-promo-text strong{color:#fff;font-weight:700}
 .hero h1{
   font-family:var(--serif);font-weight:300;line-height:1.05;letter-spacing:-.01em;
   /* Capped lower than /drum-lessons (which uses 3.5rem) — the
@@ -245,10 +262,11 @@ main > section:not(.hero){
   .hero-sub{font-size:1rem;margin-bottom:1rem}
   /* Push credential chips below the form on mobile so the form CTA
      sits closer to the fold. flex order on .hero-text. */
-  .chips{order:1;margin-top:1.25rem;margin-bottom:0;gap:.4rem}
+  .chips{order:1;margin-top:.625rem;margin-bottom:0;gap:.4rem}
   .chip{font-size:.6875rem;padding:.4rem .65rem}
-  .trust-line{margin-top:1rem;font-size:.75rem}
-  .hero-img{margin-top:1.25rem}
+  .hero-tel{margin-top:.625rem;font-size:.8125rem}
+  .trust-line{margin-top:.625rem;font-size:.75rem}
+  .hero-img{margin-top:1rem}
   .hero-rating{font-size:.8125rem;margin-bottom:.875rem}
 
   .pcard,.tcard,.tile{padding:1.25rem}

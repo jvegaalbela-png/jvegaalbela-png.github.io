@@ -45,12 +45,12 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   <div class="lesson-form-row">
     <div class="lesson-form-field">
       <label for={id('name')}>Name</label>
-      <input type="text" id={id('name')} name="name" required data-fs-field />
+      <input type="text" id={id('name')} name="name" required placeholder="Your name" autocomplete="name" data-fs-field />
       <span class="lesson-form-error" data-fs-error="name"></span>
     </div>
     <div class="lesson-form-field">
       <label for={id('email')}>Email</label>
-      <input type="email" id={id('email')} name="email" required data-fs-field />
+      <input type="email" id={id('email')} name="email" required placeholder="you@example.com" autocomplete="email" data-fs-field />
       <span class="lesson-form-error" data-fs-error="email"></span>
     </div>
   </div>
@@ -117,7 +117,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
 
   <div class="lesson-form-field">
     <label for={id('message')}>Message <span class="optional">(optional)</span></label>
-    <textarea id={id('message')} name="message" rows="2" data-fs-field></textarea>
+    <textarea id={id('message')} name="message" rows="2" placeholder="Anything you'd like me to know?" data-fs-field></textarea>
     <span class="lesson-form-error" data-fs-error="message"></span>
   </div>
 
@@ -162,18 +162,22 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   .lesson-form-field input,
   .lesson-form-field textarea,
   .lesson-form-field select {
-    background: rgba(245, 243, 238, 0.12);
-    border: 1px solid rgba(245, 243, 238, 0.32);
+    background: rgba(245, 243, 238, 0.08);
+    border: 1px solid rgba(245, 243, 238, 0.28);
     color: var(--cream);
     font: 400 15px/1.5 var(--sans);
-    padding: 10px 12px;
-    border-radius: 2px;
+    padding: 11px 13px;
+    border-radius: 4px;
     width: 100%;
-    transition: border-color .18s, background .18s;
+    transition: border-color .18s, background .18s, box-shadow .18s;
+  }
+  .lesson-form-field input::placeholder,
+  .lesson-form-field textarea::placeholder {
+    color: rgba(245, 243, 238, 0.42);
   }
   .lesson-form-field textarea {
     resize: vertical;
-    min-height: 56px;
+    min-height: 64px;
   }
   .lesson-form-field select {
     appearance: none;
@@ -194,7 +198,8 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   .lesson-form-field select:focus {
     outline: none;
     border-color: var(--orange-lt);
-    background: rgba(245, 243, 238, 0.16);
+    background: rgba(245, 243, 238, 0.12);
+    box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.18);
   }
   .lesson-form-field input[aria-invalid="true"],
   .lesson-form-field textarea[aria-invalid="true"],
@@ -276,7 +281,10 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
     align-items: center;
     gap: 1.25rem;
     flex-wrap: wrap;
-    margin-top: 4px;
+    margin-top: 8px;
+  }
+  .lesson-form-actions .btn {
+    border-radius: 4px;
   }
   .lesson-form-success,
   .lesson-form-error-summary {

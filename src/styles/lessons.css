@@ -73,10 +73,10 @@ main > section:not(.hero){
     radial-gradient(ellipse 40% 50% at 5% -10%,rgba(232,101,10,.18),transparent 55%),
     radial-gradient(ellipse 25% 30% at 95% 5%,rgba(141,184,32,.12),transparent 50%);
 }
-.hero .wrap{position:relative;display:grid;gap:1rem 2rem;grid-template-columns:1fr;align-items:start;grid-template-areas:"text" "aside" "image"}
+.hero .wrap{position:relative;display:grid;gap:1rem 2rem;grid-template-columns:1fr;align-items:start;grid-template-areas:"text" "image"}
 .hero-text{grid-area:text;display:flex;flex-direction:column}
 .hero-img{grid-area:image}
-.hero-aside{grid-area:aside;display:flex;flex-direction:column;gap:.875rem}
+.hero-tel{margin-top:1rem;padding-left:0;padding-right:0}
 .hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-lt);margin-bottom:.75rem}
 
 /* Inline 5-star Google review chip; lives between hero-sub and the
@@ -150,7 +150,7 @@ main > section:not(.hero){
 }
 .hero-img img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
 .trust-line{
-  margin-top:0;font-size:.8125rem;letter-spacing:.01em;line-height:1.45;
+  margin-top:1rem;font-size:.8125rem;letter-spacing:.01em;line-height:1.45;
   color:rgba(245,243,238,.82);
   display:inline-flex;align-items:flex-start;gap:.45rem;
 }
@@ -158,13 +158,31 @@ main > section:not(.hero){
   width:14px;height:14px;color:var(--lime);flex:none;margin-top:2px;
 }
 @media (min-width:780px){
-  .hero .wrap{grid-template-columns:1.15fr .85fr;gap:0.75rem 3rem;align-items:stretch;grid-template-areas:"text image" "aside ."}
+  .hero .wrap{grid-template-columns:1.15fr .85fr;gap:0.75rem 3rem;align-items:stretch;grid-template-areas:"text image"}
   .hero-img{margin-top:0;aspect-ratio:auto;height:100%;min-height:480px}
 }
 
-/* testimonials */
+/* testimonials — desktop is a 3-column grid; mobile becomes a
+   horizontal scroll-snap carousel so 6 cards don't eat 6 viewport
+   heights of vertical real estate. */
 .testimonials-grid{display:grid;gap:1.25rem;grid-template-columns:1fr}
 @media (min-width:780px){.testimonials-grid{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:1.5rem}}
+@media (max-width:779px){
+  .testimonials-grid{
+    display:flex;flex-wrap:nowrap;gap:.875rem;
+    overflow-x:auto;scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    /* Bleed to the screen edge on mobile so cards run off-screen
+       and the next card peeks in from the right edge. */
+    margin:0 calc(var(--pad) * -1);padding:.25rem var(--pad) 1rem;
+    scrollbar-width:none;
+  }
+  .testimonials-grid::-webkit-scrollbar{display:none}
+  .testimonials-grid > .tcard{
+    flex:0 0 86%;scroll-snap-align:start;
+    min-width:0;
+  }
+}
 .tcard{
   background:#fff;border:1px solid var(--rule);border-left:3px solid var(--cobalt);
   padding:1.5rem 1.5rem 1.25rem;border-radius:2px;display:flex;flex-direction:column;gap:1rem;
@@ -184,14 +202,12 @@ main > section:not(.hero){
 .tcard figcaption strong{color:var(--ink);font-weight:600;letter-spacing:.06em}
 
 /* pricing */
-.promo-banner{
-  background:linear-gradient(90deg,var(--orange) 0%,var(--orange-lt) 100%);
-  color:#fff;padding:.875rem 1.25rem;border-radius:2px;
-  display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
-  font-size:.9375rem;font-weight:500;margin-bottom:2rem;
+.pricing-note{
+  font-size:.9375rem;line-height:1.55;color:#3a342c;
+  margin:-0.5rem 0 1.75rem;display:flex;align-items:flex-start;gap:.5rem;
+  max-width:62ch;
 }
-.promo-banner strong{font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:.75rem;
-  background:rgba(0,0,0,.2);padding:.25rem .5rem;border-radius:2px}
+.pricing-note-dot{color:var(--orange);font-size:.875rem;line-height:1.6;flex:none}
 .pricing-grid{display:grid;gap:1rem;grid-template-columns:1fr}
 @media (min-width:680px){.pricing-grid{grid-template-columns:repeat(2,1fr)}}
 @media (min-width:980px){.pricing-grid{grid-template-columns:repeat(3,1fr)}}
@@ -205,6 +221,8 @@ main > section:not(.hero){
 .pcard h3{font-family:var(--serif);font-weight:400;font-size:1.375rem;line-height:1.2}
 .pcard .price{font-family:var(--serif);font-size:1.5rem;color:var(--ink);font-weight:400}
 .pcard .price small{font-size:.8125rem;color:var(--muted);font-family:var(--sans);margin-left:.25rem}
+.pcard .price-sub{font-family:var(--sans);font-size:.9375rem;color:var(--ink);font-weight:500;line-height:1.4}
+.pcard .price-sub small{display:block;font-size:.8125rem;color:var(--muted);font-weight:400;margin-top:.15rem}
 .pcard p{font-size:.9375rem;color:#3a342c;line-height:1.55}
 .pricing-fineprint{margin-top:1.5rem;font-size:.8125rem;color:var(--muted);line-height:1.6}
 
@@ -226,6 +244,42 @@ main > section:not(.hero){
 .pricing-more[open] > summary::after{content:"\2013"}
 .pricing-more > summary:hover{color:var(--orange)}
 .pricing-grid-secondary{margin-top:1.25rem}
+
+/* Compact rows inside the "More options" disclosure — secondary
+   discounts as a tight list rather than three full pricing cards.
+   Avoids re-introducing the cognitive load we just collapsed. */
+.pricing-rows{
+  list-style:none;margin:1rem 0 0;padding:0;
+  display:flex;flex-direction:column;
+}
+.pricing-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:.25rem 1rem;
+  align-items:baseline;padding:.875rem 0;
+  border-bottom:1px solid var(--rule);
+}
+.pricing-row:last-child{border-bottom:0}
+.pricing-row-tag{
+  font-size:.6875rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--orange-dk);grid-row:1;grid-column:1;
+}
+.pricing-row-title{
+  font-family:var(--serif);font-size:1.125rem;color:var(--ink);grid-row:1;grid-column:2;
+}
+.pricing-row-price{
+  font-family:var(--serif);font-size:1.0625rem;color:var(--ink);grid-row:1;grid-column:3;
+  white-space:nowrap;
+}
+.pricing-row-body{
+  grid-row:2;grid-column:1 / -1;
+  font-size:.875rem;color:#3a342c;line-height:1.5;
+}
+@media (max-width:600px){
+  .pricing-row{grid-template-columns:1fr auto;gap:.15rem .75rem}
+  .pricing-row-tag{grid-column:1 / -1}
+  .pricing-row-title{grid-row:2;grid-column:1;font-size:1rem}
+  .pricing-row-price{grid-row:2;grid-column:2;font-size:1rem}
+  .pricing-row-body{grid-row:3}
+}
 .mid-cta{margin-top:2rem;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;justify-content:flex-start}
 .mid-cta p{font-size:.9375rem;color:#3a342c;margin:0}
 .mid-cta strong{color:var(--cobalt);font-weight:600}
@@ -331,10 +385,11 @@ footer{
   .hero-sub{font-size:1rem;margin-bottom:1rem}
   /* Push credential chips below the form on mobile so the form CTA
      sits closer to the fold. flex order on .hero-text. */
-  .chips{order:1;margin-top:1rem;margin-bottom:0;gap:.4rem}
+  .chips{order:1;margin-top:.625rem;margin-bottom:0;gap:.4rem}
   .chip{font-size:.6875rem;padding:.4rem .65rem}
-  .trust-line{margin-top:0;font-size:.75rem}
-  .hero-img{margin-top:1.25rem}
+  .hero-tel{margin-top:.625rem;font-size:.8125rem}
+  .trust-line{margin-top:.625rem;font-size:.75rem}
+  .hero-img{margin-top:1rem}
   .hero-rating{font-size:.8125rem;margin-bottom:.75rem}
   .hero-promo{font-size:.875rem;padding:.5rem .65rem;margin-bottom:.875rem}
   .hero-price{margin-bottom:.875rem}
