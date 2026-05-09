@@ -117,11 +117,13 @@
     }
 
     /* Loud bright orange — unified primary CTA across the site.
-       Hover steps one shade lighter to --orange-lt. */
+       Hover steps one shade lighter to --orange-lt. Text is
+       var(--navy) on the orange fill: ~5:1 contrast at rest and
+       ~6:1 on hover, both AA pass. */
     .hero-link-btn.primary {
       background: var(--orange);
       border-color: var(--orange);
-      color: var(--cream);
+      color: var(--navy);
     }
 
     .hero-link-btn.primary:hover {
@@ -487,7 +489,7 @@
       transition: background 0.2s, color 0.2s, border-color 0.2s;
     }
 
-    .listen-btn:hover { background: var(--orange); border-color: var(--orange); color: var(--cream); }
+    .listen-btn:hover { background: var(--orange); border-color: var(--orange); color: var(--navy); }
 
     .album-right { display: flex; flex-direction: column; gap: 24px; }
 
@@ -750,7 +752,7 @@
       align-items: center;
       gap: 8px;
       background: var(--orange);
-      color: var(--cream);
+      color: var(--navy);
       font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.15em;
@@ -898,7 +900,7 @@
       /* --cream stays light because it's also used as light text on dark
          panels (footer, personnel, photos-cta). Body and highlight cards
          get explicit dark backgrounds instead. */
-      .highlight-card { background: #0d1830; }
+      .highlight-card { background: #142544; }
 
       /* Body-text colors that were hardcoded warm-dark in light mode */
       .bio-text p,
@@ -935,7 +937,7 @@
       .statement-block p:first-child::first-letter { color: var(--blue-lt); }
       .edu-body-subtitle { color: var(--blue-lt); }
       .press-list li::before { background: var(--blue-lt); }
-      /* Cobalt on the dark highlight-card (#0d1830) is ~1.7:1 — bump
+      /* Cobalt on the dark highlight-card (#142544) is ~1.7:1 — bump
          the c-blue eyebrow up to blue-lt to match the other dark-mode
          link/accent overrides above. */
       .c-blue .highlight-eyebrow { color: var(--blue-lt); }

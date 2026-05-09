@@ -16,8 +16,18 @@
   --orange-dk: #b04600;      /* AA-contrast on cream for small text */
   --lime:    #8db820;        /* lime green dots in painting */
   --lime-dk: #506e10;        /* AA-contrast on cream for small text */
-  --cream:   #f5f3ee;
-  --ink:     #0e0d0b;
+  /* Painterly Refined accents — pulled directly from the album art:
+     a magenta from the brushstroked reds, and a mustard from the
+     central yellow shape. Available for accents alongside (or
+     replacing) lime; not yet wired into any specific component. */
+  --crimson: #a8344a;
+  --gold:    #9a7a16;
+  /* Cream warmed slightly (#f5f3ee → #f7f1e3) so the body reads
+     more painterly and less printerly. Ink lifted from near-pure
+     black (#0e0d0b → #1f1815) — still 13:1 on cream, easily AAA,
+     but less crushing for marathon reads. */
+  --cream:   #f7f1e3;
+  --ink:     #1f1815;
   --muted:   #6b6560;
   --rule:    #d8d3cb;
   /* Each font stack lists the real font, then a metric-overridden
@@ -75,13 +85,21 @@ img { max-width: 100%; height: auto; display: block; }
 @media (prefers-color-scheme: dark) {
   :root {
     --ink:   #ece7da;
-    --muted: #908a7e;
+    /* Muted lifted slightly (#908a7e → #a39d8f) for a touch more
+       legibility on small uppercase metadata strings. */
+    --muted: #a39d8f;
     --rule:  #1d2a48;
     /* The -dk accent variants are tuned for AA contrast on the cream
        body. On dark backgrounds they go too dim, so map them back to
        the brighter brand colors here. */
     --orange-dk: var(--orange);
     --lime-dk:   var(--lime);
+    /* Painterly Refined accents are also brightened on dark surfaces. */
+    --crimson:   #d65a6e;
+    --gold:      #e8b542;
   }
-  body { background: #060d1c; }
+  /* Body bg lifted from near-black #060d1c → dark navy #0e1830 so
+     the page reads as "dark navy" rather than "near black."
+     Card-bg fills throughout the site lift in tandem to #142544. */
+  body { background: #0e1830; }
 }
