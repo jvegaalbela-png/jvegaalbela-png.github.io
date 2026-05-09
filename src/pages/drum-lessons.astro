@@ -271,6 +271,11 @@ const graph = {
         submitEvent="lesson_inquiry_submit"
         submitEventParams={{ form_location: 'lessons_hero', value: 25, currency: 'USD' }}
       />
+      <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'lessons_hero' })">Text or call (585) 802-4247</a>
+      <p class="trust-line">
+        <svg class="trust-check" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>
+        <span>Google-screened &middot; Background-checked</span>
+      </p>
     </div>
     <figure class="hero-img">
       <Image
@@ -284,13 +289,6 @@ const graph = {
         quality={55}
       />
     </figure>
-    <div class="hero-aside">
-      <a class="tel-link" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'lessons_hero' })">Text or call (585) 802-4247</a>
-      <p class="trust-line">
-        <svg class="trust-check" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>
-        <span>Google Business Screened &middot; Background-checked &amp; verified</span>
-      </p>
-    </div>
   </div>
 </section>
 
@@ -321,7 +319,7 @@ const graph = {
       <h2 id="pricingTitle">Transparent pricing, no surprises.</h2>
       <span class="section-rule" aria-hidden="true"></span>
     </div>
-    <p class="promo-banner"><strong>New students</strong> 50% off your first lesson.</p>
+    <p class="pricing-note"><span class="pricing-note-dot" aria-hidden="true">●</span> New students get 50% off the first lesson &mdash; rates below are the standard ones.</p>
     <div class="pricing-grid">
       <div class="pcard featured">
         <span class="pcard-tag">Most popular</span>
@@ -340,37 +338,37 @@ const graph = {
       <div class="pcard">
         <span class="pcard-tag">House calls</span>
         <h3>I come to you</h3>
-        <p class="price">Standard <small>+ $0.75/min commute</small></p>
-        <p>Round-trip travel time billed transparently &mdash; ideal for younger students.</p>
+        <p class="price-sub">Standard rate <small>+ $0.75/min round-trip travel</small></p>
+        <p>Travel billed transparently &mdash; ideal for younger students who can't easily get to the studio.</p>
       </div>
     </div>
     <details class="pricing-more">
       <summary>More options &mdash; student, K&ndash;12, and referral discounts</summary>
-      <div class="pricing-grid pricing-grid-secondary">
-        <div class="pcard">
-          <span class="pcard-tag">Collegiate</span>
-          <h3>Student discount</h3>
-          <p class="price">3 + 1<small> &nbsp;at 50% off</small></p>
-          <p>Book three lessons at full price, get the 4th half off. Proof of enrollment required.</p>
-        </div>
-        <div class="pcard">
-          <span class="pcard-tag">K&ndash;12 special</span>
-          <h3>Back-to-school</h3>
-          <p class="price">Buy 5, get 1<small> free</small></p>
-          <p>Runs Jul&ndash;Sep and Jan&ndash;Mar. Great for kids building a habit around the school year.</p>
-        </div>
-        <div class="pcard">
-          <span class="pcard-tag">Referral bonus</span>
-          <h3>Bring a friend</h3>
-          <p class="price">Both get 1<small> free lesson</small></p>
-          <p>Refer a student. Once they complete 3 lessons, you both get a free lesson on me.</p>
-        </div>
-      </div>
+      <ul class="pricing-rows">
+        <li class="pricing-row">
+          <span class="pricing-row-tag">Collegiate</span>
+          <span class="pricing-row-title">Student discount</span>
+          <span class="pricing-row-price">3 + 1 at 50% off</span>
+          <span class="pricing-row-body">Book three at full price, the 4th is half off. Proof of enrollment.</span>
+        </li>
+        <li class="pricing-row">
+          <span class="pricing-row-tag">K&ndash;12 special</span>
+          <span class="pricing-row-title">Back-to-school</span>
+          <span class="pricing-row-price">Buy 5, get 1 free</span>
+          <span class="pricing-row-body">Runs Jul&ndash;Sep and Jan&ndash;Mar. Great for habit-building.</span>
+        </li>
+        <li class="pricing-row">
+          <span class="pricing-row-tag">Referral bonus</span>
+          <span class="pricing-row-title">Bring a friend</span>
+          <span class="pricing-row-price">Both get 1 free lesson</span>
+          <span class="pricing-row-body">Once they complete 3 lessons, you both get a free lesson on me.</span>
+        </li>
+      </ul>
     </details>
     <p class="pricing-fineprint">Bulk packs are non-refundable but fully reschedulable with 24 hours notice. Illness exceptions always apply.</p>
     <div class="mid-cta">
       <p><strong>Not sure which option fits?</strong> Try a half-price first lesson &mdash; drum with me, then decide.</p>
-      <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'pricing_mid' })">Book Your Half-Price Lesson</a>
+      <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'pricing_mid' })">Request My Half-Price Lesson</a>
     </div>
   </div>
 </section>
@@ -472,11 +470,11 @@ const graph = {
 </main>
 
 <!-- FINAL CTA BAND -->
-<section class="cta-band" aria-label="Book your half-price first lesson">
+<section class="cta-band" aria-label="Request your half-price first lesson">
   <div class="cta-band-inner">
-    <h2>Ready to start?</h2>
-    <p>Your first lesson is half off &mdash; just $25 for an hour. See if we click before committing further.</p>
-    <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'cta_band' })">Book Your Half-Price Lesson</a>
+    <h2>Your first lesson, half off.</h2>
+    <p>Just $25 for an hour. Try a real lesson before committing &mdash; see if we click.</p>
+    <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'cta_band' })">Request My Half-Price Lesson</a>
   </div>
 </section>
 
