@@ -421,7 +421,7 @@ footer{
   .pcard.featured{border-color:var(--blue-lt);box-shadow:0 6px 20px rgba(91,141,232,.08)}
 
   /* hardcoded warm-dark body text -> warm-light */
-  .tcard blockquote,.pcard p,.pricing-note,.about-text p,.bg-list li,.faq-list .faq-body,.mid-cta p{color:#d6d2c8}
+  .tcard blockquote,.pcard p,.pricing-note,.pricing-row-body,.about-text p,.bg-list li,.faq-list .faq-body,.mid-cta p{color:#d6d2c8}
   .pcard .price{color:var(--ink)}
 
   /* cobalt accents lose contrast on near-black; promote to blue-lt
