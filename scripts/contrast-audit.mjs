@@ -13,17 +13,21 @@ const PALETTE = {
   'orange-dk': '#b04600',
   lime:      '#8db820',
   'lime-dk': '#506e10',
-  cream:     '#f5f3ee',
-  ink:       '#0e0d0b',
+  crimson:   '#a8344a',
+  gold:      '#9a7a16',
+  cream:     '#f7f1e3',
+  ink:       '#1f1815',
   muted:     '#6b6560',
   rule:      '#d8d3cb',
 
   // Dark-mode remaps (declared inside @media (prefers-color-scheme: dark))
   'ink/dark':       '#ece7da',
-  'muted/dark':     '#908a7e',
+  'muted/dark':     '#a39d8f',
   'rule/dark':      '#1d2a48',
-  'body-bg/dark':   '#060d1c',
-  'card-bg/dark':   '#0d1830',
+  'body-bg/dark':   '#0e1830',
+  'card-bg/dark':   '#142544',
+  'crimson/dark':   '#d65a6e',
+  'gold/dark':      '#e8b542',
 };
 
 function hexToRgb(hex) {
@@ -79,9 +83,9 @@ const LIGHT_PAIRS = [
   ['orange-lt', 'navy', 'eyebrow on hero', false],
   ['blue-lt', 'navy', 'italic accent in hero name', false],
   ['cream', 'cobalt', 'text on contact strip / footer hover', false],
-  // Buttons
-  ['cream', 'orange', 'primary CTA fill', false],
-  ['cream', 'orange-lt', 'primary CTA hover', false],
+  // Buttons (text on loud-orange CTA is now navy, not cream)
+  ['navy', 'orange', 'primary CTA fill', false],
+  ['navy', 'orange-lt', 'primary CTA hover', false],
   ['cream', 'cobalt', 'secondary CTA / pdf-detail-related-card--cta fill', false],
   // Card panels
   ['ink', 'cream', 'card body text', false],
@@ -105,9 +109,9 @@ const DARK_PAIRS = [
   ['cream', 'navy', 'cream text on hero', false],
   ['orange-lt', 'navy', 'eyebrow on hero', false],
   ['blue-lt', 'navy', 'italic accent in hero name', false],
-  // Buttons (unchanged in dark)
-  ['cream', 'orange', 'primary CTA fill', false],
-  ['cream', 'orange-lt', 'primary CTA hover', false],
+  // Buttons (text on loud-orange CTA is now navy)
+  ['navy', 'orange', 'primary CTA fill', false],
+  ['navy', 'orange-lt', 'primary CTA hover', false],
   ['cream', 'cobalt', 'secondary CTA fill', false],
 ];
 
