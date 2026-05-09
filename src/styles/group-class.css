@@ -5,7 +5,7 @@
   --maxw:1100px;
   --pad:clamp(1.25rem,4vw,3.5rem);
 }
-body{font-size:16px;line-height:1.65;overflow-x:hidden}
+body{font-size:16px;line-height:1.65}
 a{color:var(--cobalt)}
 
 /* layout */
