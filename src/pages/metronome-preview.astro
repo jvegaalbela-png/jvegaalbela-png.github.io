@@ -1,0 +1,2562 @@
+---
+import '../styles/global.css';
+import Layout from '../layouts/Layout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION, ORGANIZATION_ID } from '../data/schema';
+
+const pageUrl = `${SITE_URL}/metronome`;
+const toolId = `${pageUrl}#tool`;
+
+const howToSteps = [
+  {
+    name: 'Start without the metronome',
+    text:
+      'Get the notes under your fingers, work through the passage according to your own sense of time, and build familiarity with the material. Find a slow speed at which you can execute the passage in a relaxed way, with high attention to detail. Before this step is solid, the metronome will not help you.',
+  },
+  {
+    name: 'Find your tempo',
+    text:
+      'Use the tap tempo feature to figure out the BPM you worked the passage up to in step 1.',
+  },
+  {
+    name: 'Let the click play, and just listen',
+    text:
+      'Internalize and memorize the tempo before joining in. The goal is to play proactively, according to your memory of the tempo, not reactively to each individual click. Natural human variance is fine; only react when your internal sense of time is leading you astray.',
+  },
+  {
+    name: 'Join in and play the passage',
+    text: 'Direct as much of your attention to the metronome as you can.',
+  },
+  {
+    name: 'Diagnose whether you are rushing or dragging',
+    text:
+      'Use the beat-1 accent as your reference. If beat 1 surprises you or feels early, you are dragging. If beat 1 feels late or like you are jumping into a gap, you are rushing. Beginners can start by just noticing when they get off, stopping, and figuring out which way they drifted. Over time you will identify your tendency and learn to counteract it.',
+  },
+  {
+    name: 'Work the tempo up gradually',
+    text:
+      'Use small BPM increments — even 1 BPM is enough. Big jumps work early on, but gains shrink to 1 to 5 clicks at a time as you progress. Log your practice, track tempo PRs, and be patient with the law of diminishing returns.',
+  },
+];
+
+const faqs = [
+  {
+    q: 'Should beginners practice with a metronome?',
+    a: 'Absolutely, but work through the passage at your own pace first, with good attention to detail and note accuracy, before you bring the click in (see the step-by-step method above).',
+  },
+  {
+    q: 'How much of my practice should be with the metronome?',
+    a: "Roughly half. You don't want to get metronome-dependent, but you also want to keep yourself honest about where your time really is.",
+  },
+  {
+    q: 'What does Adagio, Andante, Allegro, or Presto mean in BPM?',
+    a: 'These are Italian tempo markings, and each corresponds to a rough range: Adagio ~66–76, Andante ~76–108, Moderato ~108–120, Allegro ~120–168, Presto ~168–200 BPM. The ranges are approximate and give the performer interpretive flexibility.',
+  },
+  {
+    q: 'Can I use this metronome on my phone?',
+    a: 'Yes, it works great on mobile.',
+  },
+  {
+    q: 'Why does the metronome make me feel like a robot?',
+    a: "You're probably just not used to playing with a click yet, and you're spending a lot of brainpower on the task. As you learn to play proactively and develop a stronger internal clock, you'll get to a point where you barely notice the metronome is there. The fact that it currently takes mental effort to lock in is actually a good sign — it means you're building the neural pathways that will make good time automatic.",
+  },
+];
+
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    PERSON,
+    ORGANIZATION,
+    {
+      '@type': 'WebApplication',
+      '@id': toolId,
+      name: 'JVA Music Metronome',
+      url: pageUrl,
+      applicationCategory: 'MultimediaApplication',
+      applicationSubCategory: 'Music practice tool',
+      operatingSystem: 'Any (modern web browser)',
+      browserRequirements: 'Requires JavaScript and the Web Audio API',
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      creator: { '@id': PERSON_ID },
+      publisher: { '@id': ORGANIZATION_ID },
+      description:
+        'Free online metronome with subdivisions, four-level beat dynamics (accent, normal, soft, mute), compound and odd-meter clave defaults, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
+      featureList: [
+        'Custom time signatures (any beats / any unit)',
+        'Subdivisions: duplet, triplet, quadruplet',
+        'Four-level beat dynamics (accent, normal, soft, mute) with clave defaults for 5/8, 6/8, 7/8, 9/8, 12/8',
+        'Gap click — silent measures for internal-clock practice',
+        'Random mute — probabilistic beat dropouts',
+        'Custom form generator — up to 256 measures with shifting time signatures',
+        'Tap tempo',
+        'Electronic and clave sound options',
+      ],
+      keywords:
+        'metronome, online metronome, free metronome, drummer metronome, gap click, polyrhythm, odd meter, custom time signature, practice tool',
+    },
+    {
+      '@type': 'HowTo',
+      '@id': `${pageUrl}#how-to-practice`,
+      name: 'How to Practice With a Metronome',
+      description:
+        'A step-by-step method for practicing music with a metronome — from learning a passage cleanly at slow tempo through gradually pushing the tempo up over time.',
+      tool: { '@id': toolId },
+      step: howToSteps.map((s, i) => ({
+        '@type': 'HowToStep',
+        position: i + 1,
+        name: s.name,
+        text: s.text,
+        url: `${pageUrl}#how-to-practice`,
+      })),
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${pageUrl}#faq`,
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: 'Free Online Metronome with Subdivisions, Gap Click & Custom Forms',
+      mainEntity: { '@id': toolId },
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Metronome', item: pageUrl },
+        ],
+      },
+    },
+  ],
+};
+---
+
+<Layout
+  title="Metronome Preview (debug build) — JVA Music"
+  description="Internal preview build of the metronome — not indexed. Use /metronome for the live version."
+  themeColor="#0d0d1a"
+  bodyClass="metronome-page"
+  noindex={true}
+>
+  <JsonLd slot="head" data={graph} />
+
+<style is:global>
+    /* Metronome tool — uses the site's brand palette (navy / cobalt /
+       blue-lt / orange / cream) defined in global.css. The .metronome-shell
+       container declares an explicit baseline (font-size, line-height,
+       font-family) so global body styles don't leak into button metrics
+       and throw off the beat-circle layout. Color tokens map to:
+         normal beat  → blue family (cobalt / blue-lt)
+         accent beat  → orange family (orange / orange-lt)
+         mute beat    → muted cream
+       Play button: cobalt → orange when playing (warm "armed" state). */
+
+    body.metronome-page {
+      background: var(--navy);
+      color: var(--cream);
+      min-height: 100vh;
+    }
+
+    .metronome-shell {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: calc(var(--header-h) + 1.5rem) 1rem 3rem;
+      /* Reset inheritance from global body so layout matches the original tool. */
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .metronome-shell .app {
+      width: 100%;
+      max-width: 620px;
+    }
+
+    .metronome-shell .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metronome-shell h1 {
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 300;
+      font-style: italic;
+      letter-spacing: 0.18em;
+      color: var(--cream);
+      line-height: 1;
+    }
+
+    .metronome-shell .beat-flash {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(91, 141, 232, 0.12);
+      border: 2px solid rgba(91, 141, 232, 0.35);
+      transition: background 0.05s, box-shadow 0.05s, border-color 0.05s;
+      flex-shrink: 0;
+    }
+
+    .metronome-shell .beat-flash.on-accent {
+      background: var(--orange-lt);
+      border-color: var(--orange-lt);
+      box-shadow: 0 0 12px rgba(245, 136, 42, 0.6);
+    }
+
+    .metronome-shell .beat-flash.on-beat {
+      background: var(--blue-lt);
+      border-color: var(--blue-lt);
+      box-shadow: 0 0 12px rgba(91, 141, 232, 0.55);
+    }
+
+    .metronome-shell .beat-flash.on-soft {
+      background: rgba(91, 141, 232, 0.35);
+      border-color: rgba(91, 141, 232, 0.55);
+      box-shadow: 0 0 8px rgba(91, 141, 232, 0.3);
+    }
+
+    .metronome-shell .card {
+      background: rgba(91, 141, 232, 0.08);
+      border: 1px solid rgba(91, 141, 232, 0.26);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .metronome-shell .section-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      color: rgba(245, 243, 238, 0.65);
+      margin-bottom: 1rem;
+    }
+
+    .metronome-shell .btn {
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.34);
+      color: rgba(245, 243, 238, 0.88);
+      border-radius: 8px;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.08s;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .metronome-shell .btn:hover {
+      background: rgba(91, 141, 232, 0.16);
+      border-color: rgba(91, 141, 232, 0.45);
+      color: var(--cream);
+    }
+
+    .metronome-shell .btn:active { transform: scale(0.95); }
+
+    .metronome-shell .btn.active {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+
+    .metronome-shell .bpm-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding: 0 1.5rem;
+    }
+
+    .metronome-shell .bpm-center {
+      text-align: center;
+      flex: 0 0 auto;
+    }
+
+    .metronome-shell .bpm-number {
+      font-size: clamp(2.6rem, 14vw, 4.5rem);
+      font-weight: 700;
+      color: var(--cream);
+      cursor: text;
+      display: inline-block;
+      text-align: center;
+      line-height: 1;
+      border-bottom: 2px solid transparent;
+      outline: none;
+      transition: border-color 0.15s, color 0.15s;
+      caret-color: var(--blue-lt);
+    }
+
+    .metronome-shell .bpm-number:focus {
+      border-bottom-color: var(--blue-lt);
+      color: var(--blue-lt);
+    }
+
+    .metronome-shell .bpm-unit {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: rgba(245, 243, 238, 0.65);
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    .metronome-shell .bpm-step-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .metronome-shell .btn-step {
+      min-width: 46px;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.6rem;
+    }
+
+    .metronome-shell .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .metronome-shell .slider-label {
+      font-size: 0.75rem;
+      color: rgba(245, 243, 238, 0.62);
+      min-width: 2.5ch;
+      text-align: center;
+    }
+
+    .metronome-shell input[type="range"] {
+      flex: 1;
+      appearance: none;
+      height: 6px;
+      background: rgba(91, 141, 232, 0.18);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .metronome-shell input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--blue-lt);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--cream);
+      transition: background 0.12s;
+    }
+
+    .metronome-shell input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--cream);
+    }
+
+    .metronome-shell input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--blue-lt);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--cream);
+    }
+
+    .metronome-shell .tap-row {
+      display: flex;
+      justify-content: center;
+    }
+
+    .metronome-shell .btn-tap {
+      min-width: 140px;
+      padding: 0.6rem 1.5rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+    }
+
+    .metronome-shell .btn-tap:active {
+      background: rgba(91, 141, 232, 0.25);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .time-sig-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .metronome-shell .btn-sig {
+      font-size: 0.9rem;
+      padding: 0.35rem 0.75rem;
+      font-weight: 600;
+    }
+
+    .metronome-shell .custom-sig {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .metronome-shell .custom-sig-label {
+      font-size: 0.75rem;
+      color: rgba(245, 243, 238, 0.45);
+    }
+
+    .metronome-shell .custom-sig input,
+    .metronome-shell .custom-sig select {
+      background: rgba(91, 141, 232, 0.08);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+      border-radius: 7px;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      width: 60px;
+      text-align: center;
+      outline: none;
+    }
+
+    .metronome-shell .custom-sig select { width: 70px; cursor: pointer; }
+
+    .metronome-shell .custom-sig select option,
+    .metronome-shell .form-unit-select option {
+      color: #0e0d0b;
+      background: #f5f3ee;
+    }
+
+    .metronome-shell .custom-sig-slash {
+      font-size: 1.6rem;
+      color: rgba(91, 141, 232, 0.4);
+      line-height: 1;
+    }
+
+    .metronome-shell .subdivision-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .metronome-shell .btn-sub {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.6rem 0.4rem;
+    }
+
+    .metronome-shell .sub-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .metronome-shell .sub-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+      color: rgba(245, 243, 238, 0.5);
+    }
+
+    .metronome-shell .btn-sub.active .sub-label {
+      color: var(--cream);
+    }
+
+    .metronome-shell #beat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .metronome-shell .beat-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 3px solid rgba(91, 141, 232, 0.42);
+      background: rgba(91, 141, 232, 0.1);
+      color: rgba(245, 243, 238, 0.82);
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.12s, background 0.12s, color 0.12s, transform 0.12s, box-shadow 0.12s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      user-select: none;
+    }
+
+    .metronome-shell .beat-btn:hover {
+      border-color: rgba(91, 141, 232, 0.5);
+      background: rgba(91, 141, 232, 0.12);
+    }
+
+    .metronome-shell .beat-btn .beat-num {
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .metronome-shell .beat-btn .beat-icon {
+      font-size: 0.65rem;
+      line-height: 1;
+      opacity: 0.7;
+    }
+
+    .metronome-shell .beat-btn.state-normal {
+      border-color: rgba(91, 141, 232, 0.35);
+      background: rgba(91, 141, 232, 0.08);
+      color: var(--blue-lt);
+    }
+
+    .metronome-shell .beat-btn.state-accent {
+      border-color: rgba(232, 101, 10, 0.55);
+      background: rgba(232, 101, 10, 0.1);
+      color: var(--orange-lt);
+    }
+
+    .metronome-shell .beat-btn.state-soft {
+      border-color: rgba(91, 141, 232, 0.2);
+      background: rgba(91, 141, 232, 0.03);
+      color: rgba(91, 141, 232, 0.6);
+    }
+
+    .metronome-shell .beat-btn.state-mute {
+      border-color: rgba(245, 243, 238, 0.18);
+      background: rgba(0, 0, 0, 0.38);
+      color: rgba(245, 243, 238, 0.5);
+    }
+
+    .metronome-shell .beat-btn.active.state-normal {
+      border-color: var(--blue-lt);
+      background: var(--cobalt);
+      color: var(--cream);
+      box-shadow: 0 0 0 4px rgba(91, 141, 232, 0.25), 0 0 18px rgba(91, 141, 232, 0.4);
+      transform: scale(1.12);
+    }
+
+    .metronome-shell .beat-btn.active.state-accent {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.3);
+      color: var(--cream);
+      box-shadow: 0 0 0 4px rgba(245, 136, 42, 0.25), 0 0 18px rgba(245, 136, 42, 0.4);
+      transform: scale(1.12);
+    }
+
+    .metronome-shell .beat-btn.active.state-soft {
+      border-color: rgba(91, 141, 232, 0.6);
+      background: rgba(91, 141, 232, 0.22);
+      color: var(--cream);
+      box-shadow: 0 0 0 3px rgba(91, 141, 232, 0.18), 0 0 12px rgba(91, 141, 232, 0.28);
+      transform: scale(1.08);
+    }
+
+    .metronome-shell .beat-btn.active.state-mute {
+      border-color: rgba(245, 243, 238, 0.22);
+      transform: scale(1.05);
+    }
+
+    .metronome-shell .sub-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 1rem;
+      min-height: 12px;
+    }
+
+    .metronome-shell .sub-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.28);
+      transition: background 0.05s, border-color 0.05s;
+    }
+
+    .metronome-shell .sub-dot.active {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .sub-dot.active-accent {
+      background: var(--orange);
+      border-color: var(--orange-lt);
+    }
+
+    .metronome-shell .beat-grid-hint {
+      font-size: 0.65rem;
+      color: rgba(245, 243, 238, 0.62);
+      text-align: center;
+      margin-top: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .metronome-shell .tempo-name {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--blue-lt);
+      text-transform: uppercase;
+      margin-top: 0.15rem;
+      min-height: 1em;
+      transition: color 0.3s;
+    }
+
+    .metronome-shell .play-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .metronome-shell .spacebar-hint {
+      font-size: 0.6rem;
+      color: rgba(245, 243, 238, 0.62);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid rgba(91, 141, 232, 0.22);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+    }
+
+    .metronome-shell .btn-play {
+      min-width: 180px;
+      padding: 0.9rem 2rem;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      border-radius: 50px;
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+
+    .metronome-shell .btn-play:hover {
+      background: var(--blue);
+      border-color: var(--cream);
+      color: var(--cream);
+    }
+
+    .metronome-shell .btn-play.playing {
+      background: var(--orange);
+      border-color: var(--orange-lt);
+      color: var(--navy);
+    }
+
+    .metronome-shell .btn-play.playing:hover {
+      background: var(--orange-lt);
+      border-color: var(--cream);
+    }
+
+    .metronome-shell .adv-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.875rem;
+      margin: 1rem 0 0.5rem;
+      cursor: pointer;
+    }
+
+    .metronome-shell .adv-toggle-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.25em;
+      color: rgba(245, 243, 238, 0.35);
+      text-transform: uppercase;
+      transition: color 0.2s;
+      user-select: none;
+    }
+
+    .metronome-shell .adv-toggle-row.active .adv-toggle-label { color: var(--cream); }
+
+    .metronome-shell .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .metronome-shell .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+    .metronome-shell .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.28);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .metronome-shell .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: rgba(245, 243, 238, 0.4);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .metronome-shell .toggle-switch input:checked + .toggle-track {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .toggle-switch input:checked + .toggle-track::after {
+      transform: translateX(20px);
+      background: var(--cream);
+    }
+
+    .metronome-shell .adv-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.35s ease;
+    }
+
+    .metronome-shell .adv-panel.open { max-height: 9999px; }
+
+    .metronome-shell .adv-feature-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .metronome-shell .adv-feature-desc {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.45);
+      margin-top: 0.2rem;
+      line-height: 1.4;
+    }
+
+    .metronome-shell .adv-controls { transition: opacity 0.2s; }
+    .metronome-shell .adv-controls.disabled { opacity: 0.3; pointer-events: none; }
+
+    .metronome-shell .adv-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .metronome-shell .adv-label {
+      font-size: 0.75rem;
+      color: rgba(91, 141, 232, 0.85);
+      min-width: 5rem;
+    }
+
+    .metronome-shell .adv-row input[type="range"] { flex: 1; }
+
+    .metronome-shell .adv-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--cream);
+      min-width: 2rem;
+      text-align: right;
+    }
+
+    .metronome-shell .adv-unit { font-size: 0.7rem; color: rgba(245, 243, 238, 0.4); }
+
+    .metronome-shell .gap-phase-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.25rem;
+      min-height: 1.6rem;
+    }
+
+    .metronome-shell .phase-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.28);
+      color: rgba(245, 243, 238, 0.45);
+      transition: all 0.15s;
+    }
+
+    .metronome-shell .phase-pill.play   { background: rgba(141, 184, 32, 0.14); border-color: rgba(141, 184, 32, 0.45); color: var(--lime); }
+    .metronome-shell .phase-pill.silent { background: rgba(232, 101, 10, 0.14); border-color: rgba(232, 101, 10, 0.45); color: var(--orange-lt); }
+
+    .metronome-shell .phase-progress { font-size: 0.68rem; color: rgba(245, 243, 238, 0.4); }
+
+    .metronome-shell .form-list {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid rgba(91, 141, 232, 0.18);
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      padding: 0.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .metronome-shell .form-group-header {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.42rem 0.6rem;
+      background: rgba(91, 141, 232, 0.06);
+      border-radius: 6px;
+      border: 1px solid rgba(91, 141, 232, 0.18);
+      transition: background 0.1s, border-color 0.1s;
+    }
+
+    .metronome-shell .form-group-header.form-active {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .form-group-range {
+      font-size: 0.62rem;
+      color: rgba(245, 243, 238, 0.4);
+      min-width: 3.2rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metronome-shell .form-group-meter {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--blue-lt);
+      min-width: 3rem;
+      letter-spacing: 0.02em;
+    }
+
+    .metronome-shell .form-group-header.form-active .form-group-meter,
+    .metronome-shell .form-group-header.form-active .form-group-range,
+    .metronome-shell .form-group-header.form-active .form-group-count { color: var(--cream); }
+
+    .metronome-shell .form-group-count {
+      font-size: 0.72rem;
+      color: rgba(245, 243, 238, 0.4);
+      flex: 1;
+    }
+
+    .metronome-shell .form-expand-btn {
+      background: none;
+      border: none;
+      color: rgba(245, 243, 238, 0.45);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.35rem;
+      border-radius: 3px;
+      line-height: 1;
+      transition: color 0.12s, background 0.12s;
+    }
+
+    .metronome-shell .form-expand-btn:hover { color: var(--cream); background: rgba(91, 141, 232, 0.18); }
+
+    .metronome-shell .form-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.32rem 0.5rem 0.32rem 1.6rem;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(91, 141, 232, 0.1);
+      transition: background 0.1s;
+    }
+
+    .metronome-shell .form-row.form-active { background: rgba(91, 141, 232, 0.18); border-color: var(--blue-lt); }
+
+    .metronome-shell .form-row-num {
+      font-size: 0.68rem;
+      color: rgba(245, 243, 238, 0.4);
+      min-width: 1.4rem;
+      text-align: right;
+    }
+
+    .metronome-shell .form-beats-input {
+      width: 40px;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+      border-radius: 5px;
+      padding: 0.22rem 0.3rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      text-align: center;
+      outline: none;
+    }
+
+    .metronome-shell .form-slash { color: rgba(91, 141, 232, 0.4); font-size: 1rem; }
+
+    .metronome-shell .form-unit-select {
+      width: 60px;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+      border-radius: 5px;
+      padding: 0.22rem 0.2rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .metronome-shell .form-delete-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: rgba(232, 101, 10, 0.45);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .metronome-shell .form-delete-btn:hover { color: var(--orange-lt); background: rgba(232, 101, 10, 0.15); }
+
+    .metronome-shell .btn-add-measure {
+      width: 100%;
+      padding: 0.45rem;
+      font-size: 0.82rem;
+      border-style: dashed;
+      margin-bottom: 0.5rem;
+      color: rgba(245, 243, 238, 0.55);
+    }
+
+    .metronome-shell .form-counter {
+      font-size: 0.68rem;
+      color: rgba(245, 243, 238, 0.4);
+      text-align: center;
+      min-height: 1rem;
+    }
+
+    .metronome-shell .form-toolbar {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .metronome-shell .form-tool-btn {
+      flex: 1;
+      font-size: 0.72rem;
+      padding: 0.38rem 0.3rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .metronome-shell .form-tool-btn:disabled { opacity: 0.22; cursor: not-allowed; }
+
+    .metronome-shell .form-bulk-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .metronome-shell .form-bulk-label {
+      font-size: 0.75rem;
+      color: rgba(91, 141, 232, 0.85);
+    }
+
+    .metronome-shell .sound-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .metronome-shell .btn-sound {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.65rem 0.4rem;
+    }
+
+    .metronome-shell .sound-icon { font-size: 1.15rem; line-height: 1; }
+    .metronome-shell .sound-label { font-size: 0.65rem; letter-spacing: 0.05em; color: rgba(245, 243, 238, 0.5); }
+    .metronome-shell .btn-sound.active .sound-label { color: var(--cream); }
+    .metronome-shell .sound-note {
+      font-size: 0.62rem;
+      color: rgba(245, 243, 238, 0.35);
+      text-align: center;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    /* Desktop: 3-column grid for the basic mode. Tempo anchors the left full-
+       height; Time Signature spans the top of the right two columns so all 10
+       presets fit on a single row (custom row beneath = 2 lines total);
+       Subdivision and Sound sit side-by-side on the second right row; Beats
+       spans the full width below for the live visual feedback. Advanced mode
+       stays below in its own constrained column. */
+    @media (min-width: 900px) {
+      .metronome-shell {
+        padding: calc(var(--header-h) + 1rem) 2rem 2.5rem;
+      }
+
+      .metronome-shell .app {
+        max-width: 1100px;
+      }
+
+      .metronome-shell .header {
+        margin-bottom: 1rem;
+      }
+
+      .metronome-shell .basic-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "tempo  timesig  timesig"
+          "tempo  subdiv   sound"
+          "beats  beats    beats";
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .metronome-shell .basic-grid > .card {
+        margin-bottom: 0;
+        padding: 0.9rem 1.1rem;
+      }
+      .metronome-shell .basic-grid .card-tempo   { grid-area: tempo; display: flex; flex-direction: column; }
+      .metronome-shell .basic-grid .card-timesig { grid-area: timesig; }
+      .metronome-shell .basic-grid .card-subdiv  { grid-area: subdiv; }
+      .metronome-shell .basic-grid .card-sound   { grid-area: sound; }
+      .metronome-shell .basic-grid .card-beats   { grid-area: beats; }
+
+      /* Tighter internal spacing across cards on desktop. */
+      .metronome-shell .basic-grid .section-label { margin-bottom: 0.55rem; }
+
+      /* Tempo card — BPM display anchored at the top, transport controls
+         (slider, tap, play) cluster at the bottom so the column reads cleanly
+         without floating dead space. */
+      .metronome-shell .basic-grid .card-tempo .bpm-row {
+        padding: 0 0.5rem;
+        margin-bottom: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .bpm-number { font-size: clamp(2.6rem, 6vw, 3.4rem); }
+      .metronome-shell .basic-grid .card-tempo .bpm-unit { margin-top: 0.1rem; }
+      .metronome-shell .basic-grid .card-tempo .tempo-name { margin-top: 0.05rem; letter-spacing: 0.16em; }
+      .metronome-shell .basic-grid .card-tempo .bpm-step-group { gap: 0.3rem; }
+      .metronome-shell .basic-grid .card-tempo .btn-step {
+        min-width: 38px;
+        font-size: 0.78rem;
+        padding: 0.3rem 0.5rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .slider-row {
+        margin-top: auto;
+        margin-bottom: 0.55rem;
+        padding-top: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .tap-row { margin-bottom: 0.5rem; }
+      .metronome-shell .basic-grid .card-tempo .btn-tap {
+        min-width: 120px;
+        padding: 0.45rem 1.2rem;
+        font-size: 0.85rem;
+      }
+      /* Keep Start truly centered; balance the SPACE hint with an empty slot
+         on the left so the visual center isn't pulled to the right. */
+      .metronome-shell .basic-grid .card-tempo .play-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        margin-top: 0;
+        gap: 0.5rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .play-row .btn-play {
+        grid-column: 2;
+        padding: 0.65rem 1.6rem;
+        font-size: 1.02rem;
+        min-width: 160px;
+      }
+      .metronome-shell .basic-grid .card-tempo .play-row .spacebar-hint {
+        grid-column: 3;
+        justify-self: start;
+        align-self: center;
+      }
+
+      /* Time Signature — wider column lets all 10 presets sit on one row;
+         center the custom row so the card reads as a balanced block. */
+      .metronome-shell .basic-grid .card-timesig .time-sig-presets {
+        margin-bottom: 0.7rem;
+        flex-wrap: nowrap;
+        gap: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-timesig .btn-sig { flex: 1 1 auto; padding: 0.32rem 0.4rem; }
+      .metronome-shell .basic-grid .card-timesig .custom-sig { justify-content: center; }
+
+      /* Subdivision — equalize icon-row height so the four buttons line up
+         regardless of glyph width (♩ vs ♬♬ have very different metrics). */
+      .metronome-shell .basic-grid .card-subdiv .subdivision-grid { gap: 0.4rem; }
+      .metronome-shell .basic-grid .card-subdiv .btn-sub { padding: 0.55rem 0.3rem; }
+      .metronome-shell .basic-grid .card-subdiv .sub-icon {
+        min-height: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Sound — match the subdivision card visually. */
+      .metronome-shell .basic-grid .card-sound .sound-grid { gap: 0.4rem; }
+      .metronome-shell .basic-grid .card-sound .btn-sound { padding: 0.55rem 0.3rem; }
+      .metronome-shell .basic-grid .card-sound .sound-icon {
+        min-height: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Beats — center the section label so it sits over the centered circles
+         instead of orphaned in the corner; drop the redundant cycle hint. */
+      .metronome-shell .basic-grid .card-beats { padding: 0.75rem 1.1rem; }
+      .metronome-shell .basic-grid .card-beats .section-label { text-align: center; }
+      .metronome-shell .basic-grid .card-beats .beat-grid-hint { display: none; }
+      .metronome-shell .basic-grid .card-beats .sub-indicators { margin-top: 0.6rem; }
+
+      /* Advanced toggle row stays narrow & centered (it's just a label and
+         switch). The advanced panel itself spans the full grid width and lays
+         its three cards out in two columns to match the top section. */
+      .metronome-shell .adv-toggle-row {
+        max-width: 620px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .metronome-shell .adv-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "gap     form"
+          "random  form";
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .metronome-shell .adv-grid > .card { margin-bottom: 0; padding: 0.9rem 1.1rem; }
+      .metronome-shell .adv-grid .card-gap    { grid-area: gap; }
+      .metronome-shell .adv-grid .card-random { grid-area: random; }
+      .metronome-shell .adv-grid .card-form   { grid-area: form; }
+
+      /* When the grid stretches the cards to align bottoms, distribute the
+         slack inside each card. For Custom Form the form-list absorbs it
+         (so the toolbar / bulk row / play button keep their rhythm). For
+         Gap Click and Random Mute the controls section vertically centers
+         in the empty space below the header so the card doesn't read as
+         top-heavy. */
+      .metronome-shell .adv-grid .card-form { display: flex; flex-direction: column; }
+      .metronome-shell .adv-grid .card-form .adv-controls { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+      .metronome-shell .adv-grid .card-form .form-list { flex: 1; max-height: none; min-height: 120px; }
+
+      .metronome-shell .adv-grid .card-gap,
+      .metronome-shell .adv-grid .card-random {
+        display: flex;
+        flex-direction: column;
+      }
+      .metronome-shell .adv-grid .card-gap .adv-controls,
+      .metronome-shell .adv-grid .card-random .adv-controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .metronome-shell .adv-grid .card-gap .adv-row:last-of-type,
+      .metronome-shell .adv-grid .card-random .adv-row:last-of-type {
+        margin-bottom: 0;
+      }
+    }
+
+    /* ─── Practice guide prose (below the tool) ────────────────────
+       Long-form explainer content for SEO and education. Same dark
+       palette as the tool above but typographic and constrained for
+       reading. */
+    .metronome-prose {
+      background: var(--navy);
+      color: var(--cream);
+      padding: 4.5rem 1.5rem 6rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+    }
+    .metronome-prose-inner {
+      max-width: 64ch;
+      margin: 0 auto;
+    }
+    .metronome-prose .prose-eyebrow {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--orange-lt);
+      margin: 0 0 1rem;
+      text-align: center;
+    }
+    .metronome-prose .prose-intro {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(1.0625rem, 2vw, 1.25rem);
+      line-height: 1.55;
+      color: rgba(245, 243, 238, 0.82);
+      margin: 0 0 3rem;
+      text-align: center;
+    }
+    .metronome-prose h2 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(1.375rem, 3vw, 1.875rem);
+      line-height: 1.2;
+      color: var(--cream);
+      margin: 3rem 0 1rem;
+      letter-spacing: -0.005em;
+      scroll-margin-top: 5rem;
+    }
+    .metronome-prose h2:first-of-type { margin-top: 0; }
+    .metronome-prose p {
+      font-size: 1rem;
+      line-height: 1.72;
+      color: rgba(245, 243, 238, 0.86);
+      margin: 0 0 1.25rem;
+    }
+    .metronome-prose p:last-child { margin-bottom: 0; }
+    .metronome-prose strong {
+      color: var(--cream);
+      font-weight: 600;
+    }
+    .metronome-prose em { font-style: italic; }
+    .metronome-prose ol,
+    .metronome-prose ul {
+      padding-left: 1.5rem;
+      margin: 0 0 1.5rem;
+    }
+    .metronome-prose ol > li {
+      margin-bottom: 1.25rem;
+      font-size: 1rem;
+      line-height: 1.72;
+      color: rgba(245, 243, 238, 0.86);
+    }
+    .metronome-prose ol > li:last-child { margin-bottom: 0; }
+    .metronome-prose ol > li > p:first-child { margin-bottom: 0.5rem; }
+    .metronome-prose ul > li {
+      margin-bottom: 0.625rem;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: rgba(245, 243, 238, 0.86);
+    }
+    .metronome-prose a {
+      color: var(--blue-lt);
+      text-decoration: underline;
+      text-decoration-color: rgba(91, 141, 232, 0.4);
+      text-underline-offset: 3px;
+      transition: text-decoration-color 0.18s, color 0.18s;
+    }
+    .metronome-prose a:hover {
+      color: #fff;
+      text-decoration-color: var(--blue-lt);
+    }
+    .metronome-prose .faq-item {
+      margin-bottom: 1.5rem;
+    }
+    .metronome-prose .faq-item:last-child { margin-bottom: 0; }
+    .metronome-prose .lead {
+      color: var(--cream);
+      font-weight: 600;
+    }
+    @media (max-width: 600px) {
+      .metronome-prose { padding: 3.5rem 1.25rem 4.5rem; }
+    }
+  </style>
+
+<main class="metronome-shell">
+<div class="app">
+  <div class="header">
+    <div class="beat-flash" id="beat-flash"></div>
+    <h1>Metronome <span style="font-size: 0.4em; opacity: 0.7; vertical-align: middle; letter-spacing: 0.08em;">PREVIEW</span></h1>
+    <div class="beat-flash" id="beat-flash-2"></div>
+  </div>
+
+  <div class="basic-grid">
+
+  <!-- BPM -->
+  <div class="card card-tempo" id="tempo">
+    <div class="section-label">Tempo</div>
+    <div class="bpm-row">
+      <div class="bpm-step-group">
+        <button class="btn btn-step" id="bpm-minus1">−1</button>
+        <button class="btn btn-step" id="bpm-minus5">−5</button>
+      </div>
+      <div class="bpm-center">
+        <div class="bpm-number" id="bpm-display" contenteditable="true" spellcheck="false" inputmode="numeric">120</div>
+        <div class="bpm-unit">BPM</div>
+        <div class="tempo-name" id="tempo-name">Allegro</div>
+      </div>
+      <div class="bpm-step-group">
+        <button class="btn btn-step" id="bpm-plus1">+1</button>
+        <button class="btn btn-step" id="bpm-plus5">+5</button>
+      </div>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">1</span>
+      <input type="range" id="bpm-slider" min="1" max="500" value="120" />
+      <span class="slider-label">500</span>
+    </div>
+    <div class="tap-row">
+      <button class="btn btn-tap" id="tap-tempo">Tap Tempo</button>
+    </div>
+    <div class="play-row">
+      <button class="btn btn-play" id="play-stop">▶ Start</button>
+      <div class="spacebar-hint">Space</div>
+    </div>
+  </div>
+
+  <!-- Time Signature -->
+  <div class="card card-timesig" id="time-signature">
+    <div class="section-label">Time Signature</div>
+    <div class="time-sig-presets" id="time-sig-presets">
+      <button class="btn btn-sig" data-beats="2" data-unit="4">2/4</button>
+      <button class="btn btn-sig" data-beats="3" data-unit="4">3/4</button>
+      <button class="btn btn-sig active" data-beats="4" data-unit="4">4/4</button>
+      <button class="btn btn-sig" data-beats="5" data-unit="4">5/4</button>
+      <button class="btn btn-sig" data-beats="6" data-unit="4">6/4</button>
+      <button class="btn btn-sig" data-beats="7" data-unit="4">7/4</button>
+      <button class="btn btn-sig" data-beats="5" data-unit="8">5/8</button>
+      <button class="btn btn-sig" data-beats="6" data-unit="8">6/8</button>
+      <button class="btn btn-sig" data-beats="7" data-unit="8">7/8</button>
+      <button class="btn btn-sig" data-beats="9" data-unit="8">9/8</button>
+      <button class="btn btn-sig" data-beats="12" data-unit="8">12/8</button>
+    </div>
+    <div class="custom-sig">
+      <span class="custom-sig-label">Custom:</span>
+      <input type="number" id="beats-input" min="1" max="32" value="4" />
+      <span class="custom-sig-slash">/</span>
+      <select id="unit-select"></select>
+    </div>
+  </div>
+
+  <!-- Subdivision -->
+  <div class="card card-subdiv" id="subdivisions">
+    <div class="section-label">Subdivision</div>
+    <div class="subdivision-grid">
+      <button class="btn btn-sub active" data-sub="1">
+        <span class="sub-icon">♩</span>
+        <span class="sub-label">None</span>
+      </button>
+      <button class="btn btn-sub" data-sub="2">
+        <span class="sub-icon">♪♪</span>
+        <span class="sub-label">Duplet</span>
+      </button>
+      <button class="btn btn-sub" data-sub="3">
+        <span class="sub-icon">♪♪♪</span>
+        <span class="sub-label">Triplet</span>
+      </button>
+      <button class="btn btn-sub" data-sub="4">
+        <span class="sub-icon">♬♬</span>
+        <span class="sub-label">Quadruplet</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sound Library -->
+  <div class="card card-sound" id="sound">
+    <div class="section-label">Sound</div>
+    <div class="sound-grid">
+      <button class="btn btn-sound active" data-sound="electronic">
+        <span class="sound-icon">∿</span>
+        <span class="sound-label">Electronic</span>
+      </button>
+      <button class="btn btn-sound" data-sound="clave">
+        <span class="sound-icon">▮</span>
+        <span class="sound-label">Clave</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Beat Grid -->
+  <div class="card card-beats" id="beats">
+    <div class="section-label">Beats</div>
+    <div id="beat-grid"></div>
+    <div class="sub-indicators" id="sub-indicators"></div>
+    <div class="beat-grid-hint">Click a beat to cycle: Normal → Accent → Mute</div>
+  </div>
+
+  </div><!-- /.basic-grid -->
+
+  <!-- Advanced Mode Toggle -->
+  <div class="adv-toggle-row" id="adv-toggle-row">
+    <span class="adv-toggle-label">~ &nbsp;A D V A N C E D &nbsp; M O D E&nbsp; ~</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="adv-toggle" />
+      <span class="toggle-track"></span>
+    </label>
+  </div>
+
+  <!-- Advanced Panel -->
+  <div class="adv-panel" id="adv-panel">
+    <div class="adv-grid">
+
+    <!-- Gap Click -->
+    <div class="card card-gap" id="gap-click">
+      <div class="adv-feature-header">
+        <div>
+          <div class="section-label">Gap Click</div>
+          <div class="adv-feature-desc">Play for N measures, then silence for M — trains your internal clock</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="gap-toggle" />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div id="gap-controls" class="adv-controls disabled">
+        <div class="adv-row">
+          <span class="adv-label">Play</span>
+          <input type="range" id="gap-play-slider" min="1" max="16" value="2" />
+          <span class="adv-value" id="gap-play-val">2</span>
+          <span class="adv-unit">measures</span>
+        </div>
+        <div class="adv-row">
+          <span class="adv-label">Silence</span>
+          <input type="range" id="gap-silent-slider" min="1" max="16" value="2" />
+          <span class="adv-value" id="gap-silent-val">2</span>
+          <span class="adv-unit">measures</span>
+        </div>
+        <div class="gap-phase-indicator">
+          <span class="phase-pill" id="gap-phase-pill">● Waiting</span>
+          <span class="phase-progress" id="gap-phase-progress"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Random Mute -->
+    <div class="card card-random" id="random-mute">
+      <div class="adv-feature-header">
+        <div>
+          <div class="section-label">Random Mute</div>
+          <div class="adv-feature-desc">Each beat has a chance of being silenced at random</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="random-mute-toggle" />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div id="random-mute-controls" class="adv-controls disabled">
+        <div class="adv-row">
+          <span class="adv-label">Probability</span>
+          <input type="range" id="random-mute-slider" min="0" max="100" value="30" />
+          <span class="adv-value" id="random-mute-val">30</span>
+          <span class="adv-unit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Form -->
+    <div class="card card-form" id="custom-form">
+      <div class="adv-feature-header">
+        <div>
+          <div class="section-label">Custom Form</div>
+          <div class="adv-feature-desc">Up to 256 measures with shifting time signatures, looping continuously</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="form-toggle" />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div id="form-controls" class="adv-controls disabled">
+        <div class="form-toolbar">
+          <button class="btn form-tool-btn" id="form-undo" disabled>↩ Undo</button>
+          <button class="btn form-tool-btn" id="form-redo" disabled>↪ Redo</button>
+          <button class="btn form-tool-btn" id="form-save">↓ Save</button>
+          <label class="btn form-tool-btn" id="form-load-label">↑ Load
+            <input type="file" id="form-load-input" accept=".json" style="display:none" />
+          </label>
+        </div>
+        <div class="form-bulk-row">
+          <span class="form-bulk-label">Add</span>
+          <input type="number" class="form-beats-input" id="bulk-count" min="1" max="64" value="4" />
+          <span class="form-bulk-label">×</span>
+          <input type="number" class="form-beats-input" id="bulk-beats" min="1" max="32" value="4" />
+          <span class="form-slash">/</span>
+          <select class="form-unit-select" id="bulk-unit"></select>
+          <button class="btn form-tool-btn" id="bulk-add-btn" style="flex:0 0 auto">+ Add</button>
+        </div>
+        <div class="form-list" id="form-list"></div>
+        <button class="btn btn-add-measure" id="add-measure-btn">+ Add Single Measure</button>
+        <div class="form-counter" id="form-counter"></div>
+        <div class="play-row" style="margin-top:0.75rem">
+          <button class="btn btn-play" id="play-stop-form">▶ Start</button>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /.adv-grid -->
+  </div>
+</div>
+</main>
+
+<!-- ══════════════════════════════════════════ PRACTICE GUIDE -->
+<article class="metronome-prose" aria-labelledby="guide-intro">
+  <div class="metronome-prose-inner">
+    <p class="prose-eyebrow" id="guide-intro">Practice guide</p>
+    <p class="prose-intro">
+      Welcome to the JVA Music free online metronome &mdash; a flexible practice tool for musicians of every level, from absolute beginners to working professionals. Below the metronome you&rsquo;ll find a complete guide to using it well, including step-by-step practice methods, advanced techniques, and answers to the most common questions about metronome practice.
+    </p>
+
+    <h2 id="how-to-use">How To Use This Free Online Metronome</h2>
+    <p>
+      I designed this tool to have something for everyone. The slider lets you make big tempo adjustments, and you can fine-tune with the &minus;1/+1 and &minus;5/+5 buttons. You can also click on the BPM and type in any number from 1&ndash;500 if you have an exact tempo in mind. The subtitle shows the corresponding Italian tempo marking (frequently used in classical music).
+    </p>
+    <p>
+      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, or four. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually across four levels: <strong>accent</strong> (loud), <strong>normal</strong>, <strong>soft</strong> (a ghost-note voice for inner pulses), or <strong>mute</strong>.
+    </p>
+    <p>
+      These features are enough for most users, but advanced musicians may benefit from a few additional options. <a href="#gap-click"><strong>Gap click</strong></a> plays the metronome for a set number of measures, then mutes it for a set number of measures. <a href="#random-mute"><strong>Random mute</strong></a> unpredictably silences beats, keeping you on edge and making you more responsible for the time. <a href="#custom-form"><strong>Custom forms</strong></a> let you program a song structure with changing time signatures.
+    </p>
+
+    <h2 id="what-is-bpm">What Is a Metronome, and What Does BPM Mean?</h2>
+    <p>
+      Put simply, a metronome is a clock you can hear. It&rsquo;s a steady, external reference against which you can assess your own internal sense of time. &ldquo;BPM&rdquo; is short for <strong>beats per minute</strong>. The higher the BPM, the faster the metronome clicks. A single BPM is often called a &ldquo;click,&rdquo; so when you bump the metronome from 120 to 125 BPM, you could say it&rsquo;s five clicks faster.
+    </p>
+    <p>
+      A particular BPM is called a <strong>tempo</strong> (the Italian word for &ldquo;time&rdquo;). When you tackle a piece of music, the goal tempo is usually listed near the upper-left of the first page, sometimes as a number in BPM, sometimes as an Italian term like <em>Andante</em> or <em>Presto</em>. Each Italian term corresponds to a <em>range</em> of tempos, which gives you flexibility as an interpreter. Presto, for example, can be played anywhere from roughly 168 to 200 BPM. You can consult <a href="https://mosaicmusicinstruction.com/wp-content/uploads/2018/07/basic-tempo-markings.pdf" target="_blank" rel="noopener">this convenient table</a> for a full list.
+    </p>
+    <p>
+      This metronome also includes a <strong>tap tempo</strong> feature. If you hear a song and can tap your foot or bob your head along with it, click the &ldquo;<a href="#tempo">tap tempo</a>&rdquo; button at the speed of that pulse, and the tool will calculate the BPM for you.
+    </p>
+
+    <h2 id="beats-measures-meters">How a Metronome with Subdivisions Works: Beats, Measures, and Time Signatures</h2>
+    <p>
+      The pulse is the heartbeat of a piece of music. When you bob your head or tap your foot to a song, you&rsquo;re feeling the pulse. A <strong>beat</strong> is the basic unit of the pulse, and a <strong>measure</strong> is a larger unit of musical time that contains a certain number of beats.
+    </p>
+    <p>
+      A <strong>time signature</strong> (or meter) tells you two things: the top number tells you how many beats are in a measure, and the bottom number tells you what type of note gets the beat. The most common time signature in Western music is 4/4, which is why this tool defaults to it. The &ldquo;4&rdquo; on top means four beats per measure, and the &ldquo;4&rdquo; on the bottom means the quarter note gets the beat. You can find the time signature for any piece by looking at the first measure of the first page. The <a href="#time-signature">time signature selector</a> lets you pick from a buffet of common meters, or input an unusual one with the custom tool.
+    </p>
+    <p>
+      An <strong>accent</strong> makes a note louder than the notes around it. In the <a href="#beats">beats menu</a>, you can click any note to cycle through four levels: orange circles are accented, filled blue circles are unaccented, hollow blue circles are softer (think ghost notes), and grey circles are muted. Beat 1 is accented by default to help you track the length of each measure. For 5/8, 6/8, 7/8, 9/8, and 12/8, the metronome pre-loads the standard clave or compound-meter pulse so you hear beat 1 as the strongest accent, the dotted-quarter or grouping pulse as a normal click, and the inner eighths as soft &mdash; see the <a href="#odd-meters">odd meters</a> section below.
+    </p>
+    <p>
+      <strong>Subdivision</strong> is the splitting of a beat into equal parts. <strong>Duple</strong> subdivision splits the beat into two (eighth notes in 4/4), useful for locking in straight grooves. <strong>Triple</strong> subdivision splits it into three (eighth-note triplets), essential for swing, shuffle, and any triplet feel (think 6/8, 9/8, 12/8). <strong>Quadruple</strong> subdivision splits the beat into four (sixteenth notes), common in fast technical passages, funk, and hip-hop. The more granular the subdivision you can hear and understand, the tighter your time will be.
+    </p>
+
+    <h2 id="why-practice-with-metronome">Why Practice With a Metronome at All?</h2>
+    <p>
+      Working with a metronome helps you develop the ability to play and adjust to an external source of time. This is a necessary fundamental skill that all musicians use when playing music with other people. Metronome work also helps you validate your own intuitions about time in order to build a strong <strong>internal clock</strong>, an attribute that will make you a desirable musical collaborator.
+    </p>
+    <p>
+      A huge amount of modern professional session and gig work (at least the really high-profile stuff) is going to require you to play with a click track. So if you hope to break into music professionally, or even just to put together a good-sounding demo of your band&rsquo;s originals at a local studio, it&rsquo;s worth tightening up your playing with some metronome work.
+    </p>
+    <p>
+      At the end of the day, practicing with a metronome gives you a huge amount of information that you really can&rsquo;t get any other way. Playing with a click helps you learn about yourself as a musician: what your tendencies are, what certain tempos feel like in your body and in your spirit, and what weak areas you might target as you try to develop a deep, flexible feel that will work at any pace, in any style.
+    </p>
+    <p>
+      Working with the metronome also puts you in touch with <strong>objective reality</strong>. You can either play a passage at a certain tempo, or you can&rsquo;t. The metronome is one of the single most valuable tools for developing speed and control, and the little milestones and PRs that you can set by gradually working up tempos on your music are incredibly motivating and satisfying.
+    </p>
+
+    <h2 id="how-to-practice">How to Practice With a Metronome (A Step-by-Step Method)</h2>
+    <ol>
+      <li>
+        <p><strong>Start without the metronome.</strong> Get the notes under your fingers or into your hands, work through the passage according to your own sense of time, and build familiarity with the material. Find a slow speed at which you can execute the passage in a relaxed way, with high attention to detail. Before you&rsquo;ve done this, the metronome won&rsquo;t help you.</p>
+      </li>
+      <li>
+        <p><strong>Find your tempo.</strong> Use the <a href="#tempo">tap tempo feature</a> to figure out the BPM you worked the passage up to in step 1.</p>
+      </li>
+      <li>
+        <p><strong>Let the click play, and just listen.</strong> This is where you internalize and memorize the tempo, and it&rsquo;s perhaps the most important step. When you play with a metronome, you want to be <strong>proactive, not reactive</strong>, playing according to your <em>memory</em> of the tempo, not trying to react to each click. The goal isn&rsquo;t note-perfect alignment; there&rsquo;s always natural human variance. You only need to react to the metronome when you notice your internal sense of time is leading you astray.</p>
+      </li>
+      <li>
+        <p><strong>Join in and play the passage.</strong> Direct as much of your attention to the metronome as you can.</p>
+      </li>
+      <li>
+        <p><strong>Diagnose: are you rushing or dragging?</strong> If you start to drift, learning to tell <em>which way</em> you drifted is the key skill. The beat-1 accent helps a lot here. If beat 1 comes up as a surprise, or it feels like the metronome is giving you beat 1 <em>early</em>, you&rsquo;re <strong>dragging</strong>. If you feel like you&rsquo;re jumping into a gap, or beat 1 feels <em>late</em>, you&rsquo;re <strong>rushing</strong>.</p>
+        <p>If you&rsquo;re a beginner, this is hard to feel in real time. Start by just noticing when you get off, then stopping. Think back on what happened and try to figure out which direction you drifted. Over time you&rsquo;ll identify your tendency. You may find that certain passages, or even whole pieces, want to go one way. Between repetitions, remind yourself of your tendency and try to counteract it on the next pass.</p>
+      </li>
+      <li>
+        <p><strong>Work the tempo up gradually.</strong> If you&rsquo;re trying to get a passage faster, the metronome is the single best tool for the job. A 1 BPM bump is so subtle you probably won&rsquo;t notice, and that&rsquo;s the point. Tiny incremental increases let you raise the pace over time without strain. Remember the <strong>law of diminishing returns</strong>. In the beginning you may be able to jump 10, 15, even 30 clicks quickly. Further down the road, gains shrink to 1&ndash;5 clicks at a time. Log your practice, track your tempo PRs, and be patient.</p>
+      </li>
+    </ol>
+
+    <h2 id="internal-clock">How to Develop a Stronger Internal Clock</h2>
+    <p>
+      Intermediate and advanced musicians can start exploring two different domains of time: <strong>macro</strong> and <strong>micro</strong>.
+    </p>
+    <p>
+      <strong>Micro-time</strong> is your ability to subdivide precisely. Work on this with the <a href="#subdivisions">subdivision feature</a>, trying to line up everything you play with the metronome&rsquo;s smaller pulses. This kind of granular work increases accuracy and can reveal small inconsistencies in your technique you didn&rsquo;t know were there.
+    </p>
+    <p>
+      <strong>Macro-time</strong> is your ability to keep a consistent tempo over the length of an entire piece, with no rushing or dragging across minutes of music. The <a href="#gap-click"><strong>gap click</strong></a> feature (under the advanced toggle) is built for this. Set the click to play for, say, 2 measures and mute for 2; then escalate to 1-on/1-off, 1-on/3-off, 1-on/7-off. The more measures you mute in a row, the longer you&rsquo;re on your own, and the more your own internal clock has to carry the time.
+    </p>
+    <p>
+      The general rule: the more responsible you make yourself for the time, the stronger your internal clock gets. If you have years of experience under your belt, a metronome that gives you every single beat may be spoon-feeding you. <a href="#random-mute">Random mute</a> and <a href="#gap-click">gap click</a> are how you keep the work honest and keep growing, even after the basics feel automatic.
+    </p>
+
+    <h2 id="click-on-2-and-4">Putting the Click on 2 &amp; 4 (and Other Displacements)</h2>
+    <p>
+      Mental exercises where you &ldquo;flip your ears around&rdquo; to hear the metronome in different ways are fantastic for the internal clock, and they bridge the gap between micro and macro time.
+    </p>
+    <p>
+      The classic version: many jazz musicians set the metronome to half the true tempo and hear those clicks as <strong>beats 2 &amp; 4</strong>, the backbeat. Suddenly <em>you</em> are responsible for generating beats 1 and 3 internally, and the click becomes a reference instead of a crutch. You can do the same hearing the click as beats 1 and 3.
+    </p>
+    <p>A few more exercises to try, roughly in order of difficulty:</p>
+    <ul>
+      <li>Set the metronome at <strong>one quarter</strong> of the true tempo and hear it as beat 1. Then try hearing it as beat 2, beat 3, or beat 4.</li>
+      <li>Set the metronome to the true tempo and hear it as the <strong>upbeat</strong> (the &ldquo;and&rdquo; of each beat).</li>
+      <li>Set the metronome to the true tempo and hear it as the <strong>swung upbeat</strong>.</li>
+      <li>Set the metronome to the true tempo and hear it as the <strong>middle of a triplet</strong>.</li>
+      <li>Set the metronome to the true tempo and hear it as the <strong>fourth sixteenth note</strong>.</li>
+      <li>Set the metronome to the true tempo and hear it as the <strong>second sixteenth note</strong>.</li>
+      <li>Now run any of the above with <a href="#random-mute">random mute</a> turned on.</li>
+      <li>Now run any of the above with the metronome at half or quarter the true tempo, so you&rsquo;re only being fed one partial of one beat per measure (e.g., metronome only on the swung upbeat of beat 4).</li>
+    </ul>
+
+    <h2 id="common-mistakes">Common Metronome Mistakes (and How to Fix Them)</h2>
+    <p>
+      <strong class="lead">Being reactive instead of proactive.</strong> Always play to your <em>memory</em> of the tempo, not in response to each individual click. Reactive playing means you&rsquo;re always slightly late.
+    </p>
+    <p>
+      <strong class="lead">Watching the metronome instead of listening.</strong> You&rsquo;re trying to train your ears, not your eyes. Playing to a visual metronome won&rsquo;t develop the fundamental skills you build by playing to a click you <em>hear</em>. Close your eyes or look somewhere else if you catch yourself doing it.
+    </p>
+    <p>
+      <strong class="lead">Not tracking progress.</strong> Logging incremental progress and creeping tempos up over time is one of the biggest benefits of metronome practice. Tracking your tempo PRs is also satisfying and motivational, and it keeps the fire of inspiration lit on harder days.
+    </p>
+    <p>
+      <strong class="lead">Practicing with a metronome all the time.</strong> You don&rsquo;t want to become metronome-dependent. Spend real time playing only with your own internal clock so you&rsquo;re comfortable on gigs where you&rsquo;re fully responsible for the time.
+    </p>
+    <p>
+      <strong class="lead">Getting stuck in a rut.</strong> If you&rsquo;re an advanced player, build experimental metronome practice into your schedule &mdash; placements that genuinely challenge your ears and your internal clock. Don&rsquo;t settle for stale placements that feel easy.
+    </p>
+
+    <h2 id="click-track-vs-metronome">Click Track vs. Metronome: What&rsquo;s the Difference?</h2>
+    <p>
+      The terms are often used interchangeably, and for good reason: a click track and a metronome both make a steady clicking sound at a fixed BPM. The practical difference is <em>context</em>. A <strong>metronome</strong> is a practice tool. A <strong>click track</strong> is what you play to in a recording studio (routed through headphones), or sometimes on stage, to keep the band locked to a fixed tempo.
+    </p>
+    <p>
+      The good news for anyone who&rsquo;s done the work in this guide: practicing with a metronome <em>is</em> practicing with a click track. The skill transfers directly. If you can play comfortably and proactively to this metronome, you&rsquo;re prepared for a session.
+    </p>
+
+    <h2 id="odd-meters">Odd Meters: 5/4, 7/8, 12/8, and Custom Claves</h2>
+    <p>
+      Odd meters like 5/8, 7/8, and 9/8 don&rsquo;t divide into even halves the way 4/4 does, which is why they often feel hard to count. The trick most working musicians use is to learn the meter as a <strong>clave</strong> &mdash; a short repeating accent pattern that defines the feel of the meter. In jazz, <strong>3+2</strong> is common for 5/8 (one long, one short), and <strong>2+2+3</strong> is common for 7/8. Once you can hear the meter as a clave, the math fades away and the groove takes over.
+    </p>
+    <p>
+      Picking 5/8, 6/8, 7/8, 9/8, or 12/8 from the <a href="#time-signature">time-signature</a> presets pre-loads the canonical clave or compound-meter pulse for you: beat 1 is accented (loudest), the start of each subsequent grouping is normal, and the inner eighths are soft. The result is a click track where you simultaneously hear the downbeat, the dotted-quarter or grouping pulse, and the eighth-note feel underneath. You can still <a href="#beats">customize</a> any beat &mdash; click to cycle through accent, normal, soft, or mute &mdash; or program your own claves for meters that aren&rsquo;t pre-loaded.
+    </p>
+    <p>
+      If a piece shifts between meters (a lot of contemporary classical, prog, and modern jazz does), use the <a href="#custom-form"><strong>custom forms menu</strong></a> to program the entire structure ahead of time so you can focus on playing instead of counting changes.
+    </p>
+
+    <h2 id="faq">Metronome Practice FAQ</h2>
+    {faqs.map((f) => (
+      <div class="faq-item">
+        <p><strong class="lead">{f.q}</strong> {f.a}</p>
+      </div>
+    ))}
+  </div>
+</article>
+
+<script is:inline>
+  // ─── State ───────────────────────────────────────────────────────────────────
+  const state = {
+    bpm: 120,
+    beatsPerMeasure: 4,
+    beatUnit: 4,
+    subdivision: 1,
+    beats: [],        // 'accent' | 'normal' | 'soft' | 'mute'
+    isPlaying: false,
+    currentBeat: -1,
+    currentSub: 0,
+  };
+
+  // ─── Advanced Mode State ──────────────────────────────────────────────────────
+  const adv = {
+    enabled: false,
+    gapEnabled: false, gapPlay: 2, gapSilent: 2,
+    randomMuteEnabled: false, randomMutePct: 30,
+    formEnabled: false,
+    form: [],   // [{ beats, unit, states[] }]
+  };
+
+  let soundMode = 'electronic'; // 'electronic' | 'clave'
+
+  // Scheduler-side advanced state (runs SCHEDULE_AHEAD_S ahead of audio time)
+  let advGapPhase = 'play';   // 'play' | 'silent'
+  let advGapCount = 0;
+  let advFormIdx = 0;
+
+  // ─── Audio ───────────────────────────────────────────────────────────────────
+  let audioCtx = null;
+  let nextNoteTime = 0.0;
+  let schedulerTimer = null;
+  let schedulerBeat = 0;
+  let schedulerSub = 0;
+  const pendingVisuals = [];
+
+  const LOOKAHEAD_MS = 25;
+  const SCHEDULE_AHEAD_S = 0.1;
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  // ─── Sound Library ───────────────────────────────────────────────────────────
+  function scheduleClick(time, type) {
+    if (type === 'mute') return;
+    if (soundMode === 'clave') { scheduleClave(time, type); return; }
+    scheduleElectronic(time, type);
+  }
+
+  function scheduleElectronic(time, type) {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    filter.type = 'bandpass';
+    if (type === 'accent') {
+      osc.frequency.value = 1050; filter.frequency.value = 1050; filter.Q.value = 0.6;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(1.0, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+    } else if (type === 'beat') {
+      osc.frequency.value = 800; filter.frequency.value = 800; filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.75, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+    } else if (type === 'soft') {
+      osc.frequency.value = 800; filter.frequency.value = 800; filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.32, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+    } else {
+      osc.frequency.value = 1600; filter.frequency.value = 1600; filter.Q.value = 1.2;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.3, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+    }
+    osc.start(time); osc.stop(time + 0.2);
+  }
+
+  function scheduleClave(time, type) {
+    const ctx = getAudioCtx();
+    const freq  = type === 'accent' ? 1500 : type === 'sub' ? 2000 : 1150;
+    const vol   = type === 'accent' ? 1.1  : type === 'beat' ? 0.8  : type === 'soft' ? 0.38 : 0.35;
+    const decay = type === 'sub'    ? 0.018 : type === 'accent' ? 0.055 : type === 'soft' ? 0.03 : 0.04;
+
+    // Noise burst through bandpass — the "body" of the clave
+    const len = Math.ceil(ctx.sampleRate * (decay * 4));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d   = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.22));
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 5;
+    const ng = ctx.createGain(); ng.gain.value = vol * 0.55;
+    noise.connect(bp); bp.connect(ng); ng.connect(ctx.destination);
+    noise.start(time);
+
+    // Tonal transient — the "click" of the clave
+    const osc = ctx.createOscillator();
+    osc.frequency.setValueAtTime(freq * 1.3, time);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.75, time + decay * 0.4);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0, time);
+    og.gain.linearRampToValueAtTime(vol * 0.9, time + 0.0008);
+    og.gain.exponentialRampToValueAtTime(0.001, time + decay);
+    osc.connect(og); og.connect(ctx.destination);
+    osc.start(time); osc.stop(time + decay + 0.01);
+  }
+
+  function getAdvConfig() {
+    if (adv.formEnabled && adv.form.length > 0) {
+      const e = adv.form[advFormIdx];
+      return { beatsPerMeasure: e.beats, beats: e.states };
+    }
+    return { beatsPerMeasure: state.beatsPerMeasure, beats: state.beats };
+  }
+
+  function scheduler() {
+    const ctx = getAudioCtx();
+
+    while (nextNoteTime < ctx.currentTime + SCHEDULE_AHEAD_S) {
+      const beat = schedulerBeat;
+      const sub  = schedulerSub;
+      const time = nextNoteTime;
+      const cfg  = getAdvConfig();
+
+      let clickType;
+      if (sub === 0) {
+        const s = cfg.beats[beat] || 'normal';
+        clickType = s === 'mute' ? 'mute' : s === 'accent' ? 'accent' : s === 'soft' ? 'soft' : 'beat';
+      } else {
+        clickType = 'sub';
+      }
+
+      if (adv.gapEnabled && advGapPhase === 'silent') clickType = 'mute';
+
+      if (adv.randomMuteEnabled && sub === 0 && clickType !== 'mute') {
+        if (Math.random() < adv.randomMutePct / 100) clickType = 'mute';
+      }
+
+      scheduleClick(time, clickType);
+      pendingVisuals.push({
+        beat, sub, time, clickType,
+        formIdx: advFormIdx,
+        gapPhase: advGapPhase,
+        gapCount: advGapCount,
+      });
+
+      nextNoteTime += (60.0 / state.bpm) / state.subdivision;
+
+      schedulerSub++;
+      if (schedulerSub >= state.subdivision) {
+        schedulerSub = 0;
+        schedulerBeat++;
+        if (schedulerBeat >= cfg.beatsPerMeasure) {
+          schedulerBeat = 0;
+          if (adv.gapEnabled) {
+            advGapCount++;
+            if (advGapPhase === 'play'   && advGapCount >= adv.gapPlay)   { advGapPhase = 'silent'; advGapCount = 0; }
+            else if (advGapPhase === 'silent' && advGapCount >= adv.gapSilent) { advGapPhase = 'play';   advGapCount = 0; }
+          }
+          if (adv.formEnabled && adv.form.length > 0) {
+            advFormIdx = (advFormIdx + 1) % adv.form.length;
+          }
+        }
+      }
+    }
+
+    schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
+  }
+
+  // Screen Wake Lock — keep the device awake while the metronome is running,
+  // otherwise the screen sleeping (and on most mobile browsers, the audio
+  // context with it) would silence the click. Mobile browsers don't reliably
+  // keep Web Audio scheduling alive once the screen is fully off, so the best
+  // we can do is prevent the screen from auto-locking during playback.
+  let wakeLock = null;
+  async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (_) {
+      wakeLock = null;
+    }
+  }
+  async function releaseWakeLock() {
+    if (!wakeLock) return;
+    try { await wakeLock.release(); } catch (_) {}
+    wakeLock = null;
+  }
+  // The OS releases the wake lock when the tab is hidden; re-request it when
+  // we come back so the screen stays awake for a long practice session.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.isPlaying && !wakeLock) {
+      requestWakeLock();
+    }
+  });
+
+  function startMetronome() {
+    const ctx = getAudioCtx();
+    state.isPlaying = true;
+    schedulerBeat = 0;
+    schedulerSub  = 0;
+    advGapPhase   = 'play';
+    advGapCount   = 0;
+    advFormIdx    = 0;
+    nextNoteTime  = ctx.currentTime + 0.05;
+    pendingVisuals.length = 0;
+    scheduler();
+    requestAnimationFrame(visualLoop);
+    updatePlayButton();
+    requestWakeLock();
+  }
+
+  function stopMetronome() {
+    state.isPlaying = false;
+    clearTimeout(schedulerTimer);
+    pendingVisuals.length = 0;
+    state.currentBeat = -1;
+    state.currentSub  = 0;
+    applyBeatVisuals(-1, 0, null, 0);
+    updatePlayButton();
+    updateGapVisual('idle', 0);
+    updateFormVisual(-1);
+    if (adv.formEnabled && adv.form.length > 0) renderBeatGridForEntry(adv.form[0]);
+    releaseWakeLock();
+  }
+
+  function togglePlay() {
+    state.isPlaying ? stopMetronome() : startMetronome();
+  }
+
+  // ─── Visual Loop ─────────────────────────────────────────────────────────────
+  function visualLoop() {
+    if (!state.isPlaying) return;
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+
+    while (pendingVisuals.length && pendingVisuals[0].time <= now) {
+      const v = pendingVisuals.shift();
+      state.currentBeat = v.beat;
+      state.currentSub  = v.sub;
+      applyBeatVisuals(v.beat, v.sub, v.clickType, v.formIdx);
+      if (v.beat === 0 && v.sub === 0) {
+        updateGapVisual(v.gapPhase, v.gapCount);
+        updateFormVisual(v.formIdx);
+      }
+    }
+
+    requestAnimationFrame(visualLoop);
+  }
+
+  function applyBeatVisuals(beat, sub, clickType, formIdx) {
+    document.querySelectorAll('.beat-btn').forEach((el, i) => {
+      el.classList.toggle('active', i === beat && sub === 0);
+    });
+
+    document.querySelectorAll('.sub-dot').forEach((dot, i) => {
+      dot.classList.remove('active', 'active-accent');
+      if (i === sub) dot.classList.add(clickType === 'accent' ? 'active-accent' : 'active');
+    });
+
+    const flash1 = document.getElementById('beat-flash');
+    const flash2 = document.getElementById('beat-flash-2');
+    flash1.className = 'beat-flash';
+    flash2.className = 'beat-flash';
+
+    if (sub === 0 && clickType !== 'mute') {
+      const cls = clickType === 'accent' ? 'on-accent' : clickType === 'soft' ? 'on-soft' : 'on-beat';
+      flash1.classList.add(cls);
+      flash2.classList.add(cls);
+      setTimeout(() => { flash1.className = 'beat-flash'; flash2.className = 'beat-flash'; }, 120);
+    }
+  }
+
+  // ─── BPM ─────────────────────────────────────────────────────────────────────
+  const TEMPO_MARKS = [
+    [24,  'Larghissimo'],
+    [39,  'Grave'],
+    [54,  'Largo'],
+    [64,  'Larghetto'],
+    [74,  'Adagio'],
+    [79,  'Adagietto'],
+    [93,  'Andante'],
+    [107, 'Andantino'],
+    [119, 'Moderato'],
+    [129, 'Allegretto'],
+    [167, 'Allegro'],
+    [179, 'Vivace'],
+    [199, 'Presto'],
+    [500, 'Prestissimo'],
+  ];
+
+  function getTempoName(bpm) {
+    for (const [max, name] of TEMPO_MARKS) if (bpm <= max) return name;
+    return 'Prestissimo';
+  }
+
+  function setBPM(value) {
+    state.bpm = Math.max(1, Math.min(500, Math.round(value)));
+    document.getElementById('bpm-display').textContent = state.bpm;
+    document.getElementById('bpm-slider').value = state.bpm;
+    document.getElementById('tempo-name').textContent = getTempoName(state.bpm);
+  }
+
+  document.getElementById('bpm-slider').addEventListener('input', e => setBPM(+e.target.value));
+  document.getElementById('bpm-minus1').addEventListener('click', () => setBPM(state.bpm - 1));
+  document.getElementById('bpm-plus1').addEventListener('click', () => setBPM(state.bpm + 1));
+  document.getElementById('bpm-minus5').addEventListener('click', () => setBPM(state.bpm - 5));
+  document.getElementById('bpm-plus5').addEventListener('click', () => setBPM(state.bpm + 5));
+
+  const bpmEl = document.getElementById('bpm-display');
+  bpmEl.addEventListener('focus', () => {
+    const range = document.createRange();
+    range.selectNodeContents(bpmEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+  bpmEl.addEventListener('blur', () => {
+    const val = parseInt(bpmEl.textContent.replace(/\D/g, ''), 10);
+    setBPM(isNaN(val) ? 120 : val);
+  });
+  bpmEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); bpmEl.blur(); }
+    if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) {
+      e.preventDefault();
+    }
+  });
+
+  // Tap Tempo — fire on pointerdown so the tap registers when the finger
+  // contacts the screen (not on lift), which is what users intuitively time
+  // to a beat. Combined with `touch-action: manipulation` on .btn, this also
+  // sidesteps mobile double-tap zoom on rapid taps.
+  let tapTimes = [];
+  function registerTap() {
+    const now = Date.now();
+    tapTimes.push(now);
+    tapTimes = tapTimes.filter(t => now - t < 4000).slice(-8);
+    if (tapTimes.length >= 2) {
+      const intervals = [];
+      for (let i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i - 1]);
+      const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      setBPM(Math.round(60000 / avg));
+    }
+  }
+  const tapBtn = document.getElementById('tap-tempo');
+  tapBtn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    registerTap();
+  });
+  // Enter activates the tap button via keyboard. Space is reserved for the
+  // global play/stop shortcut, so don't register a tap on Space here.
+  tapBtn.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      registerTap();
+    }
+  });
+
+  // ─── Time Signature ───────────────────────────────────────────────────────────
+  function populateUnitSelect(id, currentVal) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (let i = 1; i <= 32; i++) {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = i;
+      if (i === currentVal) o.selected = true;
+      sel.appendChild(o);
+    }
+  }
+
+  // Compound and odd-meter defaults: the dotted-quarter pulse in 6/8, 9/8,
+  // and 12/8, and the standard claves in 5/8 (3+2) and 7/8 (2+2+3). Beat 1
+  // is the strongest accent; group starts after that are normal; the rest
+  // are soft, so the listener hears beat 1, the pulse, and the eighth-note
+  // feel layered together. Returns null for meters that should fall back
+  // to the simple "accent on 1, normal elsewhere" pattern.
+  function defaultBeatsForSig(beats, unit) {
+    if (unit === 8) {
+      if (beats === 5)  return ['accent','soft','soft','normal','soft'];
+      if (beats === 6)  return ['accent','soft','soft','normal','soft','soft'];
+      if (beats === 7)  return ['accent','soft','normal','soft','normal','soft','soft'];
+      if (beats === 9)  return ['accent','soft','soft','normal','soft','soft','normal','soft','soft'];
+      if (beats === 12) return ['accent','soft','soft','normal','soft','soft','normal','soft','soft','normal','soft','soft'];
+    }
+    return null;
+  }
+
+  function setTimeSig(beats, unit, applyDefault = false) {
+    beats = Math.max(1, Math.min(32, Math.round(beats)));
+    const prev = state.beats;
+    const sameSig = beats === state.beatsPerMeasure && unit === state.beatUnit;
+    state.beatsPerMeasure = beats;
+    state.beatUnit = unit;
+
+    const preset = applyDefault && !sameSig ? defaultBeatsForSig(beats, unit) : null;
+    let newBeats;
+    if (preset) {
+      newBeats = preset.slice();
+    } else {
+      newBeats = [];
+      for (let i = 0; i < beats; i++) {
+        newBeats.push(i < prev.length ? prev[i] : 'normal');
+      }
+      if (prev.length === 0) newBeats[0] = 'accent';
+    }
+    state.beats = newBeats;
+
+    if (state.currentBeat >= beats) state.currentBeat = -1;
+
+    document.getElementById('beats-input').value = beats;
+    document.getElementById('unit-select').value = unit;
+
+    document.querySelectorAll('#time-sig-presets .btn-sig').forEach(btn => {
+      btn.classList.toggle('active',
+        +btn.dataset.beats === beats && +btn.dataset.unit === unit);
+    });
+
+    renderBeatGrid();
+    renderSubDots();
+  }
+
+  document.querySelectorAll('#time-sig-presets .btn-sig').forEach(btn => {
+    btn.addEventListener('click', () => setTimeSig(+btn.dataset.beats, +btn.dataset.unit, true));
+  });
+
+  document.getElementById('beats-input').addEventListener('change', e => {
+    setTimeSig(+e.target.value, state.beatUnit);
+  });
+  document.getElementById('unit-select').addEventListener('change', e => {
+    setTimeSig(state.beatsPerMeasure, +e.target.value);
+  });
+
+  // ─── Subdivision ──────────────────────────────────────────────────────────────
+  function setSubdivision(sub) {
+    state.subdivision = sub;
+    document.querySelectorAll('.btn-sub').forEach(btn => {
+      btn.classList.toggle('active', +btn.dataset.sub === sub);
+    });
+    renderSubDots();
+  }
+
+  document.querySelectorAll('.btn-sub').forEach(btn => {
+    btn.addEventListener('click', () => setSubdivision(+btn.dataset.sub));
+  });
+
+  // ─── Beat Grid ────────────────────────────────────────────────────────────────
+  const STATE_CYCLE = { normal: 'accent', accent: 'soft', soft: 'mute', mute: 'normal' };
+  const STATE_ICONS = { normal: '●', accent: '▲', soft: '○', mute: '✕' };
+
+  function renderBeatGrid() {
+    const grid = document.getElementById('beat-grid');
+    grid.innerHTML = '';
+
+    state.beats.forEach((beatState, i) => {
+      const btn = document.createElement('button');
+      const isActive = state.isPlaying && state.currentBeat === i && state.currentSub === 0;
+      btn.className = 'beat-btn state-' + beatState + (isActive ? ' active' : '');
+      btn.innerHTML = '<span class="beat-num">' + (i + 1) + '</span><span class="beat-icon">' + STATE_ICONS[beatState] + '</span>';
+      btn.title = 'Beat ' + (i + 1) + ': ' + beatState + ' — click to change';
+
+      btn.addEventListener('click', () => {
+        state.beats[i] = STATE_CYCLE[state.beats[i]];
+        btn.className = 'beat-btn state-' + state.beats[i] + (btn.classList.contains('active') ? ' active' : '');
+        btn.querySelector('.beat-icon').textContent = STATE_ICONS[state.beats[i]];
+      });
+
+      grid.appendChild(btn);
+    });
+  }
+
+  function renderSubDots() {
+    const container = document.getElementById('sub-indicators');
+    container.innerHTML = '';
+    if (state.subdivision <= 1) return;
+    for (let i = 0; i < state.subdivision; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'sub-dot';
+      container.appendChild(dot);
+    }
+  }
+
+  // ─── Play Button ──────────────────────────────────────────────────────────────
+  function updatePlayButton() {
+    ['play-stop', 'play-stop-form'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.textContent = state.isPlaying ? '■ Stop' : '▶ Start';
+      btn.classList.toggle('playing', state.isPlaying);
+    });
+  }
+
+  document.getElementById('play-stop').addEventListener('click', togglePlay);
+  document.getElementById('play-stop-form').addEventListener('click', togglePlay);
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && document.activeElement !== bpmEl) {
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      e.preventDefault();
+      togglePlay();
+    }
+  });
+
+  // ─── Advanced Mode ────────────────────────────────────────────────────────────
+
+  function updateGapVisual(phase, count) {
+    const pill = document.getElementById('gap-phase-pill');
+    const prog = document.getElementById('gap-phase-progress');
+    if (!pill || !prog) return;
+    if (phase === 'idle' || !adv.gapEnabled || !state.isPlaying) {
+      pill.className = 'phase-pill';
+      pill.textContent = '● Waiting';
+      prog.textContent = '';
+      return;
+    }
+    if (phase === 'play') {
+      pill.className = 'phase-pill play';
+      pill.textContent = '▶ Playing';
+      const left = adv.gapPlay - count;
+      prog.textContent = left + ' measure' + (left !== 1 ? 's' : '') + ' left';
+    } else {
+      pill.className = 'phase-pill silent';
+      pill.textContent = '● Silent';
+      const left = adv.gapSilent - count;
+      prog.textContent = left + ' measure' + (left !== 1 ? 's' : '') + ' left';
+    }
+  }
+
+  let lastRenderedFormIdx = -1;
+
+  function updateFormVisual(formIdx) {
+    if (!adv.formEnabled || adv.form.length === 0) return;
+    document.querySelectorAll('.form-group-header').forEach(h => {
+      h.classList.toggle('form-active', formIdx >= +h.dataset.start && formIdx <= +h.dataset.end);
+    });
+    document.querySelectorAll('.form-row[data-idx]').forEach(row => {
+      row.classList.toggle('form-active', +row.dataset.idx === formIdx);
+    });
+    const active = document.querySelector('.form-group-header.form-active');
+    if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    updateFormCounter(formIdx);
+    if (formIdx !== lastRenderedFormIdx && formIdx >= 0) {
+      lastRenderedFormIdx = formIdx;
+      renderBeatGridForEntry(adv.form[formIdx]);
+    }
+  }
+
+  function updateFormCounter(formIdx) {
+    const el = document.getElementById('form-counter');
+    if (!el) return;
+    if (adv.form.length === 0) { el.textContent = ''; return; }
+    el.textContent = state.isPlaying && formIdx >= 0
+      ? 'Measure ' + (formIdx + 1) + ' of ' + adv.form.length
+      : adv.form.length + ' measure' + (adv.form.length !== 1 ? 's' : '');
+  }
+
+  function renderBeatGridForEntry(entry) {
+    const grid = document.getElementById('beat-grid');
+    grid.innerHTML = '';
+    entry.states.forEach((beatState, i) => {
+      const btn = document.createElement('button');
+      const isActive = state.isPlaying && state.currentBeat === i && state.currentSub === 0;
+      btn.className = 'beat-btn state-' + beatState + (isActive ? ' active' : '');
+      btn.innerHTML = '<span class="beat-num">' + (i + 1) + '</span><span class="beat-icon">' + STATE_ICONS[beatState] + '</span>';
+      btn.addEventListener('click', () => {
+        entry.states[i] = STATE_CYCLE[entry.states[i]];
+        btn.className = 'beat-btn state-' + entry.states[i] + (btn.classList.contains('active') ? ' active' : '');
+        btn.querySelector('.beat-icon').textContent = STATE_ICONS[entry.states[i]];
+      });
+      grid.appendChild(btn);
+    });
+  }
+
+  const expandedGroups = new Set();
+
+  function groupForm() {
+    const groups = [];
+    let i = 0;
+    while (i < adv.form.length) {
+      const start = i;
+      const { beats, unit } = adv.form[i];
+      while (i < adv.form.length && adv.form[i].beats === beats && adv.form[i].unit === unit) i++;
+      groups.push({ beats, unit, start, end: i - 1, count: i - start });
+    }
+    return groups;
+  }
+
+  function makeFormRow(entry, idx) {
+    const row = document.createElement('div');
+    row.className = 'form-row';
+    row.dataset.idx = idx;
+
+    const numSpan = document.createElement('span');
+    numSpan.className = 'form-row-num';
+    numSpan.textContent = idx + 1;
+
+    const beatsIn = document.createElement('input');
+    beatsIn.type = 'number'; beatsIn.min = 1; beatsIn.max = 32;
+    beatsIn.value = entry.beats;
+    beatsIn.className = 'form-beats-input';
+
+    const slash = document.createElement('span');
+    slash.className = 'form-slash';
+    slash.textContent = '/';
+
+    const unitSel = document.createElement('select');
+    unitSel.className = 'form-unit-select';
+    for (let v = 1; v <= 32; v++) {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      if (v === entry.unit) o.selected = true;
+      unitSel.appendChild(o);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'form-delete-btn';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Remove this measure';
+
+    beatsIn.addEventListener('change', () => {
+      const b = Math.max(1, Math.min(32, +beatsIn.value));
+      beatsIn.value = b;
+      saveFormHistory();
+      const prev = entry.states.slice();
+      entry.beats = b;
+      entry.states = Array(b).fill('normal').map((_, i) => i < prev.length ? prev[i] : 'normal');
+      if (prev.length === 0) entry.states[0] = 'accent';
+      expandedGroups.clear();
+      renderFormList(); updateFormCounter(advFormIdx);
+    });
+    unitSel.addEventListener('change', () => {
+      saveFormHistory(); entry.unit = +unitSel.value;
+      expandedGroups.clear(); renderFormList();
+    });
+    delBtn.addEventListener('click', () => {
+      if (adv.form.length <= 1) return;
+      saveFormHistory();
+      adv.form.splice(idx, 1);
+      if (advFormIdx >= adv.form.length) advFormIdx = adv.form.length - 1;
+      expandedGroups.clear(); renderFormList(); updateFormCounter(advFormIdx);
+    });
+
+    row.append(numSpan, beatsIn, slash, unitSel, delBtn);
+    return row;
+  }
+
+  function renderFormList() {
+    const list = document.getElementById('form-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const groups = groupForm();
+
+    groups.forEach(group => {
+      const isExpanded = expandedGroups.has(group.start);
+
+      const header = document.createElement('div');
+      header.className = 'form-group-header';
+      header.dataset.start = group.start;
+      header.dataset.end   = group.end;
+      if (state.isPlaying && advFormIdx >= group.start && advFormIdx <= group.end)
+        header.classList.add('form-active');
+
+      const rangeSpan = document.createElement('span');
+      rangeSpan.className = 'form-group-range';
+      rangeSpan.textContent = group.count === 1
+        ? String(group.start + 1)
+        : (group.start + 1) + '–' + (group.end + 1);
+
+      const meterSpan = document.createElement('span');
+      meterSpan.className = 'form-group-meter';
+      meterSpan.textContent = group.beats + '/' + group.unit;
+
+      const countSpan = document.createElement('span');
+      countSpan.className = 'form-group-count';
+      countSpan.textContent = '×' + group.count;
+
+      const expandBtn = document.createElement('button');
+      expandBtn.className = 'form-expand-btn';
+      expandBtn.textContent = isExpanded ? '▲' : '▾';
+      expandBtn.title = isExpanded ? 'Collapse' : 'Expand to edit individual measures';
+
+      const delGroupBtn = document.createElement('button');
+      delGroupBtn.className = 'form-delete-btn';
+      delGroupBtn.title = 'Remove all ' + group.count + ' measure' + (group.count > 1 ? 's' : '');
+      delGroupBtn.textContent = '✕';
+
+      header.append(rangeSpan, meterSpan, countSpan, expandBtn, delGroupBtn);
+      list.appendChild(header);
+
+      if (isExpanded) {
+        for (let idx = group.start; idx <= group.end; idx++) {
+          const row = makeFormRow(adv.form[idx], idx);
+          if (state.isPlaying && idx === advFormIdx) row.classList.add('form-active');
+          list.appendChild(row);
+        }
+      }
+
+      expandBtn.addEventListener('click', () => {
+        if (expandedGroups.has(group.start)) expandedGroups.delete(group.start);
+        else expandedGroups.add(group.start);
+        renderFormList();
+      });
+
+      delGroupBtn.addEventListener('click', () => {
+        saveFormHistory();
+        adv.form.splice(group.start, group.count);
+        if (adv.form.length === 0)
+          adv.form.push({ beats: 4, unit: 4, states: ['accent','normal','normal','normal'] });
+        if (advFormIdx >= adv.form.length) advFormIdx = adv.form.length - 1;
+        expandedGroups.clear(); renderFormList(); updateFormCounter(advFormIdx);
+      });
+    });
+
+    updateFormCounter(advFormIdx);
+  }
+
+  function addFormMeasure() {
+    if (adv.form.length >= 256) return;
+    saveFormHistory();
+    const last = adv.form[adv.form.length - 1] || { beats: 4, unit: 4 };
+    const states = Array(last.beats).fill('normal');
+    states[0] = 'accent';
+    adv.form.push({ beats: last.beats, unit: last.unit, states });
+    renderFormList();
+    updateFormCounter(advFormIdx);
+  }
+
+  // ─── Sound Library UI ────────────────────────────────────────────────────────
+  document.querySelectorAll('.btn-sound').forEach(btn => {
+    btn.addEventListener('click', () => {
+      soundMode = btn.dataset.sound;
+      document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // ─── Form Undo / Redo ─────────────────────────────────────────────────────────
+  let formHistory = [];
+  let formHistoryIdx = -1;
+
+  function saveFormHistory() {
+    formHistory = formHistory.slice(0, formHistoryIdx + 1);
+    formHistory.push(JSON.parse(JSON.stringify(adv.form)));
+    if (formHistory.length > 80) { formHistory.shift(); }
+    formHistoryIdx = formHistory.length - 1;
+    refreshUndoRedoBtns();
+  }
+
+  function refreshUndoRedoBtns() {
+    const u = document.getElementById('form-undo');
+    const r = document.getElementById('form-redo');
+    if (u) u.disabled = formHistoryIdx <= 0;
+    if (r) r.disabled = formHistoryIdx >= formHistory.length - 1;
+  }
+
+  document.getElementById('form-undo').addEventListener('click', () => {
+    if (formHistoryIdx <= 0) return;
+    formHistoryIdx--;
+    adv.form = JSON.parse(JSON.stringify(formHistory[formHistoryIdx]));
+    renderFormList(); updateFormCounter(advFormIdx); refreshUndoRedoBtns();
+  });
+
+  document.getElementById('form-redo').addEventListener('click', () => {
+    if (formHistoryIdx >= formHistory.length - 1) return;
+    formHistoryIdx++;
+    adv.form = JSON.parse(JSON.stringify(formHistory[formHistoryIdx]));
+    renderFormList(); updateFormCounter(advFormIdx); refreshUndoRedoBtns();
+  });
+
+  // ─── Form Save / Load ─────────────────────────────────────────────────────────
+  document.getElementById('form-save').addEventListener('click', () => {
+    const payload = {
+      version: 1,
+      form: adv.form.map(e => ({ beats: e.beats, unit: e.unit, states: e.states.slice() }))
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'metronome-form.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('form-load-input').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (data.version === 1 && Array.isArray(data.form) && data.form.length > 0) {
+          saveFormHistory();
+          adv.form = data.form.map(entry => {
+            const b = Math.max(1, Math.min(32, +entry.beats || 4));
+            const u = Math.max(1, Math.min(32, +entry.unit  || 4));
+            const s = Array.isArray(entry.states) ? entry.states.slice() : Array(b).fill('normal');
+            if (s.length < b) for (let i = s.length; i < b; i++) s.push('normal');
+            return { beats: b, unit: u, states: s.slice(0, b) };
+          }).slice(0, 256);
+          renderFormList(); updateFormCounter(0);
+          lastRenderedFormIdx = -1;
+          if (adv.formEnabled) renderBeatGridForEntry(adv.form[0]);
+        } else {
+          alert('Invalid metronome form file.');
+        }
+      } catch (_) { alert('Could not read file.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  // ─── Form Bulk Add ────────────────────────────────────────────────────────────
+  document.getElementById('bulk-add-btn').addEventListener('click', () => {
+    const count = Math.max(1, Math.min(256, +document.getElementById('bulk-count').value || 1));
+    const beats = Math.max(1, Math.min(32,  +document.getElementById('bulk-beats').value || 4));
+    const unit  = Math.max(1, Math.min(32,  +document.getElementById('bulk-unit').value  || 4));
+    const slots = Math.min(count, 256 - adv.form.length);
+    if (slots <= 0) return;
+    saveFormHistory();
+    for (let i = 0; i < slots; i++) {
+      const states = Array(beats).fill('normal');
+      states[0] = 'accent';
+      adv.form.push({ beats, unit, states });
+    }
+    renderFormList(); updateFormCounter(advFormIdx);
+  });
+
+  document.getElementById('adv-toggle').addEventListener('change', e => {
+    adv.enabled = e.target.checked;
+    document.getElementById('adv-panel').classList.toggle('open', adv.enabled);
+    document.getElementById('adv-toggle-row').classList.toggle('active', adv.enabled);
+  });
+
+  document.getElementById('gap-toggle').addEventListener('change', e => {
+    adv.gapEnabled = e.target.checked;
+    document.getElementById('gap-controls').classList.toggle('disabled', !adv.gapEnabled);
+    if (!adv.gapEnabled) updateGapVisual('idle', 0);
+  });
+
+  document.getElementById('gap-play-slider').addEventListener('input', e => {
+    adv.gapPlay = +e.target.value;
+    document.getElementById('gap-play-val').textContent = adv.gapPlay;
+  });
+
+  document.getElementById('gap-silent-slider').addEventListener('input', e => {
+    adv.gapSilent = +e.target.value;
+    document.getElementById('gap-silent-val').textContent = adv.gapSilent;
+  });
+
+  document.getElementById('random-mute-toggle').addEventListener('change', e => {
+    adv.randomMuteEnabled = e.target.checked;
+    document.getElementById('random-mute-controls').classList.toggle('disabled', !adv.randomMuteEnabled);
+  });
+
+  document.getElementById('random-mute-slider').addEventListener('input', e => {
+    adv.randomMutePct = +e.target.value;
+    document.getElementById('random-mute-val').textContent = adv.randomMutePct;
+  });
+
+  document.getElementById('form-toggle').addEventListener('change', e => {
+    adv.formEnabled = e.target.checked;
+    document.getElementById('form-controls').classList.toggle('disabled', !adv.formEnabled);
+    lastRenderedFormIdx = -1;
+    if (adv.formEnabled && adv.form.length > 0) renderBeatGridForEntry(adv.form[0]);
+    else renderBeatGrid();
+    updateFormCounter(advFormIdx);
+  });
+
+  document.getElementById('add-measure-btn').addEventListener('click', addFormMeasure);
+
+  // ─── Init ─────────────────────────────────────────────────────────────────────
+  function init() {
+    state.beats = Array(state.beatsPerMeasure).fill('normal');
+    state.beats[0] = 'accent';
+    adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'] }];
+    populateUnitSelect('unit-select', 4);
+    populateUnitSelect('bulk-unit', 4);
+    renderBeatGrid();
+    renderSubDots();
+    renderFormList();
+    formHistory = [JSON.parse(JSON.stringify(adv.form))];
+    formHistoryIdx = 0;
+    refreshUndoRedoBtns();
+    document.getElementById('tempo-name').textContent = getTempoName(state.bpm);
+  }
+
+  init();
+</script>
+</Layout>
