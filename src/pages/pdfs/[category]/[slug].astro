@@ -84,6 +84,16 @@ const intakeParagraphs = intakeRaw
   .filter(Boolean);
 const hasIntake = intakeParagraphs.length > 0;
 
+// Tiny inline-markdown renderer for intake paragraphs: HTML-escapes the
+// content, then promotes **text** to <strong> and [text](url) to <a>.
+// Anchor href is restricted to absolute paths or http(s) URLs.
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const renderInline = (s: string) =>
+  escapeHtml(s)
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((\/[^)\s]*|https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
+
 const aboutFragment = ABOUT_BY_FILE[file.split('/').pop()!];
 const educationalLevel = CATEGORY_EDUCATIONAL_LEVEL[categoryId];
 const leadIn = CATEGORY_LEAD_IN[categoryId] ?? category.title;
@@ -237,7 +247,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
         <h2>How to practice this</h2>
         {hasIntake ? (
           intakeParagraphs.map((p) =>
-            p.startsWith('### ') ? <h3>{p.slice(4)}</h3> : <p>{p}</p>
+            p.startsWith('### ')
+              ? <h3 set:html={renderInline(p.slice(4))} />
+              : <p set:html={renderInline(p)} />
           )
         ) : (
           <p class="pdf-detail-placeholder">
