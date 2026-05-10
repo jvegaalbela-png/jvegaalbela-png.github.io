@@ -1779,9 +1779,9 @@ const graph = {
   function getAdvConfig() {
     if (adv.formEnabled && adv.form.length > 0) {
       const e = adv.form[advFormIdx];
-      return { beatsPerMeasure: e.beats, beats: e.states };
+      return { beatsPerMeasure: e.beats, beats: e.states, beatUnit: e.unit };
     }
-    return { beatsPerMeasure: state.beatsPerMeasure, beats: state.beats };
+    return { beatsPerMeasure: state.beatsPerMeasure, beats: state.beats, beatUnit: state.beatUnit };
   }
 
   function scheduler() {
@@ -1815,7 +1815,12 @@ const graph = {
         gapCount: advGapCount,
       });
 
-      nextNoteTime += (60.0 / state.bpm) / state.subdivision;
+      // BPM is interpreted as quarter notes per minute (the standard
+      // notation convention: ♩ = bpm). The actual tick rate scales by
+      // (4 / beatUnit), so an x/8 meter ticks twice as fast as x/4 at
+      // the same BPM, x/16 ticks four times as fast, x/2 ticks half as
+      // fast, etc.
+      nextNoteTime += (60.0 / state.bpm) * (4 / cfg.beatUnit) / state.subdivision;
 
       schedulerSub++;
       if (schedulerSub >= state.subdivision) {
