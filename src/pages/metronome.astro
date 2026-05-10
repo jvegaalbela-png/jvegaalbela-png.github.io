@@ -81,11 +81,11 @@ const graph = {
       creator: { '@id': PERSON_ID },
       publisher: { '@id': ORGANIZATION_ID },
       description:
-        'Free online metronome with subdivisions, per-beat accents and mutes, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
+        'Free online metronome with subdivisions, four-level beat dynamics (accent, normal, soft, mute), compound and odd-meter clave defaults, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
       featureList: [
         'Custom time signatures (any beats / any unit)',
         'Subdivisions: duplet, triplet, quadruplet',
-        'Per-beat accent and mute toggles',
+        'Four-level beat dynamics (accent, normal, soft, mute) with clave defaults for 5/8, 6/8, 7/8, 9/8, 12/8',
         'Gap click — silent measures for internal-clock practice',
         'Random mute — probabilistic beat dropouts',
         'Custom form generator — up to 256 measures with shifting time signatures',
@@ -216,6 +216,12 @@ const graph = {
       background: var(--blue-lt);
       border-color: var(--blue-lt);
       box-shadow: 0 0 12px rgba(91, 141, 232, 0.55);
+    }
+
+    .metronome-shell .beat-flash.on-soft {
+      background: rgba(91, 141, 232, 0.35);
+      border-color: rgba(91, 141, 232, 0.55);
+      box-shadow: 0 0 8px rgba(91, 141, 232, 0.3);
     }
 
     .metronome-shell .card {
@@ -515,6 +521,12 @@ const graph = {
       color: var(--orange-lt);
     }
 
+    .metronome-shell .beat-btn.state-soft {
+      border-color: rgba(91, 141, 232, 0.2);
+      background: rgba(91, 141, 232, 0.03);
+      color: rgba(91, 141, 232, 0.6);
+    }
+
     .metronome-shell .beat-btn.state-mute {
       border-color: rgba(245, 243, 238, 0.18);
       background: rgba(0, 0, 0, 0.38);
@@ -535,6 +547,14 @@ const graph = {
       color: var(--cream);
       box-shadow: 0 0 0 4px rgba(245, 136, 42, 0.25), 0 0 18px rgba(245, 136, 42, 0.4);
       transform: scale(1.12);
+    }
+
+    .metronome-shell .beat-btn.active.state-soft {
+      border-color: rgba(91, 141, 232, 0.6);
+      background: rgba(91, 141, 232, 0.22);
+      color: var(--cream);
+      box-shadow: 0 0 0 3px rgba(91, 141, 232, 0.18), 0 0 12px rgba(91, 141, 232, 0.28);
+      transform: scale(1.08);
     }
 
     .metronome-shell .beat-btn.active.state-mute {
@@ -1306,6 +1326,7 @@ const graph = {
       <button class="btn btn-sig" data-beats="5" data-unit="4">5/4</button>
       <button class="btn btn-sig" data-beats="6" data-unit="4">6/4</button>
       <button class="btn btn-sig" data-beats="7" data-unit="4">7/4</button>
+      <button class="btn btn-sig" data-beats="5" data-unit="8">5/8</button>
       <button class="btn btn-sig" data-beats="6" data-unit="8">6/8</button>
       <button class="btn btn-sig" data-beats="7" data-unit="8">7/8</button>
       <button class="btn btn-sig" data-beats="9" data-unit="8">9/8</button>
@@ -1491,7 +1512,7 @@ const graph = {
       I designed this tool to have something for everyone. The slider lets you make big tempo adjustments, and you can fine-tune with the &minus;1/+1 and &minus;5/+5 buttons. You can also click on the BPM and type in any number from 1&ndash;500 if you have an exact tempo in mind. The subtitle shows the corresponding Italian tempo marking (frequently used in classical music).
     </p>
     <p>
-      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, or four. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually &mdash; accent it, leave it unaccented, or mute it entirely.
+      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, or four. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually across four levels: <strong>accent</strong> (loud), <strong>normal</strong>, <strong>soft</strong> (a ghost-note voice for inner pulses), or <strong>mute</strong>.
     </p>
     <p>
       These features are enough for most users, but advanced musicians may benefit from a few additional options. <a href="#gap-click"><strong>Gap click</strong></a> plays the metronome for a set number of measures, then mutes it for a set number of measures. <a href="#random-mute"><strong>Random mute</strong></a> unpredictably silences beats, keeping you on edge and making you more responsible for the time. <a href="#custom-form"><strong>Custom forms</strong></a> let you program a song structure with changing time signatures.
@@ -1516,7 +1537,7 @@ const graph = {
       A <strong>time signature</strong> (or meter) tells you two things: the top number tells you how many beats are in a measure, and the bottom number tells you what type of note gets the beat. The most common time signature in Western music is 4/4, which is why this tool defaults to it. The &ldquo;4&rdquo; on top means four beats per measure, and the &ldquo;4&rdquo; on the bottom means the quarter note gets the beat. You can find the time signature for any piece by looking at the first measure of the first page. The <a href="#time-signature">time signature selector</a> lets you pick from a buffet of common meters, or input an unusual one with the custom tool.
     </p>
     <p>
-      An <strong>accent</strong> makes a note louder than the notes around it. In the <a href="#beats">beats menu</a>, you can click on any note to accent it: orange circles are accented, blue circles are unaccented, and grey circles are muted. Beat 1 is accented by default to help you track the length of each measure.
+      An <strong>accent</strong> makes a note louder than the notes around it. In the <a href="#beats">beats menu</a>, you can click any note to cycle through four levels: orange circles are accented, filled blue circles are unaccented, hollow blue circles are softer (think ghost notes), and grey circles are muted. Beat 1 is accented by default to help you track the length of each measure. For 5/8, 6/8, 7/8, 9/8, and 12/8, the metronome pre-loads the standard clave or compound-meter pulse so you hear beat 1 as the strongest accent, the dotted-quarter or grouping pulse as a normal click, and the inner eighths as soft &mdash; see the <a href="#odd-meters">odd meters</a> section below.
     </p>
     <p>
       <strong>Subdivision</strong> is the splitting of a beat into equal parts. <strong>Duple</strong> subdivision splits the beat into two (eighth notes in 4/4), useful for locking in straight grooves. <strong>Triple</strong> subdivision splits it into three (eighth-note triplets), essential for swing, shuffle, and any triplet feel (think 6/8, 9/8, 12/8). <strong>Quadruple</strong> subdivision splits the beat into four (sixteenth notes), common in fast technical passages, funk, and hip-hop. The more granular the subdivision you can hear and understand, the tighter your time will be.
@@ -1622,7 +1643,7 @@ const graph = {
       Odd meters like 5/8, 7/8, and 9/8 don&rsquo;t divide into even halves the way 4/4 does, which is why they often feel hard to count. The trick most working musicians use is to learn the meter as a <strong>clave</strong> &mdash; a short repeating accent pattern that defines the feel of the meter. In jazz, <strong>3+2</strong> is common for 5/8 (one long, one short), and <strong>2+2+3</strong> is common for 7/8. Once you can hear the meter as a clave, the math fades away and the groove takes over.
     </p>
     <p>
-      Use the <a href="#beats">beats menu</a> to build these claves out. Accent the first note of each grouping, leave the others unaccented, and the meter will start to make musical sense instead of mathematical sense. You can also program your own claves for any odd meter you&rsquo;re working on.
+      Picking 5/8, 6/8, 7/8, 9/8, or 12/8 from the <a href="#time-signature">time-signature</a> presets pre-loads the canonical clave or compound-meter pulse for you: beat 1 is accented (loudest), the start of each subsequent grouping is normal, and the inner eighths are soft. The result is a click track where you simultaneously hear the downbeat, the dotted-quarter or grouping pulse, and the eighth-note feel underneath. You can still <a href="#beats">customize</a> any beat &mdash; click to cycle through accent, normal, soft, or mute &mdash; or program your own claves for meters that aren&rsquo;t pre-loaded.
     </p>
     <p>
       If a piece shifts between meters (a lot of contemporary classical, prog, and modern jazz does), use the <a href="#custom-form"><strong>custom forms menu</strong></a> to program the entire structure ahead of time so you can focus on playing instead of counting changes.
@@ -1644,7 +1665,7 @@ const graph = {
     beatsPerMeasure: 4,
     beatUnit: 4,
     subdivision: 1,
-    beats: [],        // 'normal' | 'accent' | 'mute'
+    beats: [],        // 'accent' | 'normal' | 'soft' | 'mute'
     isPlaying: false,
     currentBeat: -1,
     currentSub: 0,
@@ -1709,6 +1730,11 @@ const graph = {
       gain.gain.setValueAtTime(0, time);
       gain.gain.linearRampToValueAtTime(0.75, time + 0.001);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+    } else if (type === 'soft') {
+      osc.frequency.value = 600; filter.frequency.value = 600; filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.32, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
     } else {
       osc.frequency.value = 1600; filter.frequency.value = 1600; filter.Q.value = 1.2;
       gain.gain.setValueAtTime(0, time);
@@ -1719,32 +1745,23 @@ const graph = {
   }
 
   function scheduleClave(time, type) {
+    // 808-style clave: a single sine oscillator tuned high (the
+    // canonical clave sits at 2450 Hz, where it cuts through any
+    // mix) with a 0.5 ms exponential attack and a fast exponential
+    // decay. No noise body — that's what made the previous version
+    // sound wet.
     const ctx = getAudioCtx();
-    const freq  = type === 'accent' ? 1500 : type === 'beat' ? 1150 : 2000;
-    const vol   = type === 'accent' ? 1.1  : type === 'beat' ? 0.8  : 0.35;
-    const decay = type === 'sub'    ? 0.018 : type === 'accent' ? 0.055 : 0.04;
+    const freq  = type === 'accent' ? 2700  : type === 'sub' ? 3300  : type === 'soft' ? 1900 : 2450;
+    const vol   = type === 'accent' ? 0.85  : type === 'beat' ? 0.55 : type === 'soft' ? 0.25 : 0.2;
+    const decay = type === 'sub'    ? 0.025 : type === 'accent' ? 0.08 : type === 'soft' ? 0.04 : 0.06;
 
-    // Noise burst through bandpass — the "body" of the clave
-    const len = Math.ceil(ctx.sampleRate * (decay * 4));
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d   = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.22));
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 5;
-    const ng = ctx.createGain(); ng.gain.value = vol * 0.55;
-    noise.connect(bp); bp.connect(ng); ng.connect(ctx.destination);
-    noise.start(time);
-
-    // Tonal transient — the "click" of the clave
     const osc = ctx.createOscillator();
-    osc.frequency.setValueAtTime(freq * 1.3, time);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.75, time + decay * 0.4);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
     const og = ctx.createGain();
-    og.gain.setValueAtTime(0, time);
-    og.gain.linearRampToValueAtTime(vol * 0.9, time + 0.0008);
-    og.gain.exponentialRampToValueAtTime(0.001, time + decay);
+    og.gain.setValueAtTime(0.00001, time);
+    og.gain.exponentialRampToValueAtTime(vol, time + 0.0005);
+    og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
     osc.connect(og); og.connect(ctx.destination);
     osc.start(time); osc.stop(time + decay + 0.01);
   }
@@ -1752,9 +1769,9 @@ const graph = {
   function getAdvConfig() {
     if (adv.formEnabled && adv.form.length > 0) {
       const e = adv.form[advFormIdx];
-      return { beatsPerMeasure: e.beats, beats: e.states };
+      return { beatsPerMeasure: e.beats, beats: e.states, beatUnit: e.unit };
     }
-    return { beatsPerMeasure: state.beatsPerMeasure, beats: state.beats };
+    return { beatsPerMeasure: state.beatsPerMeasure, beats: state.beats, beatUnit: state.beatUnit };
   }
 
   function scheduler() {
@@ -1769,7 +1786,7 @@ const graph = {
       let clickType;
       if (sub === 0) {
         const s = cfg.beats[beat] || 'normal';
-        clickType = s === 'mute' ? 'mute' : s === 'accent' ? 'accent' : 'beat';
+        clickType = s === 'mute' ? 'mute' : s === 'accent' ? 'accent' : s === 'soft' ? 'soft' : 'beat';
       } else {
         clickType = 'sub';
       }
@@ -1788,7 +1805,12 @@ const graph = {
         gapCount: advGapCount,
       });
 
-      nextNoteTime += (60.0 / state.bpm) / state.subdivision;
+      // BPM is interpreted as quarter notes per minute (the standard
+      // notation convention: ♩ = bpm). The actual tick rate scales by
+      // (4 / beatUnit), so an x/8 meter ticks twice as fast as x/4 at
+      // the same BPM, x/16 ticks four times as fast, x/2 ticks half as
+      // fast, etc.
+      nextNoteTime += (60.0 / state.bpm) * (4 / cfg.beatUnit) / state.subdivision;
 
       schedulerSub++;
       if (schedulerSub >= state.subdivision) {
@@ -1909,7 +1931,7 @@ const graph = {
     flash2.className = 'beat-flash';
 
     if (sub === 0 && clickType !== 'mute') {
-      const cls = clickType === 'accent' ? 'on-accent' : 'on-beat';
+      const cls = clickType === 'accent' ? 'on-accent' : clickType === 'soft' ? 'on-soft' : 'on-beat';
       flash1.classList.add(cls);
       flash2.classList.add(cls);
       setTimeout(() => { flash1.className = 'beat-flash'; flash2.className = 'beat-flash'; }, 120);
@@ -2015,17 +2037,41 @@ const graph = {
     }
   }
 
-  function setTimeSig(beats, unit) {
+  // Compound and odd-meter defaults: the dotted-quarter pulse in 6/8, 9/8,
+  // and 12/8, and the standard claves in 5/8 (3+2) and 7/8 (2+2+3). Beat 1
+  // is the strongest accent; group starts after that are normal; the rest
+  // are soft, so the listener hears beat 1, the pulse, and the eighth-note
+  // feel layered together. Returns null for meters that should fall back
+  // to the simple "accent on 1, normal elsewhere" pattern.
+  function defaultBeatsForSig(beats, unit) {
+    if (unit === 8) {
+      if (beats === 5)  return ['accent','soft','soft','normal','soft'];
+      if (beats === 6)  return ['accent','soft','soft','normal','soft','soft'];
+      if (beats === 7)  return ['accent','soft','normal','soft','normal','soft','soft'];
+      if (beats === 9)  return ['accent','soft','soft','normal','soft','soft','normal','soft','soft'];
+      if (beats === 12) return ['accent','soft','soft','normal','soft','soft','normal','soft','soft','normal','soft','soft'];
+    }
+    return null;
+  }
+
+  function setTimeSig(beats, unit, applyDefault = false) {
     beats = Math.max(1, Math.min(32, Math.round(beats)));
     const prev = state.beats;
+    const sameSig = beats === state.beatsPerMeasure && unit === state.beatUnit;
     state.beatsPerMeasure = beats;
     state.beatUnit = unit;
 
-    const newBeats = [];
-    for (let i = 0; i < beats; i++) {
-      newBeats.push(i < prev.length ? prev[i] : 'normal');
+    const preset = applyDefault && !sameSig ? defaultBeatsForSig(beats, unit) : null;
+    let newBeats;
+    if (preset) {
+      newBeats = preset.slice();
+    } else {
+      newBeats = [];
+      for (let i = 0; i < beats; i++) {
+        newBeats.push(i < prev.length ? prev[i] : 'normal');
+      }
+      if (prev.length === 0) newBeats[0] = 'accent';
     }
-    if (prev.length === 0) newBeats[0] = 'accent';
     state.beats = newBeats;
 
     if (state.currentBeat >= beats) state.currentBeat = -1;
@@ -2043,7 +2089,7 @@ const graph = {
   }
 
   document.querySelectorAll('#time-sig-presets .btn-sig').forEach(btn => {
-    btn.addEventListener('click', () => setTimeSig(+btn.dataset.beats, +btn.dataset.unit));
+    btn.addEventListener('click', () => setTimeSig(+btn.dataset.beats, +btn.dataset.unit, true));
   });
 
   document.getElementById('beats-input').addEventListener('change', e => {
@@ -2067,8 +2113,8 @@ const graph = {
   });
 
   // ─── Beat Grid ────────────────────────────────────────────────────────────────
-  const STATE_CYCLE = { normal: 'accent', accent: 'mute', mute: 'normal' };
-  const STATE_ICONS = { normal: '●', accent: '▲', mute: '✕' };
+  const STATE_CYCLE = { normal: 'accent', accent: 'soft', soft: 'mute', mute: 'normal' };
+  const STATE_ICONS = { normal: '●', accent: '▲', soft: '○', mute: '✕' };
 
   function renderBeatGrid() {
     const grid = document.getElementById('beat-grid');
