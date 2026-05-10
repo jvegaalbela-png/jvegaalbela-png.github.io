@@ -12,6 +12,7 @@ import {
   CATEGORY_LEAD_IN,
   CATEGORY_EDUCATIONAL_LEVEL,
   slugFromFile,
+  type PdfItem,
 } from '../../../data/pdf-meta';
 import pdfContent from '../../../data/pdf-content.json';
 
@@ -97,6 +98,20 @@ const renderInline = (s: string) =>
 const aboutFragment = ABOUT_BY_FILE[file.split('/').pop()!];
 const educationalLevel = CATEGORY_EDUCATIONAL_LEVEL[categoryId];
 const leadIn = CATEGORY_LEAD_IN[categoryId] ?? category.title;
+
+// Pick 2 sibling PDFs from the same category for the "Try this next"
+// cards. Wraparound from the current item so every page surfaces a
+// different pair. Falls back gracefully when the category has fewer
+// than 3 items total.
+const siblingItems = (() => {
+  const list = category.items;
+  const idx = list.findIndex((i: PdfItem) => slugFromFile(i.file) === slug);
+  if (idx < 0 || list.length < 2) return [] as PdfItem[];
+  return [
+    list[(idx + 1) % list.length],
+    list[(idx + 2) % list.length],
+  ].filter((x, i, arr) => slugFromFile(x.file) !== slug && arr.findIndex((y) => slugFromFile(y.file) === slugFromFile(x.file)) === i);
+})();
 
 const metaTitle = `${item.title} — ${category.title} PDF | Jacobo Vega-Albela`;
 const metaDescription = item.description
@@ -272,12 +287,14 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
               <span class="pdf-detail-related-card-desc">Single-surface exercises, drumset studies, and transcriptions.</span>
             </a>
           </li>
-          <li>
-            <a class="pdf-detail-related-card" href={`/pdfs/#${categoryId}`}>
-              <span class="pdf-detail-related-card-title">More {category.title.toLowerCase()}<span class="pdf-detail-related-card-arrow" aria-hidden="true">→</span></span>
-              <span class="pdf-detail-related-card-desc">{category.blurb}</span>
-            </a>
-          </li>
+          {siblingItems.map((sib) => (
+            <li>
+              <a class="pdf-detail-related-card" href={`/pdfs/${categoryId}/${slugFromFile(sib.file)}/`}>
+                <span class="pdf-detail-related-card-title">{sib.title}<span class="pdf-detail-related-card-arrow" aria-hidden="true">→</span></span>
+                <span class="pdf-detail-related-card-desc">{sib.description || `${leadIn} from the ${category.title.toLowerCase()} library.`}</span>
+              </a>
+            </li>
+          ))}
           <li>
             <a class="pdf-detail-related-card" href="/metronome/">
               <span class="pdf-detail-related-card-title">Use the practice metronome<span class="pdf-detail-related-card-arrow" aria-hidden="true">→</span></span>
