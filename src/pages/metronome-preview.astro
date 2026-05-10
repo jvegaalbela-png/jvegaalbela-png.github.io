@@ -1749,28 +1749,31 @@ const graph = {
     const ctx = getAudioCtx();
     const freq  = type === 'accent' ? 1500 : type === 'sub' ? 2000 : type === 'soft' ? 870 : 1150;
     const vol   = type === 'accent' ? 1.1  : type === 'beat' ? 0.8  : type === 'soft' ? 0.38 : 0.35;
-    const decay = type === 'sub'    ? 0.018 : type === 'accent' ? 0.055 : type === 'soft' ? 0.03 : 0.04;
+    const decay = type === 'sub'    ? 0.012 : type === 'accent' ? 0.035 : type === 'soft' ? 0.022 : 0.025;
 
-    // Noise burst through bandpass — the "body" of the clave
-    const len = Math.ceil(ctx.sampleRate * (decay * 4));
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d   = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.22));
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 5;
-    const ng = ctx.createGain(); ng.gain.value = vol * 0.55;
-    noise.connect(bp); bp.connect(ng); ng.connect(ctx.destination);
-    noise.start(time);
+    // Hi-frequency noise transient — the percussive "tk" attack.
+    // Short (~4ms), high-pass filtered above 2× the fundamental so it
+    // reads as a click rather than a body.
+    const clickLen = Math.ceil(ctx.sampleRate * 0.004);
+    const clickBuf = ctx.createBuffer(1, clickLen, ctx.sampleRate);
+    const cd = clickBuf.getChannelData(0);
+    for (let i = 0; i < clickLen; i++) cd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (clickLen * 0.18));
+    const clickSrc = ctx.createBufferSource();
+    clickSrc.buffer = clickBuf;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = freq * 2; hp.Q.value = 0.7;
+    const cg = ctx.createGain(); cg.gain.value = vol * 0.55;
+    clickSrc.connect(hp); hp.connect(cg); cg.connect(ctx.destination);
+    clickSrc.start(time);
 
-    // Tonal transient — the "click" of the clave
+    // Tonal "tock" — short pitched body. Sharp 0.5ms attack, tight
+    // frequency sweep, fast exponential decay.
     const osc = ctx.createOscillator();
-    osc.frequency.setValueAtTime(freq * 1.3, time);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.75, time + decay * 0.4);
+    osc.frequency.setValueAtTime(freq * 1.4, time);
+    osc.frequency.exponentialRampToValueAtTime(freq, time + decay * 0.25);
     const og = ctx.createGain();
     og.gain.setValueAtTime(0, time);
-    og.gain.linearRampToValueAtTime(vol * 0.9, time + 0.0008);
+    og.gain.linearRampToValueAtTime(vol * 1.05, time + 0.0005);
     og.gain.exponentialRampToValueAtTime(0.001, time + decay);
     osc.connect(og); og.connect(ctx.destination);
     osc.start(time); osc.stop(time + decay + 0.01);
