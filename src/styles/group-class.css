@@ -288,7 +288,7 @@ main > section:not(.hero){
   .tcard blockquote,.pcard p,.tile p,.about-text p,.bg-list li,.faq-list .faq-body,.mid-cta p{color:#d6d2c8}
   .mid-cta strong{color:var(--blue-lt)}
   .pcard .price{color:var(--ink)}
-  .pcard.featured .pcard-tag,.tile-tag,.bg-list li strong{color:var(--blue-lt)}
+  .pcard.featured .pcard-tag,.tile-tag,.bg-list li strong,.tile p a,.faq-list .faq-body a{color:var(--blue-lt)}
   .tcard{border-left-color:var(--blue-lt)}
   .tcard:nth-child(2){border-left-color:var(--orange)}
   .tcard:nth-child(3){border-left-color:var(--lime)}

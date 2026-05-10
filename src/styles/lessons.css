@@ -424,7 +424,7 @@ footer{
 
   /* cobalt accents lose contrast on near-black; promote to blue-lt
      (footer + cta-band + hero are always on navy, so they're fine) */
-  .pcard.featured .pcard-tag,.bg-list li strong,.epk-link a{color:var(--blue-lt)}
+  .pcard.featured .pcard-tag,.bg-list li strong,.epk-link a,.faq-list .faq-body a{color:var(--blue-lt)}
   .epk-link a{border-bottom-color:rgba(91,141,232,.35)}
   .epk-link a:hover{color:#fff;border-bottom-color:var(--blue-lt)}
   .tcard{border-left-color:var(--blue-lt)}
