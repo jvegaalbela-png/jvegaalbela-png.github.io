@@ -1746,35 +1746,23 @@ const graph = {
   }
 
   function scheduleClave(time, type) {
+    // 808-style clave: a single sine oscillator tuned high (the
+    // canonical clave sits at 2450 Hz, where it cuts through any
+    // mix) with a 0.5 ms exponential attack and a fast exponential
+    // decay. No noise body — that's what made the previous version
+    // sound wet.
     const ctx = getAudioCtx();
-    const freq  = type === 'accent' ? 1500 : type === 'sub' ? 2000 : type === 'soft' ? 870 : 1150;
-    const vol   = type === 'accent' ? 1.1  : type === 'beat' ? 0.8  : type === 'soft' ? 0.38 : 0.35;
-    const decay = type === 'sub'    ? 0.012 : type === 'accent' ? 0.035 : type === 'soft' ? 0.022 : 0.025;
+    const freq  = type === 'accent' ? 2700  : type === 'sub' ? 3300  : type === 'soft' ? 1900 : 2450;
+    const vol   = type === 'accent' ? 0.85  : type === 'beat' ? 0.55 : type === 'soft' ? 0.25 : 0.2;
+    const decay = type === 'sub'    ? 0.025 : type === 'accent' ? 0.08 : type === 'soft' ? 0.04 : 0.06;
 
-    // Hi-frequency noise transient — the percussive "tk" attack.
-    // Short (~4ms), high-pass filtered above 2× the fundamental so it
-    // reads as a click rather than a body.
-    const clickLen = Math.ceil(ctx.sampleRate * 0.004);
-    const clickBuf = ctx.createBuffer(1, clickLen, ctx.sampleRate);
-    const cd = clickBuf.getChannelData(0);
-    for (let i = 0; i < clickLen; i++) cd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (clickLen * 0.18));
-    const clickSrc = ctx.createBufferSource();
-    clickSrc.buffer = clickBuf;
-    const hp = ctx.createBiquadFilter();
-    hp.type = 'highpass'; hp.frequency.value = freq * 2; hp.Q.value = 0.7;
-    const cg = ctx.createGain(); cg.gain.value = vol * 0.55;
-    clickSrc.connect(hp); hp.connect(cg); cg.connect(ctx.destination);
-    clickSrc.start(time);
-
-    // Tonal "tock" — short pitched body. Sharp 0.5ms attack, tight
-    // frequency sweep, fast exponential decay.
     const osc = ctx.createOscillator();
-    osc.frequency.setValueAtTime(freq * 1.4, time);
-    osc.frequency.exponentialRampToValueAtTime(freq, time + decay * 0.25);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
     const og = ctx.createGain();
-    og.gain.setValueAtTime(0, time);
-    og.gain.linearRampToValueAtTime(vol * 1.05, time + 0.0005);
-    og.gain.exponentialRampToValueAtTime(0.001, time + decay);
+    og.gain.setValueAtTime(0.00001, time);
+    og.gain.exponentialRampToValueAtTime(vol, time + 0.0005);
+    og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
     osc.connect(og); og.connect(ctx.destination);
     osc.start(time); osc.stop(time + decay + 0.01);
   }
