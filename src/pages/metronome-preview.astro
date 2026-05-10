@@ -1732,7 +1732,7 @@ const graph = {
       gain.gain.linearRampToValueAtTime(0.75, time + 0.001);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
     } else if (type === 'soft') {
-      osc.frequency.value = 800; filter.frequency.value = 800; filter.Q.value = 0.5;
+      osc.frequency.value = 600; filter.frequency.value = 600; filter.Q.value = 0.5;
       gain.gain.setValueAtTime(0, time);
       gain.gain.linearRampToValueAtTime(0.32, time + 0.001);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
@@ -1747,7 +1747,7 @@ const graph = {
 
   function scheduleClave(time, type) {
     const ctx = getAudioCtx();
-    const freq  = type === 'accent' ? 1500 : type === 'sub' ? 2000 : 1150;
+    const freq  = type === 'accent' ? 1500 : type === 'sub' ? 2000 : type === 'soft' ? 870 : 1150;
     const vol   = type === 'accent' ? 1.1  : type === 'beat' ? 0.8  : type === 'soft' ? 0.38 : 0.35;
     const decay = type === 'sub'    ? 0.018 : type === 'accent' ? 0.055 : type === 'soft' ? 0.03 : 0.04;
 
