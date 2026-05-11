@@ -62,7 +62,7 @@ const faqs = [
   },
   {
     q: 'How does this metronome handle compound meters like 6/8, 9/8, or 12/8?',
-    a: 'Picking 5/8, 6/8, 7/8, 9/8, or 12/8 from the time-signature presets pre-loads the canonical clave or compound-meter pulse for you: beat 1 is the strongest accent, the start of each grouping is a normal click, and the inner eighths are soft ghost notes. You hear the downbeat, the dotted-quarter (or clave) pulse, and the eighth-note feel layered together. Click any beat to override the default.',
+    a: 'Picking 5/4, 5/8, 6/8, 7/4, 7/8, 9/8, or 12/8 from the time-signature presets pre-loads the common clave or compound-meter pulse for you: beat 1 is the strongest accent, the start of each grouping is a normal click, and the inner eighths are soft ghost notes. You hear the downbeat, the dotted-quarter (or clave) pulse, and the eighth-note feel layered together. Click any beat to override the default.',
   },
   {
     q: 'Why does the metronome tick faster in 6/8 than in 6/4 at the same BPM?',
@@ -1651,7 +1651,7 @@ const graph = {
       Odd meters like 5/8, 7/8, and 9/8 don&rsquo;t divide into even halves the way 4/4 does, which is why they often feel hard to count. The trick most working musicians use is to learn the meter as a <strong>clave</strong> &mdash; a short repeating accent pattern that defines the feel of the meter. In jazz, <strong>3+2</strong> is common for 5/8 (one long, one short), and <strong>2+2+3</strong> is common for 7/8. Once you can hear the meter as a clave, the math fades away and the groove takes over.
     </p>
     <p>
-      Picking 5/8, 6/8, 7/8, 9/8, or 12/8 from the <a href="#time-signature">time-signature</a> presets pre-loads the canonical clave or compound-meter pulse for you: beat 1 is accented (loudest), the start of each subsequent grouping is normal, and the inner eighths are soft. The result is a click track where you simultaneously hear the downbeat, the dotted-quarter or grouping pulse, and the eighth-note feel underneath. You can still <a href="#beats">customize</a> any beat &mdash; click to cycle through accent, normal, soft, or mute &mdash; or program your own claves for meters that aren&rsquo;t pre-loaded.
+      Picking 5/4, 5/8, 6/8, 7/4, 7/8, 9/8, or 12/8 from the <a href="#time-signature">time-signature</a> presets pre-loads the common clave or compound-meter pulse for you: beat 1 is accented (loudest), the start of each subsequent grouping is normal, and the inner beats are soft. The result is a click track where you simultaneously hear the downbeat, the grouping pulse, and the inner-beat feel underneath. You can still <a href="#beats">customize</a> any beat &mdash; click to cycle through accent, normal, soft, or mute &mdash; or program your own claves for meters that aren&rsquo;t pre-loaded.
     </p>
     <p>
       If a piece shifts between meters (a lot of contemporary classical, prog, and modern jazz does), use the <a href="#custom-form"><strong>custom forms menu</strong></a> to program the entire structure ahead of time so you can focus on playing instead of counting changes.
@@ -1754,7 +1754,7 @@ const graph = {
 
   function scheduleClave(time, type) {
     // 808-style clave: a single sine oscillator tuned high (the
-    // canonical clave sits at 2450 Hz, where it cuts through any
+    // common 808 clave sits at 2450 Hz, where it cuts through any
     // mix) with a 0.5 ms exponential attack and a fast exponential
     // decay. No noise body — that's what made the previous version
     // sound wet.
@@ -2045,13 +2045,18 @@ const graph = {
     }
   }
 
-  // Compound and odd-meter defaults: the dotted-quarter pulse in 6/8, 9/8,
-  // and 12/8, and the standard claves in 5/8 (3+2) and 7/8 (2+2+3). Beat 1
-  // is the strongest accent; group starts after that are normal; the rest
-  // are soft, so the listener hears beat 1, the pulse, and the eighth-note
-  // feel layered together. Returns null for meters that should fall back
-  // to the simple "accent on 1, normal elsewhere" pattern.
+  // Compound and odd-meter defaults: the dotted-quarter pulse in 6/8,
+  // 9/8, and 12/8, and the common claves in 5/4 (3+2), 5/8 (3+2),
+  // 7/4 (4+3), and 7/8 (2+2+3). Beat 1 is the strongest accent; group
+  // starts after that are normal; the rest are soft, so the listener
+  // hears beat 1, the pulse, and the inner-beat feel layered together.
+  // Returns null for meters that should fall back to the simple "accent
+  // on 1, normal elsewhere" pattern.
   function defaultBeatsForSig(beats, unit) {
+    if (unit === 4) {
+      if (beats === 5) return ['accent','soft','soft','normal','soft'];                // 3+2
+      if (beats === 7) return ['accent','soft','soft','soft','normal','soft','soft'];  // 4+3
+    }
     if (unit === 8) {
       if (beats === 5)  return ['accent','soft','soft','normal','soft'];
       if (beats === 6)  return ['accent','soft','soft','normal','soft','soft'];
@@ -2069,11 +2074,22 @@ const graph = {
     state.beatsPerMeasure = beats;
     state.beatUnit = unit;
 
-    const preset = applyDefault && !sameSig ? defaultBeatsForSig(beats, unit) : null;
     let newBeats;
-    if (preset) {
-      newBeats = preset.slice();
+    if (applyDefault && !sameSig) {
+      // Preset-button click on a new meter: apply the common default
+      // for known clave/compound meters, or a clean [accent, normal, ...]
+      // for everything else. Wipe customizations from the previous meter
+      // so 6/8 → 7/4 doesn't leave 6/8's soft beats hanging on the front.
+      const preset = defaultBeatsForSig(beats, unit);
+      if (preset) {
+        newBeats = preset.slice();
+      } else {
+        newBeats = Array(beats).fill('normal');
+        newBeats[0] = 'accent';
+      }
     } else {
+      // Custom-input edit or re-click on the active preset: preserve
+      // the current pattern, padding any new slots with normal.
       newBeats = [];
       for (let i = 0; i < beats; i++) {
         newBeats.push(i < prev.length ? prev[i] : 'normal');
