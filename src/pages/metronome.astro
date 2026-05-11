@@ -60,6 +60,14 @@ const faqs = [
     q: 'Why does the metronome make me feel like a robot?',
     a: "You're probably just not used to playing with a click yet, and you're spending a lot of brainpower on the task. As you learn to play proactively and develop a stronger internal clock, you'll get to a point where you barely notice the metronome is there. The fact that it currently takes mental effort to lock in is actually a good sign — it means you're building the neural pathways that will make good time automatic.",
   },
+  {
+    q: 'How does this metronome handle compound meters like 6/8, 9/8, or 12/8?',
+    a: 'Picking 5/8, 6/8, 7/8, 9/8, or 12/8 from the time-signature presets pre-loads the canonical clave or compound-meter pulse for you: beat 1 is the strongest accent, the start of each grouping is a normal click, and the inner eighths are soft ghost notes. You hear the downbeat, the dotted-quarter (or clave) pulse, and the eighth-note feel layered together. Click any beat to override the default.',
+  },
+  {
+    q: 'Why does the metronome tick faster in 6/8 than in 6/4 at the same BPM?',
+    a: 'BPM here means quarter notes per minute, matching how tempo markings work on a score (♩ = bpm). An x/8 meter has eighth-note beats, so at the same BPM it ticks twice as fast as an x/4 meter. So 6/8 at 120 BPM gives you 240 eighth-note ticks per minute, while 6/4 at 120 BPM gives you 120 quarter-note ticks per minute.',
+  },
 ];
 
 const graph = {
@@ -93,7 +101,7 @@ const graph = {
         'Electronic and clave sound options',
       ],
       keywords:
-        'metronome, online metronome, free metronome, drummer metronome, gap click, polyrhythm, odd meter, custom time signature, practice tool',
+        'metronome, online metronome, free metronome, drummer metronome, gap click, polyrhythm, odd meter, compound meter, 6/8 metronome, 9/8 metronome, 12/8 metronome, 5/8 metronome, 7/8 metronome, clave, ghost note, custom time signature, practice tool',
     },
     {
       '@type': 'HowTo',
@@ -139,7 +147,7 @@ const graph = {
 
 <Layout
   title="Free Online Metronome with Subdivisions, Gap Click & Custom Forms — JVA Music"
-  description="Free online metronome with subdivisions and odd time signatures (5/4, 7/8, 12/8) — plus a complete guide to internal clock training and metronome practice. Built by a working drummer."
+  description="Free online metronome with subdivisions, accent/soft/ghost/mute dynamics, and pre-loaded clave defaults for 5/8, 6/8, 7/8, 9/8, 12/8 — plus a full guide to internal-clock practice. Built by a working drummer."
   themeColor="#0d0d1a"
   bodyClass="metronome-page"
 >
