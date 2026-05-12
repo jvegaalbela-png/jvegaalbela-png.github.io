@@ -6,7 +6,7 @@ import LessonForm from '../components/LessonForm.astro';
 import JsonLd from '../components/JsonLd.astro';
 import YouTubeFacade from '../components/YouTubeFacade.astro';
 import BandcampFacade from '../components/BandcampFacade.astro';
-import heroImg from '../assets/DSC04813.webp';
+import heroImg from '../assets/at-drums-serious.webp';
 import albumArt from '../assets/album-art.jpg';
 import {
   SITE_URL,
@@ -237,9 +237,9 @@ const graph = {
   image={{
     url: heroSocial.src,
     width: 1200,
-    height: 1800,
+    height: 1790,
     type: 'image/webp',
-    alt: 'Black-and-white portrait of Jacobo Vega-Albela holding a cymbal overhead',
+    alt: 'Jacobo Vega-Albela playing drums on a concert hall stage',
   }}
 >
   <JsonLd slot="head" data={graph} />
@@ -277,13 +277,13 @@ const graph = {
     <figure class="hero-img">
       <Image
         src={heroImg}
-        alt="Jacobo Vega-Albela holding a cymbal overhead — black-and-white portrait"
-        widths={[400, 600, 800, 1000, 1200, 1600]}
-        sizes="(max-width: 780px) 100vw, 45vw"
+        alt="Jacobo Vega-Albela playing drums on a concert hall stage"
+        widths={[400, 600, 800, 1000, 1200]}
+        sizes="(max-width: 780px) 100vw, 60vw"
         loading="eager"
         fetchpriority="high"
         decoding="auto"
-        quality={55}
+        quality={78}
       />
     </figure>
   </div>
