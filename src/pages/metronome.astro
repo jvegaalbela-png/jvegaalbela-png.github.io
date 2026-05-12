@@ -1714,6 +1714,55 @@ const graph = {
     return audioCtx;
   }
 
+  // iOS silent-switch bypass.
+  //
+  // Web Audio on iOS Safari outputs through the "ringer" audio channel,
+  // which the physical silent switch mutes — so the click goes silent
+  // even though media volume is up. HTML5 <audio> elements use the
+  // "media" channel, which the silent switch doesn't affect. Playing
+  // a tiny silent <audio> loop in parallel forces iOS to route the
+  // entire page (Web Audio included) through the media channel, so
+  // the metronome plays at media volume regardless of the switch.
+  //
+  // Scoped to iOS — Android Web Audio already uses the media channel.
+  // The audio.play() call has to originate from a user gesture, which
+  // is why this is called from startMetronome (the play button's click
+  // handler) rather than from getAudioCtx (called by the scheduler).
+  let iosSilentBypassEl = null;
+  function ensureIOSSilentBypass() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!isIOS) return;
+
+    if (!iosSilentBypassEl) {
+      // Construct a tiny silent WAV blob inline — 0.5 s of 16-bit mono
+      // silence at 8 kHz. No external file needed, ~8 KB.
+      const sampleRate = 8000;
+      const numFrames = sampleRate / 2;
+      const dataSize = numFrames * 2;
+      const buf = new ArrayBuffer(44 + dataSize);
+      const dv = new DataView(buf);
+      const writeStr = (off, s) => {
+        for (let i = 0; i < s.length; i++) dv.setUint8(off + i, s.charCodeAt(i));
+      };
+      writeStr(0, 'RIFF');                    dv.setUint32(4, 36 + dataSize, true);
+      writeStr(8, 'WAVE');                    writeStr(12, 'fmt ');
+      dv.setUint32(16, 16, true);             dv.setUint16(20, 1, true);
+      dv.setUint16(22, 1, true);              dv.setUint32(24, sampleRate, true);
+      dv.setUint32(28, sampleRate * 2, true); dv.setUint16(32, 2, true);
+      dv.setUint16(34, 16, true);             writeStr(36, 'data');
+      dv.setUint32(40, dataSize, true);
+      // Data is already zeros — that's the silence.
+
+      iosSilentBypassEl = document.createElement('audio');
+      iosSilentBypassEl.loop = true;
+      iosSilentBypassEl.preload = 'auto';
+      iosSilentBypassEl.playsInline = true;
+      iosSilentBypassEl.src = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    }
+    iosSilentBypassEl.play().catch(() => {});
+  }
+
   // ─── Sound Library ───────────────────────────────────────────────────────────
   function scheduleClick(time, type) {
     if (type === 'mute') return;
@@ -1871,6 +1920,7 @@ const graph = {
 
   function startMetronome() {
     const ctx = getAudioCtx();
+    ensureIOSSilentBypass();
     state.isPlaying = true;
     schedulerBeat = 0;
     schedulerSub  = 0;
