@@ -248,6 +248,63 @@ const graph = {
       margin-bottom: 1rem;
     }
 
+    .metronome-shell .tempo-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .metronome-shell .tempo-header .section-label { margin-bottom: 1rem; }
+
+    .metronome-shell .copy-link-btn {
+      position: relative;
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: rgba(245, 243, 238, 0.7);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      flex-shrink: 0;
+      margin-top: -2px;
+    }
+    .metronome-shell .copy-link-btn:hover {
+      background: rgba(91, 141, 232, 0.12);
+      border-color: rgba(91, 141, 232, 0.55);
+      color: var(--cream);
+    }
+    .metronome-shell .copy-link-btn:focus-visible {
+      outline: 2px solid var(--blue-lt);
+      outline-offset: 2px;
+    }
+    .metronome-shell .copy-link-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    .metronome-shell .copy-link-toast {
+      position: absolute;
+      top: 50%;
+      right: calc(100% + 8px);
+      transform: translateY(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      color: var(--cream);
+      background: rgba(15, 25, 45, 0.95);
+      border: 1px solid rgba(91, 141, 232, 0.45);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .metronome-shell .copy-link-btn.copied .copy-link-toast { opacity: 1; }
+
     .metronome-shell .btn {
       background: rgba(91, 141, 232, 0.12);
       border: 1px solid rgba(91, 141, 232, 0.34);
@@ -1294,7 +1351,13 @@ const graph = {
 
   <!-- BPM -->
   <div class="card card-tempo" id="tempo">
-    <div class="section-label">Tempo</div>
+    <div class="tempo-header">
+      <div class="section-label">Tempo</div>
+      <button class="copy-link-btn" id="copy-link-btn" type="button" aria-label="Copy a link to this metronome setup">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M6.5 9.5 9.5 6.5 M6 4.5l1-1a3 3 0 0 1 4.243 4.243l-1 1 M10 11.5l-1 1a3 3 0 0 1-4.243-4.243l1-1"/></svg>
+        <span class="copy-link-toast" id="copy-link-toast" aria-live="polite">Link copied</span>
+      </button>
+    </div>
     <div class="bpm-row">
       <div class="bpm-step-group">
         <button class="btn btn-step" id="bpm-minus1">−1</button>
@@ -2043,6 +2106,7 @@ const graph = {
     document.getElementById('bpm-display').textContent = state.bpm;
     document.getElementById('bpm-slider').value = state.bpm;
     document.getElementById('tempo-name').textContent = getTempoName(state.bpm);
+    persistState();
   }
 
   document.getElementById('bpm-slider').addEventListener('input', e => setBPM(+e.target.value));
@@ -2210,6 +2274,7 @@ const graph = {
 
     renderBeatGrid();
     renderSubDots();
+    persistState();
   }
 
   document.querySelectorAll('#time-sig-presets .btn-sig').forEach(btn => {
@@ -2230,6 +2295,7 @@ const graph = {
       btn.classList.toggle('active', +btn.dataset.sub === sub);
     });
     renderSubDots();
+    persistState();
   }
 
   document.querySelectorAll('.btn-sub').forEach(btn => {
@@ -2255,6 +2321,7 @@ const graph = {
         state.beats[i] = STATE_CYCLE[state.beats[i]];
         btn.className = 'beat-btn state-' + state.beats[i] + (btn.classList.contains('active') ? ' active' : '');
         btn.querySelector('.beat-icon').textContent = STATE_ICONS[state.beats[i]];
+        persistState();
       });
 
       grid.appendChild(btn);
@@ -2519,6 +2586,7 @@ const graph = {
       soundMode = btn.dataset.sound;
       document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      persistState();
     });
   });
 
@@ -2532,6 +2600,7 @@ const graph = {
     if (formHistory.length > 80) { formHistory.shift(); }
     formHistoryIdx = formHistory.length - 1;
     refreshUndoRedoBtns();
+    persistState();
   }
 
   function refreshUndoRedoBtns() {
@@ -2546,6 +2615,7 @@ const graph = {
     formHistoryIdx--;
     adv.form = JSON.parse(JSON.stringify(formHistory[formHistoryIdx]));
     renderFormList(); updateFormCounter(advFormIdx); refreshUndoRedoBtns();
+    persistState();
   });
 
   document.getElementById('form-redo').addEventListener('click', () => {
@@ -2553,6 +2623,7 @@ const graph = {
     formHistoryIdx++;
     adv.form = JSON.parse(JSON.stringify(formHistory[formHistoryIdx]));
     renderFormList(); updateFormCounter(advFormIdx); refreshUndoRedoBtns();
+    persistState();
   });
 
   // ─── Form Save / Load ─────────────────────────────────────────────────────────
@@ -2622,26 +2693,31 @@ const graph = {
     adv.gapEnabled = e.target.checked;
     document.getElementById('gap-controls').classList.toggle('disabled', !adv.gapEnabled);
     if (!adv.gapEnabled) updateGapVisual('idle', 0);
+    persistState();
   });
 
   document.getElementById('gap-play-slider').addEventListener('input', e => {
     adv.gapPlay = +e.target.value;
     document.getElementById('gap-play-val').textContent = adv.gapPlay;
+    persistState();
   });
 
   document.getElementById('gap-silent-slider').addEventListener('input', e => {
     adv.gapSilent = +e.target.value;
     document.getElementById('gap-silent-val').textContent = adv.gapSilent;
+    persistState();
   });
 
   document.getElementById('random-mute-toggle').addEventListener('change', e => {
     adv.randomMuteEnabled = e.target.checked;
     document.getElementById('random-mute-controls').classList.toggle('disabled', !adv.randomMuteEnabled);
+    persistState();
   });
 
   document.getElementById('random-mute-slider').addEventListener('input', e => {
     adv.randomMutePct = +e.target.value;
     document.getElementById('random-mute-val').textContent = adv.randomMutePct;
+    persistState();
   });
 
   document.getElementById('form-toggle').addEventListener('change', e => {
@@ -2651,16 +2727,203 @@ const graph = {
     if (adv.formEnabled && adv.form.length > 0) renderBeatGridForEntry(adv.form[0]);
     else renderBeatGrid();
     updateFormCounter(advFormIdx);
+    persistState();
   });
 
   document.getElementById('add-measure-btn').addEventListener('click', addFormMeasure);
+
+  // ─── Persistence ──────────────────────────────────────────────────────────────
+  //
+  // Two layers, layered on top of each other:
+  //   - localStorage: silent auto-save of EVERYTHING (including custom forms).
+  //     Survives a tab close. No user action required.
+  //   - URL query string: encodes the basic state — BPM, time signature, beat
+  //     pattern, subdivision, sound mode, gap click, random mute. Updated via
+  //     history.replaceState so it doesn't pollute the back-button stack.
+  //     Lets users bookmark a setup or share a link. Custom forms are not in
+  //     the URL — they live in localStorage only (Phase 2 will encode them).
+  //
+  // On page load: URL params win if present, else localStorage, else defaults.
+  // On state change: persistState() is called from each mutation handler; it
+  // saves to localStorage immediately and updates the URL on a 250 ms debounce.
+
+  const STORAGE_KEY = 'metronomeState_v1';
+  const BEAT_TO_CHAR = { accent: 'A', normal: 'N', soft: 'S', mute: 'M' };
+  const CHAR_TO_BEAT = { A: 'accent', N: 'normal', S: 'soft', M: 'mute' };
+  const SOUND_TO_CHAR = { electronic: 'e', clave: 'c' };
+  const CHAR_TO_SOUND = { e: 'electronic', c: 'clave' };
+
+  function encodeURLState() {
+    const params = new URLSearchParams();
+    params.set('bpm', String(state.bpm));
+    params.set('beats', String(state.beatsPerMeasure));
+    params.set('unit', String(state.beatUnit));
+    params.set('p', state.beats.map((b) => BEAT_TO_CHAR[b] || 'N').join(''));
+    if (state.subdivision !== 1) params.set('sub', String(state.subdivision));
+    if (soundMode !== 'electronic') params.set('snd', SOUND_TO_CHAR[soundMode]);
+    if (adv.gapEnabled) params.set('gap', adv.gapPlay + '-' + adv.gapSilent);
+    if (adv.randomMuteEnabled) params.set('rmute', String(adv.randomMutePct));
+    return params.toString();
+  }
+
+  function applyURLState(search) {
+    const params = new URLSearchParams(search);
+    if (!params.has('bpm') && !params.has('beats') && !params.has('p')) return false;
+
+    const bpm = +params.get('bpm');
+    if (bpm >= 1 && bpm <= 500) state.bpm = Math.round(bpm);
+
+    const beats = +params.get('beats');
+    const unit = +params.get('unit');
+    if (beats >= 1 && beats <= 32 && unit >= 1 && unit <= 32) {
+      state.beatsPerMeasure = Math.round(beats);
+      state.beatUnit = Math.round(unit);
+    }
+
+    const pattern = params.get('p') || '';
+    if (pattern) {
+      const decoded = pattern.split('').map((c) => CHAR_TO_BEAT[c] || 'normal');
+      const n = state.beatsPerMeasure;
+      state.beats = Array(n).fill('normal').map((_, i) => decoded[i] || 'normal');
+    }
+
+    const sub = +params.get('sub');
+    if (sub >= 1 && sub <= 4) state.subdivision = Math.round(sub);
+
+    const snd = params.get('snd');
+    if (snd && CHAR_TO_SOUND[snd]) soundMode = CHAR_TO_SOUND[snd];
+
+    const gap = params.get('gap');
+    if (gap) {
+      const [p, s] = gap.split('-').map(Number);
+      if (p >= 1 && p <= 16 && s >= 1 && s <= 16) {
+        adv.gapEnabled = true;
+        adv.gapPlay = p;
+        adv.gapSilent = s;
+      }
+    }
+    const rmute = +params.get('rmute');
+    if (rmute >= 0 && rmute <= 100 && params.has('rmute')) {
+      adv.randomMuteEnabled = true;
+      adv.randomMutePct = Math.round(rmute);
+    }
+    return true;
+  }
+
+  function saveLocalStorage() {
+    try {
+      const data = {
+        bpm: state.bpm,
+        beatsPerMeasure: state.beatsPerMeasure,
+        beatUnit: state.beatUnit,
+        beats: state.beats,
+        subdivision: state.subdivision,
+        soundMode,
+        adv: {
+          gapEnabled: adv.gapEnabled, gapPlay: adv.gapPlay, gapSilent: adv.gapSilent,
+          randomMuteEnabled: adv.randomMuteEnabled, randomMutePct: adv.randomMutePct,
+          formEnabled: adv.formEnabled,
+          form: adv.form,
+        },
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) { /* private mode or quota — ignore */ }
+  }
+
+  function loadLocalStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const d = JSON.parse(raw);
+      if (d.bpm >= 1 && d.bpm <= 500) state.bpm = d.bpm;
+      if (d.beatsPerMeasure >= 1 && d.beatsPerMeasure <= 32) state.beatsPerMeasure = d.beatsPerMeasure;
+      if (d.beatUnit >= 1 && d.beatUnit <= 32) state.beatUnit = d.beatUnit;
+      if (Array.isArray(d.beats) && d.beats.length > 0) {
+        state.beats = d.beats.filter((b) => b in BEAT_TO_CHAR);
+      }
+      if (d.subdivision >= 1 && d.subdivision <= 4) state.subdivision = d.subdivision;
+      if (d.soundMode === 'clave' || d.soundMode === 'electronic') soundMode = d.soundMode;
+      if (d.adv) {
+        adv.gapEnabled = !!d.adv.gapEnabled;
+        if (d.adv.gapPlay >= 1 && d.adv.gapPlay <= 16) adv.gapPlay = d.adv.gapPlay;
+        if (d.adv.gapSilent >= 1 && d.adv.gapSilent <= 16) adv.gapSilent = d.adv.gapSilent;
+        adv.randomMuteEnabled = !!d.adv.randomMuteEnabled;
+        if (d.adv.randomMutePct >= 0 && d.adv.randomMutePct <= 100) adv.randomMutePct = d.adv.randomMutePct;
+        adv.formEnabled = !!d.adv.formEnabled;
+        if (Array.isArray(d.adv.form) && d.adv.form.length > 0) adv.form = d.adv.form;
+      }
+      return true;
+    } catch (e) { return false; }
+  }
+
+  let urlUpdateTimer = null;
+  function persistState() {
+    saveLocalStorage();
+    clearTimeout(urlUpdateTimer);
+    urlUpdateTimer = setTimeout(() => {
+      const qs = encodeURLState();
+      const target = window.location.pathname + (qs ? '?' + qs : '');
+      if (target !== window.location.pathname + window.location.search) {
+        history.replaceState(null, '', target);
+      }
+    }, 250);
+  }
+
+  // Copy-link button
+  document.getElementById('copy-link-btn').addEventListener('click', async () => {
+    const qs = encodeURLState();
+    const url = window.location.origin + window.location.pathname + (qs ? '?' + qs : '');
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch (e) {
+      // Fallback for older browsers / non-secure contexts
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      document.body.removeChild(ta);
+    }
+    const btn = document.getElementById('copy-link-btn');
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1400);
+  });
 
   // ─── Init ─────────────────────────────────────────────────────────────────────
   function init() {
     state.beats = Array(state.beatsPerMeasure).fill('normal');
     state.beats[0] = 'accent';
     adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'] }];
-    populateUnitSelect('unit-select', 4);
+
+    // Restore: URL params win, else localStorage, else defaults already in place.
+    const usedURL = applyURLState(window.location.search);
+    if (!usedURL) loadLocalStorage();
+
+    // Reflect restored state into the DOM.
+    document.getElementById('bpm-display').textContent = state.bpm;
+    document.getElementById('bpm-slider').value = state.bpm;
+    document.getElementById('beats-input').value = state.beatsPerMeasure;
+    document.querySelectorAll('.btn-sub').forEach((b) => {
+      b.classList.toggle('active', +b.dataset.sub === state.subdivision);
+    });
+    document.querySelectorAll('.btn-sound').forEach((b) => {
+      b.classList.toggle('active', b.dataset.sound === soundMode);
+    });
+    document.querySelectorAll('#time-sig-presets .btn-sig').forEach((btn) => {
+      btn.classList.toggle('active',
+        +btn.dataset.beats === state.beatsPerMeasure && +btn.dataset.unit === state.beatUnit);
+    });
+    document.getElementById('gap-toggle').checked = adv.gapEnabled;
+    document.getElementById('gap-controls').classList.toggle('disabled', !adv.gapEnabled);
+    document.getElementById('gap-play-slider').value = adv.gapPlay;
+    document.getElementById('gap-play-val').textContent = adv.gapPlay;
+    document.getElementById('gap-silent-slider').value = adv.gapSilent;
+    document.getElementById('gap-silent-val').textContent = adv.gapSilent;
+    document.getElementById('random-mute-toggle').checked = adv.randomMuteEnabled;
+    document.getElementById('random-mute-controls').classList.toggle('disabled', !adv.randomMuteEnabled);
+    document.getElementById('random-mute-slider').value = adv.randomMutePct;
+    document.getElementById('random-mute-val').textContent = adv.randomMutePct;
+
+    populateUnitSelect('unit-select', state.beatUnit);
     populateUnitSelect('bulk-unit', 4);
     renderBeatGrid();
     renderSubDots();
@@ -2669,6 +2932,9 @@ const graph = {
     formHistoryIdx = 0;
     refreshUndoRedoBtns();
     document.getElementById('tempo-name').textContent = getTempoName(state.bpm);
+
+    // If URL had state and localStorage didn't (or was different), sync now.
+    if (usedURL) saveLocalStorage();
   }
 
   init();
