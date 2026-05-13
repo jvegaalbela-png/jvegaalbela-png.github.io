@@ -1339,6 +1339,9 @@ const graph = {
       <button class="btn btn-sig" data-beats="7" data-unit="8">7/8</button>
       <button class="btn btn-sig" data-beats="9" data-unit="8">9/8</button>
       <button class="btn btn-sig" data-beats="12" data-unit="8">12/8</button>
+      <button class="btn btn-sig" data-beats="3" data-unit="16">3/16</button>
+      <button class="btn btn-sig" data-beats="5" data-unit="16">5/16</button>
+      <button class="btn btn-sig" data-beats="7" data-unit="16">7/16</button>
     </div>
     <div class="custom-sig">
       <span class="custom-sig-label">Custom:</span>
@@ -2155,6 +2158,11 @@ const graph = {
       if (beats === 7)  return ['accent','soft','normal','soft','normal','soft','soft'];
       if (beats === 9)  return ['accent','soft','soft','normal','soft','soft','normal','soft','soft'];
       if (beats === 12) return ['accent','soft','soft','normal','soft','soft','normal','soft','soft','normal','soft','soft'];
+    }
+    if (unit === 16) {
+      if (beats === 3) return ['accent','soft','soft'];                              // one fast group
+      if (beats === 5) return ['accent','soft','soft','normal','soft'];              // 3+2
+      if (beats === 7) return ['accent','soft','normal','soft','normal','soft','soft']; // 2+2+3
     }
     return null;
   }
