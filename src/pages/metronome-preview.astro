@@ -2620,9 +2620,11 @@ const graph = {
       if (beats === 12) return ['accent','soft','soft','normal','soft','soft','normal','soft','soft','normal','soft','soft'];
     }
     if (unit === 16) {
-      if (beats === 3) return ['accent','soft','soft'];                              // one fast group
-      if (beats === 5) return ['accent','soft','soft','normal','soft'];              // 3+2
-      if (beats === 7) return ['accent','soft','normal','soft','normal','soft','soft']; // 2+2+3
+      // At 16th-note pulse, soft inner beats blur into a wash — mute them
+      // so only the structural beats (accent + grouping pulse) are audible.
+      if (beats === 3) return ['accent','mute','mute'];                                  // one fast group
+      if (beats === 5) return ['accent','mute','mute','normal','mute'];                  // 3+2
+      if (beats === 7) return ['accent','mute','normal','mute','normal','mute','mute'];  // 2+2+3
     }
     return null;
   }
