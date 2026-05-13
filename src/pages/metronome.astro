@@ -2099,16 +2099,42 @@ const graph = {
   });
 
   // ─── Time Signature ───────────────────────────────────────────────────────────
-  function populateUnitSelect(id, currentVal) {
-    const sel = document.getElementById(id);
-    if (!sel) return;
+  // Denominators 2, 4, 8, and 16 are the everyday meters (half, quarter,
+  // eighth, sixteenth notes). Everything else — whole-note beats (1),
+  // 32nd-note beats, and the non-power-of-two "irrational" denominators
+  // (3, 5, 6, 7, 9, …) used in contemporary classical and modern jazz —
+  // lives under an "Advanced" optgroup so the everyday choices stay
+  // un-cluttered at the top of the dropdown.
+  const COMMON_UNITS = [2, 4, 8, 16];
+
+  function buildUnitOptions(sel, currentVal) {
     sel.innerHTML = '';
+    const common = document.createElement('optgroup');
+    common.label = 'Common';
+    for (const v of COMMON_UNITS) {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      if (v === currentVal) o.selected = true;
+      common.appendChild(o);
+    }
+    sel.appendChild(common);
+
+    const advanced = document.createElement('optgroup');
+    advanced.label = 'Advanced';
     for (let i = 1; i <= 32; i++) {
+      if (COMMON_UNITS.includes(i)) continue;
       const o = document.createElement('option');
       o.value = i; o.textContent = i;
       if (i === currentVal) o.selected = true;
-      sel.appendChild(o);
+      advanced.appendChild(o);
     }
+    sel.appendChild(advanced);
+  }
+
+  function populateUnitSelect(id, currentVal) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    buildUnitOptions(sel, currentVal);
   }
 
   // Compound and odd-meter defaults: the dotted-quarter pulse in 6/8,
@@ -2364,12 +2390,7 @@ const graph = {
 
     const unitSel = document.createElement('select');
     unitSel.className = 'form-unit-select';
-    for (let v = 1; v <= 32; v++) {
-      const o = document.createElement('option');
-      o.value = v; o.textContent = v;
-      if (v === entry.unit) o.selected = true;
-      unitSel.appendChild(o);
-    }
+    buildUnitOptions(unitSel, entry.unit);
 
     const delBtn = document.createElement('button');
     delBtn.className = 'form-delete-btn';
