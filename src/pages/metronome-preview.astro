@@ -1951,6 +1951,88 @@ const graph = {
       line-height: 1;
     }
 
+    /* Save / Load form-code panel — at the bottom of the editor body */
+    .form-code-panel {
+      margin-top: 1.75rem;
+      padding: 0.85rem;
+      background: rgba(91, 141, 232, 0.06);
+      border: 1px solid rgba(91, 141, 232, 0.22);
+      border-radius: 8px;
+      max-width: 480px;
+    }
+    .form-code-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(245, 243, 238, 0.6);
+      margin-bottom: 0.4rem;
+    }
+    .form-code-help {
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: rgba(245, 243, 238, 0.6);
+      margin: 0 0 0.7rem;
+    }
+    .form-code-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .form-code-input {
+      flex: 1;
+      min-width: 0;
+      background: rgba(15, 25, 45, 0.6);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      color: var(--cream);
+      padding: 0.4rem 0.6rem;
+      /* >= 16px so iOS Safari doesn't auto-zoom on focus */
+      font-size: 16px;
+      font-family: var(--mono, ui-monospace, monospace);
+    }
+    .form-code-input:focus {
+      outline: none;
+      border-color: var(--blue-lt);
+    }
+    .form-code-btn {
+      position: relative;
+      background: rgba(91, 141, 232, 0.16);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 6px;
+      color: var(--cream);
+      font-size: 0.8rem;
+      font-family: inherit;
+      padding: 0.4rem 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-code-btn:hover {
+      background: rgba(91, 141, 232, 0.28);
+      border-color: var(--blue-lt);
+    }
+    .form-code-copied {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 25, 45, 0.96);
+      border-radius: 6px;
+      color: var(--blue-lt);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .form-code-btn.copied .form-code-copied { opacity: 1; }
+    .form-code-msg {
+      font-size: 0.72rem;
+      line-height: 1.4;
+      min-height: 1em;
+    }
+    .form-code-msg.error { color: rgba(255, 180, 180, 0.95); }
+    .form-code-msg.success { color: rgba(150, 230, 170, 0.95); }
+
     /* Mobile sticky play bar — only visible on small screens, hidden on desktop where the toolbar play button lives. */
     .form-editor-mobile-play {
       display: none;
@@ -2432,6 +2514,22 @@ const graph = {
         <span class="form-editor-add-bar-plus" aria-hidden="true">+</span>
         <span id="form-editor-add-bar-label">Add a 4/4 bar</span>
       </button>
+
+      <div class="form-code-panel">
+        <div class="form-code-title">Save / Load Form</div>
+        <p class="form-code-help">Copy the code below and save it anywhere — a note, a file, Google Drive. Paste it back in to reload this form on any device.</p>
+        <div class="form-code-row">
+          <button class="form-code-btn" id="form-code-copy" type="button">
+            <span>Copy form code</span>
+            <span class="form-code-copied" id="form-code-copied" aria-live="polite">Copied</span>
+          </button>
+        </div>
+        <div class="form-code-row">
+          <input type="text" class="form-code-input" id="form-code-input" placeholder="Paste a form code here…" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" />
+          <button class="form-code-btn" id="form-code-load" type="button">Load</button>
+        </div>
+        <div class="form-code-msg" id="form-code-msg" aria-live="polite"></div>
+      </div>
     </div>
     <div class="form-editor-mobile-play" id="form-editor-mobile-play">
       <button class="btn btn-play" id="form-editor-mobile-play-btn" type="button">▶ Start</button>
@@ -4088,6 +4186,82 @@ const graph = {
       breakAfter: false,
     });
     renderFormEditor();
+  });
+
+  // ─── Form code: portable save / load ──────────────────────────────────────────
+  // A compact single-token encoding of the whole form. Format:
+  //   JVAFORM1;<beats>/<unit>:<states>[!];<beats>/<unit>:<states>[!];...
+  // states are A/N/S/M chars (accent/normal/soft/mute); a trailing "!" on
+  // a bar means breakAfter. The user copies this string and saves it
+  // wherever they like, then pastes it back to reload the form. The
+  // JVAFORM1 prefix is a version marker so the format can evolve later.
+  function encodeFormCode() {
+    const bars = adv.form.map((e) => {
+      const chars = e.states.map((s) => BEAT_TO_CHAR[s] || 'N').join('');
+      return e.beats + '/' + e.unit + ':' + chars + (e.breakAfter ? '!' : '');
+    });
+    return 'JVAFORM1;' + bars.join(';');
+  }
+
+  function decodeFormCode(str) {
+    const parts = (str || '').trim().split(';');
+    if (parts[0] !== 'JVAFORM1') {
+      return { error: 'That doesn’t look like a form code (missing the JVAFORM1 header).' };
+    }
+    const barStrs = parts.slice(1).filter((p) => p.length > 0);
+    if (barStrs.length === 0) return { error: 'That form code has no bars in it.' };
+    const form = [];
+    for (let i = 0; i < barStrs.length; i++) {
+      const m = barStrs[i].match(/^(\d+)\/(\d+):([ANSM]+)(!?)$/);
+      if (!m) return { error: 'Bar ' + (i + 1) + ' is malformed: “' + barStrs[i] + '”' };
+      const beats = +m[1], unit = +m[2], chars = m[3];
+      if (beats < 1 || beats > 32) return { error: 'Bar ' + (i + 1) + ': beats must be 1–32.' };
+      if (unit < 1 || unit > 32) return { error: 'Bar ' + (i + 1) + ': unit must be 1–32.' };
+      if (chars.length !== beats) {
+        return { error: 'Bar ' + (i + 1) + ': has ' + chars.length + ' beat states but the time signature says ' + beats + '.' };
+      }
+      form.push({
+        beats, unit,
+        states: chars.split('').map((c) => CHAR_TO_BEAT[c]),
+        breakAfter: m[4] === '!',
+      });
+    }
+    return { form };
+  }
+
+  document.getElementById('form-code-copy').addEventListener('click', async () => {
+    const code = encodeFormCode();
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      document.body.removeChild(ta);
+    }
+    const btn = document.getElementById('form-code-copy');
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1400);
+  });
+
+  document.getElementById('form-code-load').addEventListener('click', () => {
+    const input = document.getElementById('form-code-input');
+    const msg = document.getElementById('form-code-msg');
+    const result = decodeFormCode(input.value);
+    if (result.error) {
+      msg.textContent = result.error;
+      msg.className = 'form-code-msg error';
+      return;
+    }
+    saveFormHistory();
+    adv.form = result.form;
+    formEditingIdx = -1;
+    renderFormEditor();
+    input.value = '';
+    const n = result.form.length;
+    msg.textContent = 'Loaded ' + n + ' bar' + (n !== 1 ? 's' : '') + '.';
+    msg.className = 'form-code-msg success';
   });
 
   // Sync the editor's play buttons with the existing transport.
