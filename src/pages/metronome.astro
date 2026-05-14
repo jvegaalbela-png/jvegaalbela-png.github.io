@@ -2109,6 +2109,9 @@ const graph = {
       border-radius: 8px;
       max-width: 480px;
     }
+    /* The save/load panel belongs to beat-mode editing — hide it in
+       chart mode, which is the structural overview. */
+    .form-editor-grid.chart-mode ~ .form-code-panel { display: none; }
     .form-code-title {
       font-size: 0.65rem;
       text-transform: uppercase;
@@ -2646,8 +2649,8 @@ const graph = {
           <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
         </div>
         <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
-          <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↩</button>
-          <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↪</button>
+          <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↺</button>
+          <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↻</button>
         </div>
       </div>
       <div class="form-editor-toolbar-right">
