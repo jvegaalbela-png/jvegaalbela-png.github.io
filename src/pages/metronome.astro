@@ -1495,6 +1495,40 @@ const graph = {
       .form-editor-mode-btn { padding: 0.3rem 0.5rem; font-size: 0.65rem; }
     }
 
+    /* Undo / redo — compact icon buttons */
+    .form-editor-undoredo {
+      display: inline-flex;
+      gap: 0.25rem;
+    }
+    .form-editor-ur-btn {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      color: var(--cream);
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-ur-btn:not([disabled]):hover {
+      background: rgba(91, 141, 232, 0.18);
+      border-color: var(--blue-lt);
+    }
+    .form-editor-ur-btn[disabled] {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    @media (max-width: 700px) {
+      .form-editor-ur-btn { width: 26px; height: 26px; font-size: 0.9rem; }
+      .form-editor-undoredo { gap: 0.2rem; }
+    }
+
     /* Clear-all button — subtle by default, gets a warning tone on hover */
     .form-editor-clear {
       background: transparent;
@@ -2611,6 +2645,10 @@ const graph = {
           <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
           <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
         </div>
+        <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
+          <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↩</button>
+          <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↪</button>
+        </div>
       </div>
       <div class="form-editor-toolbar-right">
         <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
@@ -3526,36 +3564,75 @@ const graph = {
   let formHistory = [];
   let formHistoryIdx = -1;
 
+  // formHistory is a stack of JSON snapshots of adv.form; formHistory
+  // [formHistoryIdx] always mirrors the current form. The editor's
+  // mutation handlers call saveFormHistory() BEFORE they mutate, so the
+  // actual snapshot is deferred to a microtask — by the time it runs the
+  // handler has finished and adv.form holds the post-mutation state.
+  // Identical snapshots are skipped so a no-op edit leaves no dead entry
+  // (and doesn't clobber the redo branch).
   function saveFormHistory() {
-    formHistory = formHistory.slice(0, formHistoryIdx + 1);
-    formHistory.push(JSON.parse(JSON.stringify(adv.form)));
-    if (formHistory.length > 80) { formHistory.shift(); }
-    formHistoryIdx = formHistory.length - 1;
-    refreshUndoRedoBtns();
-    persistState();
+    queueMicrotask(() => {
+      const snapshot = JSON.stringify(adv.form);
+      if (formHistory[formHistoryIdx] === snapshot) return;
+      formHistory = formHistory.slice(0, formHistoryIdx + 1);
+      formHistory.push(snapshot);
+      if (formHistory.length > 80) formHistory.shift();
+      formHistoryIdx = formHistory.length - 1;
+      refreshUndoRedoBtns();
+      persistState();
+    });
   }
 
   function refreshUndoRedoBtns() {
-    const u = document.getElementById('form-undo');
-    const r = document.getElementById('form-redo');
+    const u = document.getElementById('form-editor-undo');
+    const r = document.getElementById('form-editor-redo');
     if (u) u.disabled = formHistoryIdx <= 0;
     if (r) r.disabled = formHistoryIdx >= formHistory.length - 1;
   }
 
-  document.getElementById('form-undo').addEventListener('click', () => {
+  // Shared by the toolbar buttons and the keyboard shortcuts.
+  function applyHistoryState() {
+    adv.form = JSON.parse(formHistory[formHistoryIdx]);
+    // The bar that was being edited / the selection range may not exist
+    // in the restored form — clear that transient UI state.
+    formEditingIdx = -1;
+    selectMode = false;
+    selectionAnchor = -1;
+    selectionEnd = -1;
+    const selBar = document.getElementById('form-select-bar');
+    if (selBar) selBar.setAttribute('aria-hidden', 'true');
+    renderFormEditor();
+    refreshUndoRedoBtns();
+    persistState();
+  }
+
+  function doFormUndo() {
     if (formHistoryIdx <= 0) return;
     formHistoryIdx--;
-    adv.form = JSON.parse(JSON.stringify(formHistory[formHistoryIdx]));
-    renderFormList(); updateFormCounter(advFormIdx); refreshUndoRedoBtns();
-    persistState();
-  });
+    applyHistoryState();
+  }
 
-  document.getElementById('form-redo').addEventListener('click', () => {
+  function doFormRedo() {
     if (formHistoryIdx >= formHistory.length - 1) return;
     formHistoryIdx++;
-    adv.form = JSON.parse(JSON.stringify(formHistory[formHistoryIdx]));
-    renderFormList(); updateFormCounter(advFormIdx); refreshUndoRedoBtns();
-    persistState();
+    applyHistoryState();
+  }
+
+  document.getElementById('form-editor-undo').addEventListener('click', doFormUndo);
+  document.getElementById('form-editor-redo').addEventListener('click', doFormRedo);
+
+  // Ctrl/Cmd+Z to undo, Ctrl/Cmd+Y (or Ctrl/Cmd+Shift+Z) to redo — only
+  // while the editor is open, and not while a text field is focused so
+  // inputs keep their own native text undo.
+  document.addEventListener('keydown', (e) => {
+    if (formEditorModal.getAttribute('aria-hidden') !== 'false') return;
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); doFormUndo(); }
+    else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); doFormRedo(); }
   });
 
   // ─── Form Save / Load ─────────────────────────────────────────────────────────
@@ -3858,7 +3935,7 @@ const graph = {
     renderBeatGrid();
     renderSubDots();
     renderFormList();
-    formHistory = [JSON.parse(JSON.stringify(adv.form))];
+    formHistory = [JSON.stringify(adv.form)];
     formHistoryIdx = 0;
     refreshUndoRedoBtns();
     document.getElementById('tempo-name').textContent = getTempoName(state.bpm);
