@@ -2093,12 +2093,23 @@ const graph = {
 
     /* Selected-range highlight (works for both beat-mode cards and chart
        tiles). Distinct from the orange 'playing' and blue 'editing'
-       states — a brighter blue ring. */
+       states — a brighter blue ring. '.looping' keeps that same ring on
+       the range while "loop selection" plays it. */
     .form-bar.selected,
-    .form-chart-tile.selected {
+    .form-chart-tile.selected,
+    .form-bar.looping,
+    .form-chart-tile.looping {
       border-color: var(--blue-lt);
       background: rgba(91, 141, 232, 0.24);
       box-shadow: 0 0 0 2px rgba(91, 141, 232, 0.45);
+    }
+    /* The currently-playing bar always shows the orange 'playing' state,
+       even when it sits inside the looped range. */
+    .form-bar.looping.active,
+    .form-chart-tile.looping.active {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.15);
+      box-shadow: 0 0 0 2px rgba(245, 136, 42, 0.22);
     }
     /* In select mode the whole bar/tile is one tap target — kill child
        pointer events so a tap anywhere on it registers as a selection. */
@@ -3017,6 +3028,7 @@ const graph = {
 
   function stopMetronome() {
     state.isPlaying = false;
+    const hadLoop = !!loopRange;
     loopRange = null;  // any range-loop ends when playback stops
     clearTimeout(schedulerTimer);
     pendingVisuals.length = 0;
@@ -3027,6 +3039,8 @@ const graph = {
     updateGapVisual('idle', 0);
     updateFormVisual(-1);
     if (adv.formEnabled && adv.form.length > 0) renderBeatGridForEntry(adv.form[0]);
+    // Drop the looping-range highlight now that the loop has ended.
+    if (hadLoop && formEditorModal.getAttribute('aria-hidden') === 'false') renderFormEditor();
     releaseWakeLock();
   }
 
@@ -4177,6 +4191,7 @@ const graph = {
     let cls = 'form-chart-tile';
     if (idx === advFormIdx && state.isPlaying) cls += ' active';
     if (isBarSelected(idx)) cls += ' selected';
+    if (isBarInLoop(idx)) cls += ' looping';
     tile.className = cls;
     tile.textContent = entry.beats + '/' + entry.unit;
     tile.setAttribute('aria-label', 'Bar ' + (idx + 1) + ' (' + entry.beats + '/' + entry.unit + '). Tap to edit in beat mode.');
@@ -4291,6 +4306,12 @@ const graph = {
     return idx >= lo && idx <= hi;
   }
 
+  // True for bars inside an active "loop selection" range — keeps the
+  // looped range highlighted while it plays.
+  function isBarInLoop(idx) {
+    return !!loopRange && idx >= loopRange.lo && idx <= loopRange.hi;
+  }
+
   function updateSelectBar() {
     const status = document.getElementById('form-select-status');
     const hasRange = selectionAnchor >= 0 && selectionEnd >= 0;
@@ -4391,6 +4412,7 @@ const graph = {
     if (state.isPlaying) stopMetronome();  // clears loopRange first
     loopRange = { lo, hi };                // set AFTER stop
     startMetronome(lo);
+    renderFormEditor();  // paint the looping-range highlight
     refreshFormEditorPlayButtons();
   }
 
@@ -4435,6 +4457,7 @@ const graph = {
     if (idx === advFormIdx && state.isPlaying) cls += ' active';
     if (idx === formEditingIdx) cls += ' editing';
     if (isBarSelected(idx)) cls += ' selected';
+    if (isBarInLoop(idx)) cls += ' looping';
     card.className = cls;
     card.dataset.idx = idx;
     // Proportional width: row flex-grow tracks the beat count, so a 7-beat
@@ -4734,8 +4757,10 @@ const graph = {
     if (formEditorModal.getAttribute('aria-hidden') !== 'false') return;
     if (advFormIdx !== formEditorActiveIdx) {
       formEditorActiveIdx = advFormIdx;
-      formEditorGrid.querySelectorAll('.form-bar').forEach((card) => {
-        card.classList.toggle('active', +card.dataset.idx === advFormIdx && state.isPlaying);
+      formEditorGrid.querySelectorAll('.form-bar, .form-chart-tile').forEach((card) => {
+        const idx = +card.dataset.idx;
+        card.classList.toggle('active', idx === advFormIdx && state.isPlaying);
+        card.classList.toggle('looping', isBarInLoop(idx));
       });
       refreshFormEditorPlayButtons();
     } else {
