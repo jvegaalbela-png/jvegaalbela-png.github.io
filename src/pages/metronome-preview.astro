@@ -1520,15 +1520,34 @@ const graph = {
 
     /* ───────────────── Chart Mode ─────────────────
        Sequence-of-tiles view. Each tile shows just the time signature.
-       Manual line breaks (entry.breakAfter) force a new row. 4 tiles per
-       row in portrait, 8 in landscape. */
-    .form-editor-grid.chart-mode {
+       4 tiles per row in portrait, 8 in landscape.
+
+       Two layouts:
+       - No manual line breaks: a fixed N-column grid (auto-flow, a
+         partial last row leaves a gap).
+       - With manual line breaks (.chart-lines): explicit flex rows, one
+         per user-defined line, with the tiles stretching to fill the
+         full width. */
+    .form-editor-grid.chart-mode:not(.chart-lines) {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
       gap: 0.5rem;
     }
     @media (orientation: portrait) {
-      .form-editor-grid.chart-mode { grid-template-columns: repeat(4, 1fr); }
+      .form-editor-grid.chart-mode:not(.chart-lines) { grid-template-columns: repeat(4, 1fr); }
+    }
+    .form-editor-grid.chart-mode.chart-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .form-chart-line {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .form-chart-line .form-chart-tile {
+      flex: 1 1 0;
+      min-width: 0;
     }
 
     .form-chart-tile {
@@ -1605,21 +1624,6 @@ const graph = {
       background: rgba(91, 141, 232, 0.32);
       border-color: var(--blue-lt);
       color: var(--cream);
-    }
-
-    /* Manual line-break separator spanning the full chart-mode row */
-    .form-chart-break-row {
-      grid-column: 1 / -1;
-      height: 0;
-      position: relative;
-      margin: 0.1rem 0;
-    }
-    .form-chart-break-row::before {
-      content: "";
-      position: absolute;
-      inset: 50% 0 auto 0;
-      height: 1px;
-      background: rgba(91, 141, 232, 0.32);
     }
 
     .form-editor-body {
@@ -1817,8 +1821,10 @@ const graph = {
 
     .form-bar-beats {
       display: flex;
-      gap: 0.25rem;
+      flex-wrap: wrap;
+      gap: 0.3rem 0.25rem;
       align-items: center;
+      align-content: center;
       justify-content: space-evenly;
       flex: 1;
     }
@@ -3979,16 +3985,42 @@ const graph = {
     flushRow();
   }
 
-  // Chart mode — uniform tiles, manual line breaks respected.
+  // Chart mode — uniform tiles.
+  //   - No manual line breaks: a fixed N-column auto-flow grid.
+  //   - At least one manual break: the form is treated as deliberately
+  //     laid out — each line (a run between breaks, capped at the
+  //     per-row tile limit) becomes a flex row whose tiles stretch to
+  //     fill the full width.
+  function maxTilesPerRow() {
+    return window.matchMedia('(orientation: portrait)').matches ? 4 : 8;
+  }
+
   function renderFormEditorChart() {
+    const hasBreaks = adv.form.some((e) => e.breakAfter);
+    if (!hasBreaks) {
+      adv.form.forEach((entry, idx) => {
+        formEditorGrid.appendChild(buildFormChartTile(entry, idx));
+      });
+      return;
+    }
+    // Explicit line layout — tiles stretch to fill each line.
+    formEditorGrid.classList.add('chart-lines');
+    const cap = maxTilesPerRow();
+    let line = document.createElement('div');
+    line.className = 'form-chart-line';
+    let count = 0;
+    const flushLine = () => {
+      if (line.childNodes.length > 0) formEditorGrid.appendChild(line);
+      line = document.createElement('div');
+      line.className = 'form-chart-line';
+      count = 0;
+    };
     adv.form.forEach((entry, idx) => {
-      formEditorGrid.appendChild(buildFormChartTile(entry, idx));
-      if (entry.breakAfter && idx < adv.form.length - 1) {
-        const breakRow = document.createElement('div');
-        breakRow.className = 'form-chart-break-row';
-        formEditorGrid.appendChild(breakRow);
-      }
+      line.appendChild(buildFormChartTile(entry, idx));
+      count++;
+      if (entry.breakAfter || count >= cap) flushLine();
     });
+    flushLine();
   }
 
   function buildFormChartTile(entry, idx) {
@@ -4052,6 +4084,15 @@ const graph = {
   function setEditorMode(mode) {
     if (mode !== 'beat' && mode !== 'chart') return;
     editorMode = mode;
+    // Switching to chart mode dismisses any open beat-mode edit chrome —
+    // it shouldn't linger (and reopen) across a round trip. Blurring also
+    // dismisses the mobile keyboard if a sig input was focused.
+    if (mode === 'chart') {
+      formEditingIdx = -1;
+      if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur();
+      }
+    }
     try { localStorage.setItem('metronomeFormEditorMode_v1', mode); } catch (e) {}
     document.getElementById('form-editor-mode-beat').classList.toggle('active', mode === 'beat');
     document.getElementById('form-editor-mode-beat').setAttribute('aria-pressed', mode === 'beat');
@@ -4220,10 +4261,15 @@ const graph = {
     if (isBarSelected(idx)) cls += ' selected';
     card.className = cls;
     card.dataset.idx = idx;
-    // Proportional width: row's flex-grow is the beat count, so a 7-beat
-    // bar takes more space than a 3-beat bar on the same line.
-    card.style.flexGrow = String(entry.beats);
-    card.style.flexShrink = String(entry.beats);
+    // Proportional width: row flex-grow tracks the beat count, so a 7-beat
+    // bar takes more space than a 3-beat bar on the same line. Capped at
+    // the per-row beat limit — a bar wider than a full row (e.g. 12/8 in
+    // portrait) takes a full-width row and wraps its beat circles onto a
+    // second line inside the card rather than shrinking the dots.
+    const rowCap = maxBeatsPerRow();
+    const growth = Math.min(entry.beats, rowCap);
+    card.style.flexGrow = String(growth);
+    card.style.flexShrink = String(growth);
 
     // Compact sig tag — tap to toggle edit chrome
     const sigTag = document.createElement('button');
