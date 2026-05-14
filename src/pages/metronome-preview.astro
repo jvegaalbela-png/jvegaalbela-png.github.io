@@ -1545,9 +1545,22 @@ const graph = {
       display: flex;
       gap: 0.5rem;
     }
+    /* Default line tiles keep the same fixed width they'd have in the
+       N-column grid — a partial line leaves a gap on the right. */
     .form-chart-line .form-chart-tile {
-      flex: 1 1 0;
+      flex: 0 0 calc((100% - 7 * 0.5rem) / 8);
       min-width: 0;
+    }
+    @media (orientation: portrait) {
+      .form-chart-line .form-chart-tile {
+        flex: 0 0 calc((100% - 3 * 0.5rem) / 4);
+      }
+    }
+    /* Only a line that's immediately followed by a manual break stretches
+       its tiles edge to edge. Cap-wrapped lines and the trailing line are
+       left alone. */
+    .form-chart-line.stretch .form-chart-tile {
+      flex: 1 1 0;
     }
 
     .form-chart-tile {
@@ -4003,14 +4016,19 @@ const graph = {
       });
       return;
     }
-    // Explicit line layout — tiles stretch to fill each line.
+    // Explicit line layout — only the line right before a manual break
+    // stretches its tiles to fill the width. Cap-wrapped lines and the
+    // trailing line keep fixed-width tiles (a partial line leaves a gap).
     formEditorGrid.classList.add('chart-lines');
     const cap = maxTilesPerRow();
     let line = document.createElement('div');
     line.className = 'form-chart-line';
     let count = 0;
-    const flushLine = () => {
-      if (line.childNodes.length > 0) formEditorGrid.appendChild(line);
+    const flushLine = (endedByBreak) => {
+      if (line.childNodes.length > 0) {
+        if (endedByBreak) line.classList.add('stretch');
+        formEditorGrid.appendChild(line);
+      }
       line = document.createElement('div');
       line.className = 'form-chart-line';
       count = 0;
@@ -4018,9 +4036,10 @@ const graph = {
     adv.form.forEach((entry, idx) => {
       line.appendChild(buildFormChartTile(entry, idx));
       count++;
-      if (entry.breakAfter || count >= cap) flushLine();
+      if (entry.breakAfter) flushLine(true);
+      else if (count >= cap) flushLine(false);
     });
-    flushLine();
+    flushLine(false);
   }
 
   function buildFormChartTile(entry, idx) {
