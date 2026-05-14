@@ -2040,7 +2040,8 @@ const graph = {
       display: none;
       align-items: center;
       justify-content: space-between;
-      gap: 0.5rem;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.5rem;
       padding: 0.5rem 0.85rem;
       background: rgba(91, 141, 232, 0.16);
       border-bottom: 1px solid rgba(91, 141, 232, 0.35);
@@ -2052,8 +2053,8 @@ const graph = {
     }
     .form-select-actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.4rem;
-      flex-shrink: 0;
     }
     .form-select-action {
       background: rgba(91, 141, 232, 0.2);
@@ -2073,6 +2074,16 @@ const graph = {
       background: rgba(232, 30, 30, 0.22);
       border-color: rgba(232, 80, 80, 0.55);
       color: rgba(255, 220, 220, 1);
+    }
+    /* Playback actions — warm accent so they read as "go" vs the
+       neutral edit actions. */
+    .form-select-action.play {
+      background: rgba(232, 101, 10, 0.18);
+      border-color: rgba(245, 136, 42, 0.5);
+    }
+    .form-select-action.play:not([disabled]):hover {
+      background: rgba(232, 101, 10, 0.3);
+      border-color: var(--orange-lt);
     }
     @media (max-width: 700px) {
       .form-select-bar { padding: 0.5rem 0.6rem; }
@@ -2667,6 +2678,8 @@ const graph = {
     <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
       <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
       <div class="form-select-actions">
+        <button class="form-select-action play" id="form-select-play-from" type="button" disabled>▶ Play from</button>
+        <button class="form-select-action play" id="form-select-loop" type="button" disabled>↻ Loop</button>
         <button class="form-select-action" id="form-select-duplicate" type="button" disabled>Duplicate</button>
         <button class="form-select-action danger" id="form-select-delete" type="button" disabled>Delete</button>
         <button class="form-select-action" id="form-select-cancel" type="button">Cancel</button>
@@ -2732,6 +2745,9 @@ const graph = {
   let advGapPhase = 'play';   // 'play' | 'silent'
   let advGapCount = 0;
   let advFormIdx = 0;
+  // When set ({ lo, hi }), the scheduler loops only that bar range
+  // instead of the whole form — drives "loop selection".
+  let loopRange = null;
 
   // ─── Audio ───────────────────────────────────────────────────────────────────
   let audioCtx = null;
@@ -2932,7 +2948,15 @@ const graph = {
             else if (advGapPhase === 'silent' && advGapCount >= adv.gapSilent) { advGapPhase = 'play';   advGapCount = 0; }
           }
           if (adv.formEnabled && adv.form.length > 0) {
-            advFormIdx = (advFormIdx + 1) % adv.form.length;
+            // Drop a stale loop range if the form shrank under it.
+            if (loopRange && (loopRange.hi >= adv.form.length || loopRange.lo > loopRange.hi)) {
+              loopRange = null;
+            }
+            if (loopRange) {
+              advFormIdx = advFormIdx >= loopRange.hi ? loopRange.lo : advFormIdx + 1;
+            } else {
+              advFormIdx = (advFormIdx + 1) % adv.form.length;
+            }
           }
         }
       }
@@ -2972,7 +2996,7 @@ const graph = {
     }
   });
 
-  function startMetronome() {
+  function startMetronome(fromFormIdx) {
     const ctx = getAudioCtx();
     ensureIOSSilentBypass();
     state.isPlaying = true;
@@ -2980,7 +3004,9 @@ const graph = {
     schedulerSub  = 0;
     advGapPhase   = 'play';
     advGapCount   = 0;
-    advFormIdx    = 0;
+    // Normal play starts at bar 0; "play from selection" / "loop
+    // selection" pass the bar to start on.
+    advFormIdx    = (typeof fromFormIdx === 'number' && fromFormIdx >= 0) ? fromFormIdx : 0;
     nextNoteTime  = ctx.currentTime + 0.05;
     pendingVisuals.length = 0;
     scheduler();
@@ -2991,6 +3017,7 @@ const graph = {
 
   function stopMetronome() {
     state.isPlaying = false;
+    loopRange = null;  // any range-loop ends when playback stops
     clearTimeout(schedulerTimer);
     pendingVisuals.length = 0;
     state.currentBeat = -1;
@@ -4266,8 +4293,6 @@ const graph = {
 
   function updateSelectBar() {
     const status = document.getElementById('form-select-status');
-    const dup = document.getElementById('form-select-duplicate');
-    const del = document.getElementById('form-select-delete');
     const hasRange = selectionAnchor >= 0 && selectionEnd >= 0;
     if (selectionAnchor < 0) {
       status.textContent = 'Tap the first bar of the range';
@@ -4277,8 +4302,11 @@ const graph = {
       const n = Math.abs(selectionEnd - selectionAnchor) + 1;
       status.textContent = n + ' bar' + (n !== 1 ? 's' : '') + ' selected';
     }
-    dup.disabled = !hasRange;
-    del.disabled = !hasRange;
+    ['form-select-play-from', 'form-select-loop', 'form-select-duplicate', 'form-select-delete']
+      .forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = !hasRange;
+      });
   }
 
   function enterSelectMode() {
@@ -4343,6 +4371,29 @@ const graph = {
     exitSelectMode();
   }
 
+  // Start playback at the selection's first bar and continue through the
+  // whole form (looping the whole form as usual).
+  function playFromSelection() {
+    if (selectionAnchor < 0 || selectionEnd < 0) return;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    exitSelectMode();
+    if (state.isPlaying) stopMetronome();  // also clears any loopRange
+    startMetronome(lo);
+    refreshFormEditorPlayButtons();
+  }
+
+  // Loop just the selected bar range over and over.
+  function loopSelection() {
+    if (selectionAnchor < 0 || selectionEnd < 0) return;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    const hi = Math.max(selectionAnchor, selectionEnd);
+    exitSelectMode();
+    if (state.isPlaying) stopMetronome();  // clears loopRange first
+    loopRange = { lo, hi };                // set AFTER stop
+    startMetronome(lo);
+    refreshFormEditorPlayButtons();
+  }
+
   // Capture-phase listener: while in select mode, a tap anywhere on a bar
   // or chart tile sets the selection point and is blocked from reaching
   // the normal bar handlers (sig tag, beat circles, tile navigation).
@@ -4359,6 +4410,8 @@ const graph = {
   document.getElementById('form-select-cancel').addEventListener('click', exitSelectMode);
   document.getElementById('form-select-duplicate').addEventListener('click', duplicateSelection);
   document.getElementById('form-select-delete').addEventListener('click', deleteSelection);
+  document.getElementById('form-select-play-from').addEventListener('click', playFromSelection);
+  document.getElementById('form-select-loop').addEventListener('click', loopSelection);
 
   // When a form bar's time signature changes, apply the meter's clave
   // default if one exists (e.g., 6/8 → A·s·s·N·s·s); otherwise preserve
