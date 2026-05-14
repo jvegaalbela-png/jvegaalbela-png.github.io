@@ -3919,13 +3919,15 @@ const graph = {
       const willEnter = (formEditingIdx !== idx);
       formEditingIdx = willEnter ? idx : -1;
       renderFormEditor();
-      // When entering edit mode, jump straight to the beats input with
-      // its current value pre-selected — saves an extra tap on mobile.
+      // Focus the beats input SYNCHRONOUSLY here — renderFormEditor() is
+      // synchronous so the new input already exists in the DOM, and
+      // staying inside the click gesture is what makes iOS Safari open
+      // the numeric keypad. A setTimeout would break the gesture chain
+      // and iOS would focus the input visually but leave the keypad
+      // closed. The focus also triggers the highlight-on-focus handler.
       if (willEnter) {
-        setTimeout(() => {
-          const input = formEditorGrid.querySelector('.form-bar.editing .form-bar-sig-input');
-          if (input) input.focus();
-        }, 0);
+        const input = formEditorGrid.querySelector('.form-bar.editing .form-bar-sig-input');
+        if (input) input.focus();
       }
     });
     card.appendChild(sigTag);
