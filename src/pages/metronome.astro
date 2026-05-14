@@ -96,7 +96,7 @@ const graph = {
         'Four-level beat dynamics (accent, normal, soft, mute) with clave defaults for 5/8, 6/8, 7/8, 9/8, 12/8',
         'Gap click — silent measures for internal-clock practice',
         'Random mute — probabilistic beat dropouts',
-        'Custom form generator — up to 256 measures with shifting time signatures',
+        'Custom form generator — chain any number of measures with shifting time signatures',
         'Tap tempo',
         'Electronic and clave sound options',
       ],
@@ -1337,6 +1337,848 @@ const graph = {
     @media (max-width: 600px) {
       .metronome-prose { padding: 3.5rem 1.25rem 4.5rem; }
     }
+
+    /* ───────────────── Custom Form Editor ─────────────────
+       Full-screen overlay opened from the Custom Form card. Replaces the
+       inline form-list view with a notation-flavored bar grid:
+       proportional widths, auto-flow with manual line breaks, plus-button
+       to add bars, tap a beat to cycle state, sticky play on mobile. */
+
+    .metronome-shell .btn-open-editor {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 0.5rem;
+      background: rgba(91, 141, 232, 0.18);
+      border-color: rgba(91, 141, 232, 0.5);
+    }
+    .metronome-shell .btn-open-editor:hover {
+      background: rgba(91, 141, 232, 0.28);
+      border-color: var(--blue-lt);
+    }
+
+    .form-editor-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--navy);
+      color: var(--cream);
+      display: none;
+      flex-direction: column;
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+    .form-editor-modal[aria-hidden="false"] { display: flex; }
+    body.form-editor-open { overflow: hidden; }
+
+    .form-editor-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .form-editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: rgba(15, 25, 45, 0.92);
+      border-bottom: 1px solid rgba(91, 141, 232, 0.28);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .form-editor-toolbar-left,
+    .form-editor-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .form-editor-close {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 6px;
+      width: 34px; height: 34px;
+      padding: 0;
+      cursor: pointer;
+      color: var(--cream);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-editor-close:hover { background: rgba(91, 141, 232, 0.18); }
+    .form-editor-close svg { width: 14px; height: 14px; }
+    .form-editor-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .form-editor-bpm {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: rgba(245, 243, 238, 0.85);
+    }
+    .form-editor-bpm-label {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      opacity: 0.6;
+      margin-left: 0.2rem;
+    }
+    .form-editor-bpm-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cream);
+      min-width: 2ch;
+      text-align: center;
+      padding: 0.15rem 0.3rem;
+      border-radius: 4px;
+      outline: none;
+      cursor: text;
+    }
+    .form-editor-bpm-value:focus { background: rgba(91, 141, 232, 0.18); }
+    .form-editor-bpm-step {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 4px;
+      color: var(--cream);
+      width: 28px; height: 28px;
+      padding: 0;
+      font-size: 0.95rem;
+      line-height: 1;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-bpm-step:hover { background: rgba(91, 141, 232, 0.18); }
+    .form-editor-bpm-step:active { background: rgba(91, 141, 232, 0.32); }
+    .form-editor-play {
+      padding: 0.45rem 1.1rem;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 700px) {
+      .form-editor-play { display: none; }
+    }
+
+    /* Beat / Chart mode toggle */
+    .form-editor-mode-toggle {
+      display: inline-flex;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-left: 0.25rem;
+    }
+    .form-editor-mode-btn {
+      background: transparent;
+      border: none;
+      color: rgba(245, 243, 238, 0.7);
+      font-size: 0.7rem;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-mode-btn + .form-editor-mode-btn {
+      border-left: 1px solid rgba(91, 141, 232, 0.35);
+    }
+    .form-editor-mode-btn:hover { color: var(--cream); background: rgba(91, 141, 232, 0.12); }
+    .form-editor-mode-btn.active {
+      background: rgba(91, 141, 232, 0.28);
+      color: var(--cream);
+    }
+    @media (max-width: 700px) {
+      .form-editor-mode-btn { padding: 0.3rem 0.5rem; font-size: 0.65rem; }
+    }
+
+    /* Clear-all button — subtle by default, gets a warning tone on hover */
+    .form-editor-clear {
+      background: transparent;
+      border: 1px solid rgba(245, 243, 238, 0.18);
+      color: rgba(245, 243, 238, 0.7);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-clear:hover {
+      background: rgba(232, 30, 30, 0.15);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+    @media (max-width: 700px) {
+      .form-editor-clear { padding: 0.3rem 0.45rem; font-size: 0.65rem; }
+    }
+
+    /* ───────────────── Chart Mode ─────────────────
+       Sequence-of-tiles view. Each tile shows just the time signature.
+       4 tiles per row in portrait, 8 in landscape.
+
+       Two layouts:
+       - No manual line breaks: a fixed N-column grid (auto-flow, a
+         partial last row leaves a gap).
+       - With manual line breaks (.chart-lines): explicit flex rows, one
+         per user-defined line, with the tiles stretching to fill the
+         full width. */
+    .form-editor-grid.chart-mode:not(.chart-lines) {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 0.5rem;
+    }
+    @media (orientation: portrait) {
+      .form-editor-grid.chart-mode:not(.chart-lines) { grid-template-columns: repeat(4, 1fr); }
+    }
+    .form-editor-grid.chart-mode.chart-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .form-chart-line {
+      display: flex;
+      gap: 0.5rem;
+    }
+    /* Default line tiles keep the same fixed width they'd have in the
+       N-column grid — a partial line leaves a gap on the right. */
+    .form-chart-line .form-chart-tile {
+      flex: 0 0 calc((100% - 7 * 0.5rem) / 8);
+      min-width: 0;
+    }
+    @media (orientation: portrait) {
+      .form-chart-line .form-chart-tile {
+        flex: 0 0 calc((100% - 3 * 0.5rem) / 4);
+      }
+    }
+    /* Only a line that's immediately followed by a manual break stretches
+       its tiles edge to edge. Cap-wrapped lines and the trailing line are
+       left alone. */
+    .form-chart-line.stretch .form-chart-tile {
+      flex: 1 1 0;
+    }
+
+    .form-chart-tile {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.2rem;
+      padding: 0.4rem 0.4rem 0.4rem 0.4rem;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--cream);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+    }
+    .form-chart-tile:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+    }
+    .form-chart-tile.active {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.15);
+      box-shadow: 0 0 0 2px rgba(245, 136, 42, 0.22);
+    }
+
+    /* The little tools sit in the tile corners */
+    .form-chart-tile-delete {
+      position: absolute;
+      top: 0.2rem;
+      right: 0.2rem;
+      width: 1.2rem; height: 1.2rem;
+      background: transparent;
+      border: 1px solid rgba(245, 243, 238, 0.18);
+      border-radius: 3px;
+      color: rgba(245, 243, 238, 0.5);
+      font-size: 0.65rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-chart-tile-delete:hover {
+      background: rgba(232, 30, 30, 0.2);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+    .form-chart-tile-delete[disabled] { opacity: 0.25; cursor: not-allowed; }
+
+    .form-chart-tile-break {
+      position: absolute;
+      bottom: 0.2rem;
+      right: 0.2rem;
+      width: 1.2rem; height: 1.2rem;
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      border-radius: 3px;
+      color: rgba(91, 141, 232, 0.7);
+      font-size: 0.7rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-chart-tile-break:hover { background: rgba(91, 141, 232, 0.2); color: var(--cream); }
+    .form-chart-tile-break.on {
+      background: rgba(91, 141, 232, 0.32);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+
+    .form-editor-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem 1rem 5rem;
+    }
+
+    .form-editor-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      padding-bottom: 1rem;
+    }
+
+    /* Each row holds bars whose beat counts sum to <= 8. Bars within a row
+       stretch to fill the line width, sized in proportion to their beat
+       counts (flex-grow: <beats>). Row breaks are computed in JS. */
+    .form-editor-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+
+    /* Bar card — compact by default. Tap the sig label to toggle the edit
+       chrome (sig inputs) for that one bar. Always-visible ✕ in the
+       top-right deletes the bar. */
+    .form-bar {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.4rem 1.85rem 0.45rem 0.5rem;
+      background: rgba(91, 141, 232, 0.07);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      border-radius: 6px;
+      min-width: 0;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      /* Default flex sizing; the JS render sets flex-grow to bar.beats so
+         a 7-beat bar takes more row width than a 3-beat bar. */
+      flex: 1 1 0;
+    }
+    .form-bar.active {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.1);
+      box-shadow: 0 0 0 2px rgba(245, 136, 42, 0.18);
+    }
+    .form-bar.editing {
+      border-color: rgba(91, 141, 232, 0.7);
+      background: rgba(91, 141, 232, 0.13);
+    }
+
+    .form-bar-sig-tag {
+      align-self: flex-start;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: rgba(245, 243, 238, 0.85);
+      background: rgba(91, 141, 232, 0.18);
+      border: 1px solid rgba(91, 141, 232, 0.38);
+      border-radius: 4px;
+      padding: 0.2rem 0.55rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1.1;
+    }
+    .form-bar.editing .form-bar-sig-tag { display: none; }
+    .form-bar-sig-tag:hover {
+      background: rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+    }
+
+    /* Always-visible delete in the top-right corner */
+    .form-bar-delete {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.3rem;
+      width: 1.4rem;
+      height: 1.4rem;
+      padding: 0;
+      background: transparent;
+      border: 1px solid rgba(245, 243, 238, 0.18);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.5);
+      font-size: 0.75rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-bar-delete:hover {
+      background: rgba(232, 30, 30, 0.18);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+    .form-bar-delete[disabled] {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    /* Edit chrome — only shown when .form-bar.editing */
+    .form-bar-edit {
+      display: none;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.4rem;
+      padding: 0.05rem 0;
+    }
+    .form-bar.editing .form-bar-edit { display: flex; }
+
+    .form-bar-sig {
+      display: flex;
+      align-items: center;
+      gap: 0.1rem;
+    }
+    .form-bar-sig-input {
+      width: 2.25em;
+      background: rgba(15, 25, 45, 0.6);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 4px;
+      color: var(--cream);
+      padding: 0.1rem 0.25rem;
+      /* font-size must stay >= 16px so iOS Safari doesn't auto-zoom the
+         viewport when the input is focused */
+      font-size: 16px;
+      text-align: center;
+      font-family: inherit;
+      -moz-appearance: textfield;
+    }
+    .form-bar-sig-input::-webkit-outer-spin-button,
+    .form-bar-sig-input::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .form-bar-sig-slash { opacity: 0.5; font-size: 0.8rem; }
+
+    .form-bar-insert {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.85);
+      font-size: 0.72rem;
+      font-family: inherit;
+      letter-spacing: 0.02em;
+      padding: 0.25rem 0.55rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-bar-insert:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .form-bar-sig-unit {
+      background: rgba(15, 25, 45, 0.6);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 4px;
+      color: var(--cream);
+      padding: 0.1rem 0.2rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+    }
+    .form-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+      margin-left: auto;
+    }
+    .form-bar-action {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.25);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.7);
+      width: 24px; height: 24px;
+      padding: 0;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-bar-action:hover {
+      background: rgba(91, 141, 232, 0.18);
+      color: var(--cream);
+    }
+    .form-bar-action[disabled] { opacity: 0.3; cursor: not-allowed; }
+    .form-bar-action.danger:hover {
+      background: rgba(232, 30, 30, 0.18);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+
+    .form-bar-beats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem 0.25rem;
+      align-items: center;
+      align-content: center;
+      justify-content: space-evenly;
+      flex: 1;
+    }
+    .form-beat {
+      flex: 0 0 auto;
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--cream);
+      transition: background 0.1s, border-color 0.1s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    @media (max-width: 700px) {
+      .form-beat { width: 2.2rem; height: 2.2rem; font-size: 0.8rem; }
+    }
+    .form-beat:focus-visible {
+      outline: 2px solid var(--blue-lt);
+      outline-offset: 2px;
+    }
+    .form-beat.state-accent {
+      background: var(--orange);
+      border-color: var(--orange-lt);
+      color: var(--cream);
+    }
+    .form-beat.state-normal {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+    .form-beat.state-soft {
+      background: transparent;
+      border-color: rgba(91, 141, 232, 0.5);
+      color: rgba(91, 141, 232, 0.85);
+    }
+    .form-beat.state-mute {
+      background: rgba(0, 0, 0, 0.35);
+      border-color: rgba(245, 243, 238, 0.18);
+      color: rgba(245, 243, 238, 0.45);
+    }
+    .form-beat.playing {
+      box-shadow: 0 0 0 3px rgba(245, 136, 42, 0.32);
+      transform: scale(1.18);
+    }
+
+    /* Manual line break: a thin horizontal divider that takes the full
+       row width. Toggling it on inserts itself between bars; toggling off
+       removes it. Hovering between bars surfaces an "add break" cue. */
+    .form-line-break {
+      flex: 0 0 100%;
+      height: 0;
+      position: relative;
+      margin: 0.3rem 0;
+    }
+    .form-line-break::before {
+      content: "";
+      position: absolute;
+      inset: 50% 0 auto 0;
+      height: 1px;
+      background: rgba(91, 141, 232, 0.32);
+    }
+    .form-line-break-toggle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--navy);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.7);
+      font-size: 0.6rem;
+      padding: 0.15rem 0.45rem;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .form-line-break-toggle:hover {
+      background: rgba(91, 141, 232, 0.2);
+      color: var(--cream);
+    }
+
+    /* "Add break here" affordance between bars (hover only, desktop) */
+    .form-bar-break-cue {
+      flex: 0 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+      cursor: pointer;
+      align-self: stretch;
+    }
+    .form-bar-break-cue:hover { opacity: 1; }
+    .form-bar-break-cue::before {
+      content: "↵";
+      color: rgba(91, 141, 232, 0.6);
+      font-size: 0.85rem;
+    }
+    @media (hover: none) {
+      .form-bar-break-cue { display: none; }
+    }
+
+    .form-editor-add-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px dashed rgba(91, 141, 232, 0.5);
+      border-radius: 8px;
+      color: rgba(245, 243, 238, 0.85);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+      margin-top: 0.5rem;
+    }
+    .form-editor-add-bar:hover {
+      background: rgba(91, 141, 232, 0.22);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .form-editor-add-bar-plus {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    /* Add-bar + Select-bars action row beneath the grid */
+    .form-editor-body-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+    .form-editor-body-actions .form-editor-add-bar { margin-top: 0; }
+    .form-editor-select-btn {
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 8px;
+      color: rgba(245, 243, 238, 0.9);
+      font-size: 0.85rem;
+      font-family: inherit;
+      padding: 0.55rem 1rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-select-btn:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+    }
+
+    /* Contextual selection strip — pinned below the toolbar while in
+       select mode. Shows the range status + Duplicate/Delete/Cancel. */
+    .form-select-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.5rem 0.85rem;
+      background: rgba(91, 141, 232, 0.16);
+      border-bottom: 1px solid rgba(91, 141, 232, 0.35);
+    }
+    .form-select-bar[aria-hidden="false"] { display: flex; }
+    .form-select-status {
+      font-size: 0.78rem;
+      color: var(--cream);
+    }
+    .form-select-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+    .form-select-action {
+      background: rgba(91, 141, 232, 0.2);
+      border: 1px solid rgba(91, 141, 232, 0.45);
+      border-radius: 6px;
+      color: var(--cream);
+      font-size: 0.75rem;
+      font-family: inherit;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-select-action:hover { background: rgba(91, 141, 232, 0.3); }
+    .form-select-action[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .form-select-action.danger:hover {
+      background: rgba(232, 30, 30, 0.22);
+      border-color: rgba(232, 80, 80, 0.55);
+      color: rgba(255, 220, 220, 1);
+    }
+    @media (max-width: 700px) {
+      .form-select-bar { padding: 0.5rem 0.6rem; }
+      .form-select-status { font-size: 0.7rem; }
+      .form-select-action { padding: 0.3rem 0.5rem; font-size: 0.68rem; }
+    }
+
+    /* Selected-range highlight (works for both beat-mode cards and chart
+       tiles). Distinct from the orange 'playing' and blue 'editing'
+       states — a brighter blue ring. */
+    .form-bar.selected,
+    .form-chart-tile.selected {
+      border-color: var(--blue-lt);
+      background: rgba(91, 141, 232, 0.24);
+      box-shadow: 0 0 0 2px rgba(91, 141, 232, 0.45);
+    }
+    /* In select mode the whole bar/tile is one tap target — kill child
+       pointer events so a tap anywhere on it registers as a selection. */
+    .form-editor-grid.select-mode .form-bar,
+    .form-editor-grid.select-mode .form-chart-tile {
+      cursor: pointer;
+    }
+    .form-editor-grid.select-mode .form-bar *,
+    .form-editor-grid.select-mode .form-chart-tile * {
+      pointer-events: none;
+    }
+
+    /* Save / Load form-code panel — at the bottom of the editor body */
+    .form-code-panel {
+      margin-top: 1.75rem;
+      padding: 0.85rem;
+      background: rgba(91, 141, 232, 0.06);
+      border: 1px solid rgba(91, 141, 232, 0.22);
+      border-radius: 8px;
+      max-width: 480px;
+    }
+    .form-code-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(245, 243, 238, 0.6);
+      margin-bottom: 0.4rem;
+    }
+    .form-code-help {
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: rgba(245, 243, 238, 0.6);
+      margin: 0 0 0.7rem;
+    }
+    .form-code-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .form-code-input {
+      flex: 1;
+      min-width: 0;
+      background: rgba(15, 25, 45, 0.6);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      color: var(--cream);
+      padding: 0.4rem 0.6rem;
+      /* >= 16px so iOS Safari doesn't auto-zoom on focus */
+      font-size: 16px;
+      font-family: var(--mono, ui-monospace, monospace);
+    }
+    .form-code-input:focus {
+      outline: none;
+      border-color: var(--blue-lt);
+    }
+    .form-code-btn {
+      position: relative;
+      background: rgba(91, 141, 232, 0.16);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 6px;
+      color: var(--cream);
+      font-size: 0.8rem;
+      font-family: inherit;
+      padding: 0.4rem 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-code-btn:hover {
+      background: rgba(91, 141, 232, 0.28);
+      border-color: var(--blue-lt);
+    }
+    .form-code-copied {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 25, 45, 0.96);
+      border-radius: 6px;
+      color: var(--blue-lt);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .form-code-btn.copied .form-code-copied { opacity: 1; }
+    .form-code-msg {
+      font-size: 0.72rem;
+      line-height: 1.4;
+      min-height: 1em;
+    }
+    .form-code-msg.error { color: rgba(255, 180, 180, 0.95); }
+    .form-code-msg.success { color: rgba(150, 230, 170, 0.95); }
+
+    /* Mobile sticky play bar — only visible on small screens, hidden on desktop where the toolbar play button lives. */
+    .form-editor-mobile-play {
+      display: none;
+      position: sticky;
+      bottom: 0;
+      padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(13, 13, 26, 0.98) 70%, rgba(13, 13, 26, 0));
+      border-top: 1px solid rgba(91, 141, 232, 0.25);
+      z-index: 5;
+    }
+    .form-editor-mobile-play .btn-play {
+      width: 100%;
+      padding: 0.85rem;
+      font-size: 1rem;
+    }
+    @media (max-width: 700px) {
+      .form-editor-mobile-play { display: block; }
+      .form-editor-toolbar {
+        padding: 0.55rem 0.6rem;
+        gap: 0.4rem;
+        flex-wrap: nowrap;
+      }
+      .form-editor-toolbar-left,
+      .form-editor-toolbar-right { gap: 0.4rem; }
+      /* Hide the title and the trailing "BPM" label on mobile so the
+         single-row toolbar fits at 390px viewport without wrapping. */
+      .form-editor-title { display: none; }
+      .form-editor-bpm-label { display: none; }
+      .form-editor-bpm { gap: 0.15rem; }
+      .form-editor-bpm-value { font-size: 1rem; padding: 0.1rem 0.2rem; }
+      .form-editor-bpm-step { width: 26px; height: 26px; }
+      .form-editor-mode-btn { padding: 0.28rem 0.5rem; font-size: 0.65rem; }
+      .form-editor-clear { padding: 0.28rem 0.45rem; font-size: 0.65rem; white-space: nowrap; }
+      .form-editor-close { width: 30px; height: 30px; }
+      .form-editor-body { padding: 1rem 0.75rem 1rem; }
+      .form-bar { padding: 0.5rem 1.6rem 0.45rem 0.5rem; }
+    }
   </style>
 
 <main class="metronome-shell">
@@ -1534,7 +2376,7 @@ const graph = {
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Custom Form</div>
-          <div class="adv-feature-desc">Up to 256 measures with shifting time signatures, looping continuously</div>
+          <div class="adv-feature-desc">Chain measures with shifting time signatures, looping continuously</div>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="form-toggle" />
@@ -1542,28 +2384,29 @@ const graph = {
         </label>
       </div>
       <div id="form-controls" class="adv-controls disabled">
-        <div class="form-toolbar">
-          <button class="btn form-tool-btn" id="form-undo" disabled>↩ Undo</button>
-          <button class="btn form-tool-btn" id="form-redo" disabled>↪ Redo</button>
-          <button class="btn form-tool-btn" id="form-save">↓ Save</button>
-          <label class="btn form-tool-btn" id="form-load-label">↑ Load
-            <input type="file" id="form-load-input" accept=".json" style="display:none" />
-          </label>
-        </div>
-        <div class="form-bulk-row">
-          <span class="form-bulk-label">Add</span>
-          <input type="number" class="form-beats-input" id="bulk-count" min="1" max="64" value="4" />
-          <span class="form-bulk-label">×</span>
-          <input type="number" class="form-beats-input" id="bulk-beats" min="1" max="32" value="4" />
-          <span class="form-slash">/</span>
-          <select class="form-unit-select" id="bulk-unit"></select>
-          <button class="btn form-tool-btn" id="bulk-add-btn" style="flex:0 0 auto">+ Add</button>
-        </div>
-        <div class="form-list" id="form-list"></div>
-        <button class="btn btn-add-measure" id="add-measure-btn">+ Add Single Measure</button>
         <div class="form-counter" id="form-counter"></div>
+        <button class="btn btn-open-editor" id="open-form-editor">Open form editor →</button>
         <div class="play-row" style="margin-top:0.75rem">
           <button class="btn btn-play" id="play-stop-form">▶ Start</button>
+        </div>
+        <!-- Legacy form-list UI (hidden; still in the DOM so existing JS handlers don't NPE). -->
+        <div style="display:none" aria-hidden="true">
+          <div class="form-toolbar">
+            <button class="btn form-tool-btn" id="form-undo" disabled>↩ Undo</button>
+            <button class="btn form-tool-btn" id="form-redo" disabled>↪ Redo</button>
+            <button class="btn form-tool-btn" id="form-save">↓ Save</button>
+            <label class="btn form-tool-btn" id="form-load-label">↑ Load
+              <input type="file" id="form-load-input" accept=".json" />
+            </label>
+          </div>
+          <div class="form-bulk-row">
+            <input type="number" class="form-beats-input" id="bulk-count" min="1" max="64" value="4" />
+            <input type="number" class="form-beats-input" id="bulk-beats" min="1" max="32" value="4" />
+            <select class="form-unit-select" id="bulk-unit"></select>
+            <button class="btn form-tool-btn" id="bulk-add-btn">+ Add</button>
+          </div>
+          <div class="form-list" id="form-list"></div>
+          <button class="btn btn-add-measure" id="add-measure-btn">+ Add Single Measure</button>
         </div>
       </div>
     </div>
@@ -1747,6 +2590,72 @@ const graph = {
     </ul>
   </div>
 </article>
+
+<!-- Custom form editor. Hidden by default; opens when the user clicks
+     "Open form editor" inside the Custom Form card. -->
+<div class="form-editor-modal" id="form-editor-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="form-editor-title">
+  <div class="form-editor-shell">
+    <div class="form-editor-toolbar">
+      <div class="form-editor-toolbar-left">
+        <button class="form-editor-close" id="form-editor-close" type="button" aria-label="Close form editor">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M3 3l10 10 M13 3l-10 10"/></svg>
+        </button>
+        <h2 class="form-editor-title" id="form-editor-title">Form Editor</h2>
+        <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
+          <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
+          <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
+        </div>
+      </div>
+      <div class="form-editor-toolbar-right">
+        <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
+        <div class="form-editor-bpm">
+          <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
+          <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
+          <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
+          <span class="form-editor-bpm-label">BPM</span>
+        </div>
+        <button class="btn btn-play form-editor-play" id="form-editor-play" type="button">▶ Start</button>
+      </div>
+    </div>
+    <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
+      <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
+      <div class="form-select-actions">
+        <button class="form-select-action" id="form-select-duplicate" type="button" disabled>Duplicate</button>
+        <button class="form-select-action danger" id="form-select-delete" type="button" disabled>Delete</button>
+        <button class="form-select-action" id="form-select-cancel" type="button">Cancel</button>
+      </div>
+    </div>
+    <div class="form-editor-body">
+      <div class="form-editor-grid" id="form-editor-grid"></div>
+      <div class="form-editor-body-actions">
+        <button class="form-editor-add-bar" id="form-editor-add-bar" type="button">
+          <span class="form-editor-add-bar-plus" aria-hidden="true">+</span>
+          <span id="form-editor-add-bar-label">Add a 4/4 bar</span>
+        </button>
+        <button class="form-editor-select-btn" id="form-editor-select-btn" type="button">Select bars</button>
+      </div>
+
+      <div class="form-code-panel">
+        <div class="form-code-title">Save / Load Form</div>
+        <p class="form-code-help">Copy the code below and save it anywhere — a note, a file, Google Drive. Paste it back in to reload this form on any device.</p>
+        <div class="form-code-row">
+          <button class="form-code-btn" id="form-code-copy" type="button">
+            <span>Copy form code</span>
+            <span class="form-code-copied" id="form-code-copied" aria-live="polite">Copied</span>
+          </button>
+        </div>
+        <div class="form-code-row">
+          <input type="text" class="form-code-input" id="form-code-input" placeholder="Paste a form code here…" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" />
+          <button class="form-code-btn" id="form-code-load" type="button">Load</button>
+        </div>
+        <div class="form-code-msg" id="form-code-msg" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="form-editor-mobile-play" id="form-editor-mobile-play">
+      <button class="btn btn-play" id="form-editor-mobile-play-btn" type="button">▶ Start</button>
+    </div>
+  </div>
+</div>
 
 <script is:inline>
   // ─── State ───────────────────────────────────────────────────────────────────
@@ -2572,7 +3481,6 @@ const graph = {
   }
 
   function addFormMeasure() {
-    if (adv.form.length >= 256) return;
     saveFormHistory();
     const last = adv.form[adv.form.length - 1] || { beats: 4, unit: 4 };
     const states = Array(last.beats).fill('normal');
@@ -2656,7 +3564,7 @@ const graph = {
             const s = Array.isArray(entry.states) ? entry.states.slice() : Array(b).fill('normal');
             if (s.length < b) for (let i = s.length; i < b; i++) s.push('normal');
             return { beats: b, unit: u, states: s.slice(0, b) };
-          }).slice(0, 256);
+          });
           renderFormList(); updateFormCounter(0);
           lastRenderedFormIdx = -1;
           if (adv.formEnabled) renderBeatGridForEntry(adv.form[0]);
@@ -2671,13 +3579,11 @@ const graph = {
 
   // ─── Form Bulk Add ────────────────────────────────────────────────────────────
   document.getElementById('bulk-add-btn').addEventListener('click', () => {
-    const count = Math.max(1, Math.min(256, +document.getElementById('bulk-count').value || 1));
-    const beats = Math.max(1, Math.min(32,  +document.getElementById('bulk-beats').value || 4));
-    const unit  = Math.max(1, Math.min(32,  +document.getElementById('bulk-unit').value  || 4));
-    const slots = Math.min(count, 256 - adv.form.length);
-    if (slots <= 0) return;
+    const count = Math.max(1, +document.getElementById('bulk-count').value || 1);
+    const beats = Math.max(1, Math.min(32, +document.getElementById('bulk-beats').value || 4));
+    const unit  = Math.max(1, Math.min(32, +document.getElementById('bulk-unit').value  || 4));
     saveFormHistory();
-    for (let i = 0; i < slots; i++) {
+    for (let i = 0; i < count; i++) {
       const states = Array(beats).fill('normal');
       states[0] = 'accent';
       adv.form.push({ beats, unit, states });
@@ -2938,6 +3844,746 @@ const graph = {
     // If URL had state and localStorage didn't (or was different), sync now.
     if (usedURL) saveLocalStorage();
   }
+
+  // ─── Custom Form Editor ───────────────────────────────────────────────────────
+  // Notation-flavored bar grid. Reads + writes the same adv.form structure the
+  // existing scheduler consumes. Each entry: { beats, unit, states[], breakAfter? }
+  // where breakAfter (optional) forces a new line in the grid layout.
+  //
+  // Interactions:
+  //   - Tap a beat: cycle accent → soft → mute → normal
+  //   - +/- inputs: change beats-per-measure or beat unit for that bar
+  //   - Up / down: reorder bars
+  //   - X: delete bar (disabled when only one bar remains)
+  //   - "Add bar" plus button at the end: appends a new bar (clones the
+  //     previous bar's beats/unit so adding a 5/8 bar after a 5/8 bar
+  //     gives you another 5/8 bar)
+  //   - Hover gap between bars: "↵" cue to insert a line break after
+  //   - Click "BREAK" badge on an existing line: remove that break
+
+  const formEditorModal = document.getElementById('form-editor-modal');
+  const formEditorGrid  = document.getElementById('form-editor-grid');
+  const formEditorBpmEl = document.getElementById('form-editor-bpm');
+  const formEditorPlayBtns = [
+    document.getElementById('form-editor-play'),
+    document.getElementById('form-editor-mobile-play-btn'),
+  ];
+
+  function openFormEditor() {
+    // Turn the form mode on if not already (the editor only makes sense
+    // when the scheduler is using adv.form).
+    if (!adv.formEnabled) {
+      adv.formEnabled = true;
+      const toggle = document.getElementById('form-toggle');
+      if (toggle) toggle.checked = true;
+      document.getElementById('form-controls').classList.remove('disabled');
+      persistState();
+    }
+    formEditorModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('form-editor-open');
+    formEditorBpmEl.textContent = state.bpm;
+    // Reflect persisted mode in the toolbar toggle UI
+    document.getElementById('form-editor-mode-beat').classList.toggle('active', editorMode === 'beat');
+    document.getElementById('form-editor-mode-beat').setAttribute('aria-pressed', editorMode === 'beat');
+    document.getElementById('form-editor-mode-chart').classList.toggle('active', editorMode === 'chart');
+    document.getElementById('form-editor-mode-chart').setAttribute('aria-pressed', editorMode === 'chart');
+    renderFormEditor();
+    refreshFormEditorPlayButtons();
+  }
+
+  function closeFormEditor() {
+    if (selectMode) exitSelectMode();
+    formEditorModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('form-editor-open');
+  }
+
+  document.getElementById('open-form-editor').addEventListener('click', openFormEditor);
+  document.getElementById('form-editor-close').addEventListener('click', closeFormEditor);
+
+  // BPM controls inside the editor — wire +/- and contenteditable to the
+  // shared setBPM() so the change cascades to the slider, scheduler, and
+  // persistence layer just like a change on the main page would.
+  document.getElementById('form-editor-bpm-minus').addEventListener('click', () => {
+    setBPM(state.bpm - 1);
+    formEditorBpmEl.textContent = state.bpm;
+  });
+  document.getElementById('form-editor-bpm-plus').addEventListener('click', () => {
+    setBPM(state.bpm + 1);
+    formEditorBpmEl.textContent = state.bpm;
+  });
+  formEditorBpmEl.addEventListener('blur', () => {
+    const v = parseInt(formEditorBpmEl.textContent.replace(/[^\d]/g, ''), 10);
+    if (v >= 1 && v <= 500) setBPM(v);
+    formEditorBpmEl.textContent = state.bpm;
+  });
+  formEditorBpmEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      formEditorBpmEl.blur();
+    }
+  });
+  // Highlight the whole BPM value on click so a keystroke replaces it.
+  // It's a contenteditable, so select its contents via a Range rather
+  // than input.select(). setTimeout defers past the browser's own
+  // click-caret placement.
+  formEditorBpmEl.addEventListener('click', () => {
+    setTimeout(() => {
+      const range = document.createRange();
+      range.selectNodeContents(formEditorBpmEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }, 0);
+  });
+
+  // Esc closes the modal.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && formEditorModal.getAttribute('aria-hidden') === 'false') {
+      closeFormEditor();
+    }
+  });
+
+  // Editor view mode: 'beat' (rich, tap-to-edit per beat) or 'chart' (a
+  // sequence of compact tiles showing just the time signatures, for
+  // structural overview). Persisted in its own localStorage key so the
+  // user's last mode survives reloads.
+  let editorMode = 'beat';
+  try {
+    const m = localStorage.getItem('metronomeFormEditorMode_v1');
+    if (m === 'beat' || m === 'chart') editorMode = m;
+  } catch (e) {}
+
+  // Per-row cap for beat mode. Portrait gets 8, landscape gets 16.
+  function maxBeatsPerRow() {
+    const portrait = window.matchMedia('(orientation: portrait)').matches;
+    return portrait ? 8 : 16;
+  }
+
+  function renderFormEditor() {
+    formEditorGrid.className = 'form-editor-grid'
+      + (editorMode === 'chart' ? ' chart-mode' : '')
+      + (selectMode ? ' select-mode' : '');
+    formEditorGrid.innerHTML = '';
+    if (editorMode === 'chart') {
+      renderFormEditorChart();
+    } else {
+      renderFormEditorBeat();
+    }
+
+    // Update the "Add bar" button label to show the clone target.
+    const last = adv.form[adv.form.length - 1];
+    const addLabel = document.getElementById('form-editor-add-bar-label');
+    if (addLabel) addLabel.textContent = 'Add a ' + last.beats + '/' + last.unit + ' bar';
+  }
+
+  // Beat mode — auto-packed rows of bars with beat circles, no manual breaks.
+  function renderFormEditorBeat() {
+    const cap = maxBeatsPerRow();
+    let row = document.createElement('div');
+    row.className = 'form-editor-row';
+    let rowBeats = 0;
+    const flushRow = () => {
+      if (row.childNodes.length > 0) formEditorGrid.appendChild(row);
+      row = document.createElement('div');
+      row.className = 'form-editor-row';
+      rowBeats = 0;
+    };
+    adv.form.forEach((entry, idx) => {
+      const wouldExceed = rowBeats + entry.beats > cap;
+      if (rowBeats > 0 && wouldExceed) flushRow();
+      row.appendChild(buildFormBarCard(entry, idx));
+      rowBeats += entry.beats;
+    });
+    flushRow();
+  }
+
+  // Chart mode — uniform tiles.
+  //   - No manual line breaks: a fixed N-column auto-flow grid.
+  //   - At least one manual break: the form is treated as deliberately
+  //     laid out — each line (a run between breaks, capped at the
+  //     per-row tile limit) becomes a flex row whose tiles stretch to
+  //     fill the full width.
+  function maxTilesPerRow() {
+    return window.matchMedia('(orientation: portrait)').matches ? 4 : 8;
+  }
+
+  function renderFormEditorChart() {
+    const hasBreaks = adv.form.some((e) => e.breakAfter);
+    if (!hasBreaks) {
+      adv.form.forEach((entry, idx) => {
+        formEditorGrid.appendChild(buildFormChartTile(entry, idx));
+      });
+      return;
+    }
+    // Explicit line layout — only the line right before a manual break
+    // stretches its tiles to fill the width. Cap-wrapped lines and the
+    // trailing line keep fixed-width tiles (a partial line leaves a gap).
+    formEditorGrid.classList.add('chart-lines');
+    const cap = maxTilesPerRow();
+    let line = document.createElement('div');
+    line.className = 'form-chart-line';
+    let count = 0;
+    const flushLine = (endedByBreak) => {
+      if (line.childNodes.length > 0) {
+        if (endedByBreak) line.classList.add('stretch');
+        formEditorGrid.appendChild(line);
+      }
+      line = document.createElement('div');
+      line.className = 'form-chart-line';
+      count = 0;
+    };
+    adv.form.forEach((entry, idx) => {
+      line.appendChild(buildFormChartTile(entry, idx));
+      count++;
+      if (entry.breakAfter) flushLine(true);
+      else if (count >= cap) flushLine(false);
+    });
+    flushLine(false);
+  }
+
+  function buildFormChartTile(entry, idx) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.dataset.idx = idx;
+    let cls = 'form-chart-tile';
+    if (idx === advFormIdx && state.isPlaying) cls += ' active';
+    if (isBarSelected(idx)) cls += ' selected';
+    tile.className = cls;
+    tile.textContent = entry.beats + '/' + entry.unit;
+    tile.setAttribute('aria-label', 'Bar ' + (idx + 1) + ' (' + entry.beats + '/' + entry.unit + '). Tap to edit in beat mode.');
+    tile.addEventListener('click', (e) => {
+      // Only switch modes if the click wasn't on a child control
+      if (e.target.closest('.form-chart-tile-delete') || e.target.closest('.form-chart-tile-break')) return;
+      formEditingIdx = idx;
+      setEditorMode('beat');
+      // Land the user right on the bar they tapped — beat mode just
+      // re-rendered the whole grid, so scroll the now-editing bar into
+      // the center of the scroll area instead of making them hunt.
+      requestAnimationFrame(() => {
+        const editingBar = formEditorGrid.querySelector('.form-bar.editing');
+        if (editingBar) editingBar.scrollIntoView({ block: 'center' });
+      });
+    });
+
+    // Delete
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'form-chart-tile-delete';
+    del.textContent = '✕';
+    del.title = 'Delete this bar';
+    del.disabled = adv.form.length <= 1;
+    del.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (adv.form.length <= 1) return;
+      saveFormHistory();
+      adv.form.splice(idx, 1);
+      renderFormEditor();
+    });
+    tile.appendChild(del);
+
+    // Line-break toggle (chart mode only)
+    const brk = document.createElement('button');
+    brk.type = 'button';
+    brk.className = 'form-chart-tile-break' + (entry.breakAfter ? ' on' : '');
+    brk.textContent = '↵';
+    brk.title = entry.breakAfter ? 'Remove line break after this bar' : 'Add a line break after this bar';
+    brk.disabled = idx === adv.form.length - 1;  // no break needed after the last bar
+    brk.addEventListener('click', (e) => {
+      e.stopPropagation();
+      saveFormHistory();
+      entry.breakAfter = !entry.breakAfter;
+      renderFormEditor();
+    });
+    tile.appendChild(brk);
+
+    return tile;
+  }
+
+  function setEditorMode(mode) {
+    if (mode !== 'beat' && mode !== 'chart') return;
+    editorMode = mode;
+    // Switching to chart mode dismisses any open beat-mode edit chrome —
+    // it shouldn't linger (and reopen) across a round trip. Blurring also
+    // dismisses the mobile keyboard if a sig input was focused.
+    if (mode === 'chart') {
+      formEditingIdx = -1;
+      if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur();
+      }
+    }
+    try { localStorage.setItem('metronomeFormEditorMode_v1', mode); } catch (e) {}
+    document.getElementById('form-editor-mode-beat').classList.toggle('active', mode === 'beat');
+    document.getElementById('form-editor-mode-beat').setAttribute('aria-pressed', mode === 'beat');
+    document.getElementById('form-editor-mode-chart').classList.toggle('active', mode === 'chart');
+    document.getElementById('form-editor-mode-chart').setAttribute('aria-pressed', mode === 'chart');
+    renderFormEditor();
+  }
+
+  document.getElementById('form-editor-mode-beat').addEventListener('click', () => setEditorMode('beat'));
+  document.getElementById('form-editor-mode-chart').addEventListener('click', () => setEditorMode('chart'));
+
+  // Clear-all — confirm before wiping
+  document.getElementById('form-editor-clear').addEventListener('click', () => {
+    if (adv.form.length > 1 && !confirm('Clear all bars and start over?')) return;
+    saveFormHistory();
+    adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'], breakAfter: false }];
+    formEditingIdx = -1;
+    if (selectMode) { exitSelectMode(); } else { renderFormEditor(); }
+  });
+
+  // Re-pack rows on viewport resize so the cap matches the orientation.
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    if (formEditorModal.getAttribute('aria-hidden') !== 'false') return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderFormEditor, 150);
+  });
+
+  let formEditingIdx = -1;  // which bar's edit chrome is currently revealed
+
+  // ─── Multi-select ─────────────────────────────────────────────────────────────
+  // Select a contiguous range of bars, then duplicate or delete the range.
+  // Flow: tap a bar (its chrome opens — that's the anchor), tap "Select
+  // bars", then tap the last bar of the range. While selectMode is on, a
+  // tap anywhere on a bar/tile sets the range end (the capture-phase
+  // listener on the grid intercepts before the normal bar handlers).
+  let selectMode = false;
+  let selectionAnchor = -1;
+  let selectionEnd = -1;
+
+  function isBarSelected(idx) {
+    if (!selectMode || selectionAnchor < 0) return false;
+    if (selectionEnd < 0) return idx === selectionAnchor;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    const hi = Math.max(selectionAnchor, selectionEnd);
+    return idx >= lo && idx <= hi;
+  }
+
+  function updateSelectBar() {
+    const status = document.getElementById('form-select-status');
+    const dup = document.getElementById('form-select-duplicate');
+    const del = document.getElementById('form-select-delete');
+    const hasRange = selectionAnchor >= 0 && selectionEnd >= 0;
+    if (selectionAnchor < 0) {
+      status.textContent = 'Tap the first bar of the range';
+    } else if (selectionEnd < 0) {
+      status.textContent = 'Tap the last bar of the range';
+    } else {
+      const n = Math.abs(selectionEnd - selectionAnchor) + 1;
+      status.textContent = n + ' bar' + (n !== 1 ? 's' : '') + ' selected';
+    }
+    dup.disabled = !hasRange;
+    del.disabled = !hasRange;
+  }
+
+  function enterSelectMode() {
+    if (selectMode) return;
+    selectMode = true;
+    // Honor "tap the first bar, then the toggle": if a bar's chrome is
+    // open, seed the anchor with it. Otherwise the first tap sets it.
+    selectionAnchor = formEditingIdx >= 0 ? formEditingIdx : -1;
+    selectionEnd = -1;
+    document.getElementById('form-select-bar').setAttribute('aria-hidden', 'false');
+    updateSelectBar();
+    renderFormEditor();
+  }
+
+  function exitSelectMode() {
+    selectMode = false;
+    selectionAnchor = -1;
+    selectionEnd = -1;
+    document.getElementById('form-select-bar').setAttribute('aria-hidden', 'true');
+    renderFormEditor();
+  }
+
+  function handleSelectionTap(idx) {
+    if (selectionAnchor < 0) {
+      selectionAnchor = idx;
+    } else {
+      // Anchor is set — every subsequent tap (re)picks the range end.
+      selectionEnd = idx;
+    }
+    updateSelectBar();
+    renderFormEditor();
+  }
+
+  function duplicateSelection() {
+    if (selectionAnchor < 0 || selectionEnd < 0) return;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    const hi = Math.max(selectionAnchor, selectionEnd);
+    saveFormHistory();
+    const slice = adv.form.slice(lo, hi + 1).map((e) => ({
+      beats: e.beats,
+      unit: e.unit,
+      states: e.states.slice(),
+      breakAfter: e.breakAfter || false,
+    }));
+    adv.form.splice(hi + 1, 0, ...slice);
+    exitSelectMode();
+  }
+
+  function deleteSelection() {
+    if (selectionAnchor < 0 || selectionEnd < 0) return;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    const hi = Math.max(selectionAnchor, selectionEnd);
+    const count = hi - lo + 1;
+    saveFormHistory();
+    if (count >= adv.form.length) {
+      // Deleting every bar — reset to a single default bar instead.
+      adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'], breakAfter: false }];
+    } else {
+      adv.form.splice(lo, count);
+    }
+    formEditingIdx = -1;
+    exitSelectMode();
+  }
+
+  // Capture-phase listener: while in select mode, a tap anywhere on a bar
+  // or chart tile sets the selection point and is blocked from reaching
+  // the normal bar handlers (sig tag, beat circles, tile navigation).
+  formEditorGrid.addEventListener('click', (e) => {
+    if (!selectMode) return;
+    const bar = e.target.closest('.form-bar, .form-chart-tile');
+    if (!bar) return;
+    e.stopPropagation();
+    e.preventDefault();
+    handleSelectionTap(+bar.dataset.idx);
+  }, true);
+
+  document.getElementById('form-editor-select-btn').addEventListener('click', enterSelectMode);
+  document.getElementById('form-select-cancel').addEventListener('click', exitSelectMode);
+  document.getElementById('form-select-duplicate').addEventListener('click', duplicateSelection);
+  document.getElementById('form-select-delete').addEventListener('click', deleteSelection);
+
+  // When a form bar's time signature changes, apply the meter's clave
+  // default if one exists (e.g., 6/8 → A·s·s·N·s·s); otherwise preserve
+  // the user's previous accent pattern as far as it fits and pad with
+  // normal. Matches the behavior of the main metronome's preset buttons.
+  function applyClaveOrPreserveStates(entry, prevStates) {
+    const preset = defaultBeatsForSig(entry.beats, entry.unit);
+    if (preset) {
+      entry.states = preset.slice();
+      return;
+    }
+    entry.states = Array(entry.beats).fill('normal').map((_, i) =>
+      i < prevStates.length ? prevStates[i] : 'normal'
+    );
+    if (prevStates.length === 0) entry.states[0] = 'accent';
+  }
+
+  function buildFormBarCard(entry, idx) {
+    const card = document.createElement('div');
+    let cls = 'form-bar';
+    if (idx === advFormIdx && state.isPlaying) cls += ' active';
+    if (idx === formEditingIdx) cls += ' editing';
+    if (isBarSelected(idx)) cls += ' selected';
+    card.className = cls;
+    card.dataset.idx = idx;
+    // Proportional width: row flex-grow tracks the beat count, so a 7-beat
+    // bar takes more space than a 3-beat bar on the same line. Capped at
+    // the per-row beat limit — a bar wider than a full row (e.g. 12/8 in
+    // portrait) takes a full-width row and wraps its beat circles onto a
+    // second line inside the card rather than shrinking the dots.
+    const rowCap = maxBeatsPerRow();
+    const growth = Math.min(entry.beats, rowCap);
+    card.style.flexGrow = String(growth);
+    card.style.flexShrink = String(growth);
+
+    // Compact sig tag — tap to toggle edit chrome
+    const sigTag = document.createElement('button');
+    sigTag.type = 'button';
+    sigTag.className = 'form-bar-sig-tag';
+    sigTag.textContent = entry.beats + '/' + entry.unit;
+    sigTag.setAttribute('aria-label', 'Bar ' + (idx + 1) + ' (' + entry.beats + '/' + entry.unit + '). Tap to edit time signature.');
+    sigTag.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willEnter = (formEditingIdx !== idx);
+      formEditingIdx = willEnter ? idx : -1;
+      renderFormEditor();
+      // Focus the beats input SYNCHRONOUSLY here — renderFormEditor() is
+      // synchronous so the new input already exists in the DOM, and
+      // staying inside the click gesture is what makes iOS Safari open
+      // the numeric keypad. A setTimeout would break the gesture chain
+      // and iOS would focus the input visually but leave the keypad
+      // closed. The focus also triggers the highlight-on-focus handler.
+      if (willEnter) {
+        const input = formEditorGrid.querySelector('.form-bar.editing .form-bar-sig-input');
+        if (input) input.focus();
+      }
+    });
+    card.appendChild(sigTag);
+
+    // Edit chrome — sig inputs only (no reorder, no delete; delete is in
+    // its own corner button)
+    const edit = document.createElement('div');
+    edit.className = 'form-bar-edit';
+    const sig = document.createElement('div');
+    sig.className = 'form-bar-sig';
+    const beatsIn = document.createElement('input');
+    beatsIn.type = 'number';
+    beatsIn.min = 1; beatsIn.max = 32;
+    beatsIn.value = entry.beats;
+    beatsIn.className = 'form-bar-sig-input';
+    beatsIn.inputMode = 'numeric';
+    beatsIn.setAttribute('aria-label', 'Beats per measure for bar ' + (idx + 1));
+    // Highlight the value on focus so a keystroke replaces it. Fires for
+    // both a direct tap and the chrome-open auto-focus — both desired.
+    beatsIn.addEventListener('focus', () => {
+      setTimeout(() => beatsIn.select(), 0);
+    });
+    beatsIn.addEventListener('change', () => {
+      const b = Math.max(1, Math.min(32, +beatsIn.value || entry.beats));
+      beatsIn.value = b;
+      if (b === entry.beats) return;  // no-op
+      saveFormHistory();
+      const prev = entry.states.slice();
+      entry.beats = b;
+      applyClaveOrPreserveStates(entry, prev);
+      renderFormEditor();
+    });
+    sig.appendChild(beatsIn);
+    const slash = document.createElement('span');
+    slash.className = 'form-bar-sig-slash';
+    slash.textContent = '/';
+    sig.appendChild(slash);
+    const unitSel = document.createElement('select');
+    unitSel.className = 'form-bar-sig-unit';
+    unitSel.setAttribute('aria-label', 'Beat unit for bar ' + (idx + 1));
+    buildUnitOptions(unitSel, entry.unit);
+    unitSel.addEventListener('change', () => {
+      const newUnit = +unitSel.value;
+      if (newUnit === entry.unit) return;
+      saveFormHistory();
+      const prev = entry.states.slice();
+      entry.unit = newUnit;
+      applyClaveOrPreserveStates(entry, prev);
+      sigTag.textContent = entry.beats + '/' + entry.unit;
+      renderFormEditor();
+    });
+    sig.appendChild(unitSel);
+    edit.appendChild(sig);
+
+    // Insert-after — clones this bar and drops the copy in right after it.
+    const insertBtn = document.createElement('button');
+    insertBtn.type = 'button';
+    insertBtn.className = 'form-bar-insert';
+    insertBtn.textContent = '+ Insert after';
+    insertBtn.title = 'Insert a copy of this bar right after it';
+    insertBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      saveFormHistory();
+      adv.form.splice(idx + 1, 0, {
+        beats: entry.beats,
+        unit: entry.unit,
+        states: entry.states.slice(),
+        breakAfter: false,
+      });
+      formEditingIdx = idx + 1;  // keep the freshly-inserted bar selected
+      renderFormEditor();
+    });
+    edit.appendChild(insertBtn);
+
+    card.appendChild(edit);
+
+    // Always-visible delete in the top-right
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'form-bar-delete';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Delete this bar';
+    delBtn.setAttribute('aria-label', 'Delete bar ' + (idx + 1));
+    delBtn.disabled = adv.form.length <= 1;
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (adv.form.length <= 1) return;
+      saveFormHistory();
+      adv.form.splice(idx, 1);
+      if (idx > 0 && adv.form[idx - 1].breakAfter && idx === adv.form.length) {
+        adv.form[idx - 1].breakAfter = false;
+      }
+      formEditingIdx = -1;
+      renderFormEditor();
+    });
+    card.appendChild(delBtn);
+
+    // Beat row (always visible). Spaced evenly within the bar so the
+    // beats fill the stretched width gracefully.
+    const beats = document.createElement('div');
+    beats.className = 'form-bar-beats';
+    entry.states.forEach((s, i) => {
+      const beat = document.createElement('button');
+      beat.type = 'button';
+      beat.className = 'form-beat state-' + s;
+      beat.textContent = STATE_ICONS[s];
+      beat.setAttribute('aria-label', 'Beat ' + (i + 1) + ' of bar ' + (idx + 1) + ', ' + s + '. Tap to cycle.');
+      beat.addEventListener('click', () => {
+        saveFormHistory();
+        entry.states[i] = STATE_CYCLE[entry.states[i]];
+        beat.className = 'form-beat state-' + entry.states[i];
+        beat.textContent = STATE_ICONS[entry.states[i]];
+      });
+      beats.appendChild(beat);
+    });
+    card.appendChild(beats);
+
+    return card;
+  }
+
+  function buildLineBreak(afterIdx) {
+    const wrap = document.createElement('div');
+    wrap.className = 'form-line-break';
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'form-line-break-toggle';
+    toggle.textContent = 'BREAK ✕';
+    toggle.title = 'Remove this line break';
+    toggle.addEventListener('click', () => {
+      saveFormHistory();
+      adv.form[afterIdx].breakAfter = false;
+      renderFormEditor();
+    });
+    wrap.appendChild(toggle);
+    return wrap;
+  }
+
+  function buildBreakCue(afterIdx) {
+    const cue = document.createElement('div');
+    cue.className = 'form-bar-break-cue';
+    cue.title = 'Add a line break after this bar';
+    cue.addEventListener('click', () => {
+      saveFormHistory();
+      adv.form[afterIdx].breakAfter = true;
+      renderFormEditor();
+    });
+    return cue;
+  }
+
+  document.getElementById('form-editor-add-bar').addEventListener('click', () => {
+    saveFormHistory();
+    // Clone the previous bar's time signature and accent pattern as a sensible default.
+    const prev = adv.form[adv.form.length - 1];
+    adv.form.push({
+      beats: prev.beats,
+      unit: prev.unit,
+      states: prev.states.slice(),
+      breakAfter: false,
+    });
+    renderFormEditor();
+  });
+
+  // ─── Form code: portable save / load ──────────────────────────────────────────
+  // A compact single-token encoding of the whole form. Format:
+  //   JVAFORM1;<beats>/<unit>:<states>[!];<beats>/<unit>:<states>[!];...
+  // states are A/N/S/M chars (accent/normal/soft/mute); a trailing "!" on
+  // a bar means breakAfter. The user copies this string and saves it
+  // wherever they like, then pastes it back to reload the form. The
+  // JVAFORM1 prefix is a version marker so the format can evolve later.
+  function encodeFormCode() {
+    const bars = adv.form.map((e) => {
+      const chars = e.states.map((s) => BEAT_TO_CHAR[s] || 'N').join('');
+      return e.beats + '/' + e.unit + ':' + chars + (e.breakAfter ? '!' : '');
+    });
+    return 'JVAFORM1;' + bars.join(';');
+  }
+
+  function decodeFormCode(str) {
+    const parts = (str || '').trim().split(';');
+    if (parts[0] !== 'JVAFORM1') {
+      return { error: 'That doesn’t look like a form code (missing the JVAFORM1 header).' };
+    }
+    const barStrs = parts.slice(1).filter((p) => p.length > 0);
+    if (barStrs.length === 0) return { error: 'That form code has no bars in it.' };
+    const form = [];
+    for (let i = 0; i < barStrs.length; i++) {
+      const m = barStrs[i].match(/^(\d+)\/(\d+):([ANSM]+)(!?)$/);
+      if (!m) return { error: 'Bar ' + (i + 1) + ' is malformed: “' + barStrs[i] + '”' };
+      const beats = +m[1], unit = +m[2], chars = m[3];
+      if (beats < 1 || beats > 32) return { error: 'Bar ' + (i + 1) + ': beats must be 1–32.' };
+      if (unit < 1 || unit > 32) return { error: 'Bar ' + (i + 1) + ': unit must be 1–32.' };
+      if (chars.length !== beats) {
+        return { error: 'Bar ' + (i + 1) + ': has ' + chars.length + ' beat states but the time signature says ' + beats + '.' };
+      }
+      form.push({
+        beats, unit,
+        states: chars.split('').map((c) => CHAR_TO_BEAT[c]),
+        breakAfter: m[4] === '!',
+      });
+    }
+    return { form };
+  }
+
+  document.getElementById('form-code-copy').addEventListener('click', async () => {
+    const code = encodeFormCode();
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      document.body.removeChild(ta);
+    }
+    const btn = document.getElementById('form-code-copy');
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1400);
+  });
+
+  document.getElementById('form-code-load').addEventListener('click', () => {
+    const input = document.getElementById('form-code-input');
+    const msg = document.getElementById('form-code-msg');
+    const result = decodeFormCode(input.value);
+    if (result.error) {
+      msg.textContent = result.error;
+      msg.className = 'form-code-msg error';
+      return;
+    }
+    saveFormHistory();
+    adv.form = result.form;
+    formEditingIdx = -1;
+    renderFormEditor();
+    input.value = '';
+    const n = result.form.length;
+    msg.textContent = 'Loaded ' + n + ' bar' + (n !== 1 ? 's' : '') + '.';
+    msg.className = 'form-code-msg success';
+  });
+
+  // Sync the editor's play buttons with the existing transport.
+  function refreshFormEditorPlayButtons() {
+    const label = state.isPlaying ? '■ Stop' : '▶ Start';
+    formEditorPlayBtns.forEach((b) => { if (b) b.textContent = label; });
+    // Don't clobber the BPM field while the user is typing into it — this
+    // refresh runs on a 200ms interval. When the field isn't focused,
+    // keep it synced to state.bpm so +/- and main-page changes show up.
+    if (document.activeElement !== formEditorBpmEl) {
+      formEditorBpmEl.textContent = state.bpm;
+    }
+  }
+  formEditorPlayBtns.forEach((b) => {
+    if (!b) return;
+    b.addEventListener('click', () => {
+      if (state.isPlaying) stopMetronome(); else startMetronome();
+      refreshFormEditorPlayButtons();
+      // Re-render the grid so the active-bar highlight kicks in.
+      if (formEditorModal.getAttribute('aria-hidden') === 'false') renderFormEditor();
+    });
+  });
+
+  // When the scheduler advances to a new bar, refresh the active highlight.
+  // Hook into the existing form-counter update site by polling lightly while
+  // the editor is open.
+  let formEditorActiveIdx = -1;
+  setInterval(() => {
+    if (formEditorModal.getAttribute('aria-hidden') !== 'false') return;
+    if (advFormIdx !== formEditorActiveIdx) {
+      formEditorActiveIdx = advFormIdx;
+      formEditorGrid.querySelectorAll('.form-bar').forEach((card) => {
+        card.classList.toggle('active', +card.dataset.idx === advFormIdx && state.isPlaying);
+      });
+      refreshFormEditorPlayButtons();
+    } else {
+      refreshFormEditorPlayButtons();
+    }
+  }, 200);
 
   init();
 </script>
