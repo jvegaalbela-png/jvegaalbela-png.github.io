@@ -3706,6 +3706,19 @@ const graph = {
       formEditorBpmEl.blur();
     }
   });
+  // Highlight the whole BPM value on click so a keystroke replaces it.
+  // It's a contenteditable, so select its contents via a Range rather
+  // than input.select(). setTimeout defers past the browser's own
+  // click-caret placement.
+  formEditorBpmEl.addEventListener('click', () => {
+    setTimeout(() => {
+      const range = document.createRange();
+      range.selectNodeContents(formEditorBpmEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }, 0);
+  });
 
   // Esc closes the modal.
   document.addEventListener('keydown', (e) => {
@@ -3930,11 +3943,9 @@ const graph = {
     beatsIn.className = 'form-bar-sig-input';
     beatsIn.inputMode = 'numeric';
     beatsIn.setAttribute('aria-label', 'Beats per measure for bar ' + (idx + 1));
-    // Highlight the value only on a direct tap into the input (a real
-    // click), so the numpad keystroke replaces it. The chrome-opening
-    // auto-focus is programmatic and fires `focus` but never `click`, so
-    // it stays un-highlighted — which is the distinction we want.
-    beatsIn.addEventListener('click', () => {
+    // Highlight the value on focus so a keystroke replaces it. Fires for
+    // both a direct tap and the chrome-open auto-focus — both desired.
+    beatsIn.addEventListener('focus', () => {
       setTimeout(() => beatsIn.select(), 0);
     });
     beatsIn.addEventListener('change', () => {
