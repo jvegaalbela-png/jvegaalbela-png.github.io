@@ -96,7 +96,7 @@ const graph = {
         'Four-level beat dynamics (accent, normal, soft, mute) with clave defaults for 5/8, 6/8, 7/8, 9/8, 12/8',
         'Gap click — silent measures for internal-clock practice',
         'Random mute — probabilistic beat dropouts',
-        'Custom form generator — up to 256 measures with shifting time signatures',
+        'Custom form generator — chain any number of measures with shifting time signatures',
         'Tap tempo',
         'Electronic and clave sound options',
       ],
@@ -1951,6 +1951,97 @@ const graph = {
       line-height: 1;
     }
 
+    /* Add-bar + Select-bars action row beneath the grid */
+    .form-editor-body-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+    .form-editor-body-actions .form-editor-add-bar { margin-top: 0; }
+    .form-editor-select-btn {
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 8px;
+      color: rgba(245, 243, 238, 0.9);
+      font-size: 0.85rem;
+      font-family: inherit;
+      padding: 0.55rem 1rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-select-btn:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+    }
+
+    /* Contextual selection strip — pinned below the toolbar while in
+       select mode. Shows the range status + Duplicate/Delete/Cancel. */
+    .form-select-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.5rem 0.85rem;
+      background: rgba(91, 141, 232, 0.16);
+      border-bottom: 1px solid rgba(91, 141, 232, 0.35);
+    }
+    .form-select-bar[aria-hidden="false"] { display: flex; }
+    .form-select-status {
+      font-size: 0.78rem;
+      color: var(--cream);
+    }
+    .form-select-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+    .form-select-action {
+      background: rgba(91, 141, 232, 0.2);
+      border: 1px solid rgba(91, 141, 232, 0.45);
+      border-radius: 6px;
+      color: var(--cream);
+      font-size: 0.75rem;
+      font-family: inherit;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-select-action:hover { background: rgba(91, 141, 232, 0.3); }
+    .form-select-action[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .form-select-action.danger:hover {
+      background: rgba(232, 30, 30, 0.22);
+      border-color: rgba(232, 80, 80, 0.55);
+      color: rgba(255, 220, 220, 1);
+    }
+    @media (max-width: 700px) {
+      .form-select-bar { padding: 0.5rem 0.6rem; }
+      .form-select-status { font-size: 0.7rem; }
+      .form-select-action { padding: 0.3rem 0.5rem; font-size: 0.68rem; }
+    }
+
+    /* Selected-range highlight (works for both beat-mode cards and chart
+       tiles). Distinct from the orange 'playing' and blue 'editing'
+       states — a brighter blue ring. */
+    .form-bar.selected,
+    .form-chart-tile.selected {
+      border-color: var(--blue-lt);
+      background: rgba(91, 141, 232, 0.24);
+      box-shadow: 0 0 0 2px rgba(91, 141, 232, 0.45);
+    }
+    /* In select mode the whole bar/tile is one tap target — kill child
+       pointer events so a tap anywhere on it registers as a selection. */
+    .form-editor-grid.select-mode .form-bar,
+    .form-editor-grid.select-mode .form-chart-tile {
+      cursor: pointer;
+    }
+    .form-editor-grid.select-mode .form-bar *,
+    .form-editor-grid.select-mode .form-chart-tile * {
+      pointer-events: none;
+    }
+
     /* Save / Load form-code panel — at the bottom of the editor body */
     .form-code-panel {
       margin-top: 1.75rem;
@@ -2267,7 +2358,7 @@ const graph = {
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Custom Form</div>
-          <div class="adv-feature-desc">Up to 256 measures with shifting time signatures, looping continuously</div>
+          <div class="adv-feature-desc">Chain measures with shifting time signatures, looping continuously</div>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="form-toggle" />
@@ -2508,12 +2599,23 @@ const graph = {
         <button class="btn btn-play form-editor-play" id="form-editor-play" type="button">▶ Start</button>
       </div>
     </div>
+    <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
+      <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
+      <div class="form-select-actions">
+        <button class="form-select-action" id="form-select-duplicate" type="button" disabled>Duplicate</button>
+        <button class="form-select-action danger" id="form-select-delete" type="button" disabled>Delete</button>
+        <button class="form-select-action" id="form-select-cancel" type="button">Cancel</button>
+      </div>
+    </div>
     <div class="form-editor-body">
       <div class="form-editor-grid" id="form-editor-grid"></div>
-      <button class="form-editor-add-bar" id="form-editor-add-bar" type="button">
-        <span class="form-editor-add-bar-plus" aria-hidden="true">+</span>
-        <span id="form-editor-add-bar-label">Add a 4/4 bar</span>
-      </button>
+      <div class="form-editor-body-actions">
+        <button class="form-editor-add-bar" id="form-editor-add-bar" type="button">
+          <span class="form-editor-add-bar-plus" aria-hidden="true">+</span>
+          <span id="form-editor-add-bar-label">Add a 4/4 bar</span>
+        </button>
+        <button class="form-editor-select-btn" id="form-editor-select-btn" type="button">Select bars</button>
+      </div>
 
       <div class="form-code-panel">
         <div class="form-code-title">Save / Load Form</div>
@@ -3361,7 +3463,6 @@ const graph = {
   }
 
   function addFormMeasure() {
-    if (adv.form.length >= 256) return;
     saveFormHistory();
     const last = adv.form[adv.form.length - 1] || { beats: 4, unit: 4 };
     const states = Array(last.beats).fill('normal');
@@ -3445,7 +3546,7 @@ const graph = {
             const s = Array.isArray(entry.states) ? entry.states.slice() : Array(b).fill('normal');
             if (s.length < b) for (let i = s.length; i < b; i++) s.push('normal');
             return { beats: b, unit: u, states: s.slice(0, b) };
-          }).slice(0, 256);
+          });
           renderFormList(); updateFormCounter(0);
           lastRenderedFormIdx = -1;
           if (adv.formEnabled) renderBeatGridForEntry(adv.form[0]);
@@ -3460,13 +3561,11 @@ const graph = {
 
   // ─── Form Bulk Add ────────────────────────────────────────────────────────────
   document.getElementById('bulk-add-btn').addEventListener('click', () => {
-    const count = Math.max(1, Math.min(256, +document.getElementById('bulk-count').value || 1));
-    const beats = Math.max(1, Math.min(32,  +document.getElementById('bulk-beats').value || 4));
-    const unit  = Math.max(1, Math.min(32,  +document.getElementById('bulk-unit').value  || 4));
-    const slots = Math.min(count, 256 - adv.form.length);
-    if (slots <= 0) return;
+    const count = Math.max(1, +document.getElementById('bulk-count').value || 1);
+    const beats = Math.max(1, Math.min(32, +document.getElementById('bulk-beats').value || 4));
+    const unit  = Math.max(1, Math.min(32, +document.getElementById('bulk-unit').value  || 4));
     saveFormHistory();
-    for (let i = 0; i < slots; i++) {
+    for (let i = 0; i < count; i++) {
       const states = Array(beats).fill('normal');
       states[0] = 'accent';
       adv.form.push({ beats, unit, states });
@@ -3775,6 +3874,7 @@ const graph = {
   }
 
   function closeFormEditor() {
+    if (selectMode) exitSelectMode();
     formEditorModal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('form-editor-open');
   }
@@ -3842,7 +3942,9 @@ const graph = {
   }
 
   function renderFormEditor() {
-    formEditorGrid.className = 'form-editor-grid' + (editorMode === 'chart' ? ' chart-mode' : '');
+    formEditorGrid.className = 'form-editor-grid'
+      + (editorMode === 'chart' ? ' chart-mode' : '')
+      + (selectMode ? ' select-mode' : '');
     formEditorGrid.innerHTML = '';
     if (editorMode === 'chart') {
       renderFormEditorChart();
@@ -3892,8 +3994,10 @@ const graph = {
   function buildFormChartTile(entry, idx) {
     const tile = document.createElement('button');
     tile.type = 'button';
+    tile.dataset.idx = idx;
     let cls = 'form-chart-tile';
     if (idx === advFormIdx && state.isPlaying) cls += ' active';
+    if (isBarSelected(idx)) cls += ' selected';
     tile.className = cls;
     tile.textContent = entry.beats + '/' + entry.unit;
     tile.setAttribute('aria-label', 'Bar ' + (idx + 1) + ' (' + entry.beats + '/' + entry.unit + '). Tap to edit in beat mode.');
@@ -3965,7 +4069,7 @@ const graph = {
     saveFormHistory();
     adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'], breakAfter: false }];
     formEditingIdx = -1;
-    renderFormEditor();
+    if (selectMode) { exitSelectMode(); } else { renderFormEditor(); }
   });
 
   // Re-pack rows on viewport resize so the cap matches the orientation.
@@ -3977,6 +4081,120 @@ const graph = {
   });
 
   let formEditingIdx = -1;  // which bar's edit chrome is currently revealed
+
+  // ─── Multi-select ─────────────────────────────────────────────────────────────
+  // Select a contiguous range of bars, then duplicate or delete the range.
+  // Flow: tap a bar (its chrome opens — that's the anchor), tap "Select
+  // bars", then tap the last bar of the range. While selectMode is on, a
+  // tap anywhere on a bar/tile sets the range end (the capture-phase
+  // listener on the grid intercepts before the normal bar handlers).
+  let selectMode = false;
+  let selectionAnchor = -1;
+  let selectionEnd = -1;
+
+  function isBarSelected(idx) {
+    if (!selectMode || selectionAnchor < 0) return false;
+    if (selectionEnd < 0) return idx === selectionAnchor;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    const hi = Math.max(selectionAnchor, selectionEnd);
+    return idx >= lo && idx <= hi;
+  }
+
+  function updateSelectBar() {
+    const status = document.getElementById('form-select-status');
+    const dup = document.getElementById('form-select-duplicate');
+    const del = document.getElementById('form-select-delete');
+    const hasRange = selectionAnchor >= 0 && selectionEnd >= 0;
+    if (selectionAnchor < 0) {
+      status.textContent = 'Tap the first bar of the range';
+    } else if (selectionEnd < 0) {
+      status.textContent = 'Tap the last bar of the range';
+    } else {
+      const n = Math.abs(selectionEnd - selectionAnchor) + 1;
+      status.textContent = n + ' bar' + (n !== 1 ? 's' : '') + ' selected';
+    }
+    dup.disabled = !hasRange;
+    del.disabled = !hasRange;
+  }
+
+  function enterSelectMode() {
+    if (selectMode) return;
+    selectMode = true;
+    // Honor "tap the first bar, then the toggle": if a bar's chrome is
+    // open, seed the anchor with it. Otherwise the first tap sets it.
+    selectionAnchor = formEditingIdx >= 0 ? formEditingIdx : -1;
+    selectionEnd = -1;
+    document.getElementById('form-select-bar').setAttribute('aria-hidden', 'false');
+    updateSelectBar();
+    renderFormEditor();
+  }
+
+  function exitSelectMode() {
+    selectMode = false;
+    selectionAnchor = -1;
+    selectionEnd = -1;
+    document.getElementById('form-select-bar').setAttribute('aria-hidden', 'true');
+    renderFormEditor();
+  }
+
+  function handleSelectionTap(idx) {
+    if (selectionAnchor < 0) {
+      selectionAnchor = idx;
+    } else {
+      // Anchor is set — every subsequent tap (re)picks the range end.
+      selectionEnd = idx;
+    }
+    updateSelectBar();
+    renderFormEditor();
+  }
+
+  function duplicateSelection() {
+    if (selectionAnchor < 0 || selectionEnd < 0) return;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    const hi = Math.max(selectionAnchor, selectionEnd);
+    saveFormHistory();
+    const slice = adv.form.slice(lo, hi + 1).map((e) => ({
+      beats: e.beats,
+      unit: e.unit,
+      states: e.states.slice(),
+      breakAfter: e.breakAfter || false,
+    }));
+    adv.form.splice(hi + 1, 0, ...slice);
+    exitSelectMode();
+  }
+
+  function deleteSelection() {
+    if (selectionAnchor < 0 || selectionEnd < 0) return;
+    const lo = Math.min(selectionAnchor, selectionEnd);
+    const hi = Math.max(selectionAnchor, selectionEnd);
+    const count = hi - lo + 1;
+    saveFormHistory();
+    if (count >= adv.form.length) {
+      // Deleting every bar — reset to a single default bar instead.
+      adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'], breakAfter: false }];
+    } else {
+      adv.form.splice(lo, count);
+    }
+    formEditingIdx = -1;
+    exitSelectMode();
+  }
+
+  // Capture-phase listener: while in select mode, a tap anywhere on a bar
+  // or chart tile sets the selection point and is blocked from reaching
+  // the normal bar handlers (sig tag, beat circles, tile navigation).
+  formEditorGrid.addEventListener('click', (e) => {
+    if (!selectMode) return;
+    const bar = e.target.closest('.form-bar, .form-chart-tile');
+    if (!bar) return;
+    e.stopPropagation();
+    e.preventDefault();
+    handleSelectionTap(+bar.dataset.idx);
+  }, true);
+
+  document.getElementById('form-editor-select-btn').addEventListener('click', enterSelectMode);
+  document.getElementById('form-select-cancel').addEventListener('click', exitSelectMode);
+  document.getElementById('form-select-duplicate').addEventListener('click', duplicateSelection);
+  document.getElementById('form-select-delete').addEventListener('click', deleteSelection);
 
   // When a form bar's time signature changes, apply the meter's clave
   // default if one exists (e.g., 6/8 → A·s·s·N·s·s); otherwise preserve
@@ -3999,6 +4217,7 @@ const graph = {
     let cls = 'form-bar';
     if (idx === advFormIdx && state.isPlaying) cls += ' active';
     if (idx === formEditingIdx) cls += ' editing';
+    if (isBarSelected(idx)) cls += ' selected';
     card.className = cls;
     card.dataset.idx = idx;
     // Proportional width: row's flex-grow is the beat count, so a 7-beat
