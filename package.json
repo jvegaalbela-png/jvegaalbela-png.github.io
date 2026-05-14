@@ -6,12 +6,13 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "node scripts/sync-blog-assets.mjs && astro dev",
-    "build": "node scripts/sync-blog-assets.mjs && astro build",
+    "dev": "node scripts/sync-blog-assets.mjs && node scripts/sync-cms-preview-styles.mjs && astro dev",
+    "build": "node scripts/sync-blog-assets.mjs && node scripts/sync-cms-preview-styles.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "pdfs:thumbs": "node scripts/generate-pdf-thumbs.mjs",
-    "blog:sync": "node scripts/sync-blog-assets.mjs"
+    "blog:sync": "node scripts/sync-blog-assets.mjs",
+    "cms:styles": "node scripts/sync-cms-preview-styles.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.4",

@@ -2,6 +2,9 @@
 dist/
 # generated types
 .astro/
+# CMS preview styles — copied from src/styles/ by scripts/sync-cms-preview-styles.mjs
+public/admin/_tokens.css
+public/admin/global.css
 
 # dependencies
 node_modules/

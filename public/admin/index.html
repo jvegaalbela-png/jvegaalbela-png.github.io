@@ -8,5 +8,26 @@
   </head>
   <body>
     <script type="module" src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+    <script>
+      // Inject the site's stylesheet into the CMS preview pane — the
+      // preview renders in an isolated iframe that otherwise shows
+      // unstyled content. /admin/global.css is copied from src/styles/
+      // on every dev/build by scripts/sync-cms-preview-styles.mjs (it
+      // @imports /admin/_tokens.css, copied alongside it).
+      //
+      // Sveltia loads as an ES module, so window.CMS isn't ready when
+      // this classic script first runs — poll briefly (capped) until
+      // the registerPreviewStyle API exists.
+      (function () {
+        var tries = 0;
+        (function register() {
+          if (window.CMS && typeof window.CMS.registerPreviewStyle === 'function') {
+            window.CMS.registerPreviewStyle('/admin/global.css');
+          } else if (tries++ < 200) {
+            setTimeout(register, 50);
+          }
+        })();
+      })();
+    </script>
   </body>
 </html>
