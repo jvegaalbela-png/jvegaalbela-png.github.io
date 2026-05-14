@@ -4552,7 +4552,12 @@ const graph = {
   function refreshFormEditorPlayButtons() {
     const label = state.isPlaying ? '■ Stop' : '▶ Start';
     formEditorPlayBtns.forEach((b) => { if (b) b.textContent = label; });
-    formEditorBpmEl.textContent = state.bpm;
+    // Don't clobber the BPM field while the user is typing into it — this
+    // refresh runs on a 200ms interval. When the field isn't focused,
+    // keep it synced to state.bpm so +/- and main-page changes show up.
+    if (document.activeElement !== formEditorBpmEl) {
+      formEditorBpmEl.textContent = state.bpm;
+    }
   }
   formEditorPlayBtns.forEach((b) => {
     if (!b) return;
