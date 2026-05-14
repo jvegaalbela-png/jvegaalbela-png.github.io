@@ -3803,6 +3803,9 @@ const graph = {
   const CHAR_TO_BEAT = { A: 'accent', N: 'normal', S: 'soft', M: 'mute' };
   const SOUND_TO_CHAR = { electronic: 'e', clave: 'c' };
   const CHAR_TO_SOUND = { e: 'electronic', c: 'clave' };
+  // Set from localStorage on load — re-opens the form editor on refresh
+  // if it was open when the page was left.
+  let restoreEditorOpen = false;
 
   function encodeURLState() {
     const params = new URLSearchParams();
@@ -3876,6 +3879,7 @@ const graph = {
           formEnabled: adv.formEnabled,
           form: adv.form,
         },
+        formEditorOpen: formEditorModal.getAttribute('aria-hidden') === 'false',
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) { /* private mode or quota — ignore */ }
@@ -3903,6 +3907,7 @@ const graph = {
         adv.formEnabled = !!d.adv.formEnabled;
         if (Array.isArray(d.adv.form) && d.adv.form.length > 0) adv.form = d.adv.form;
       }
+      restoreEditorOpen = !!d.formEditorOpen;
       return true;
     } catch (e) { return false; }
   }
@@ -3945,9 +3950,11 @@ const graph = {
     state.beats[0] = 'accent';
     adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'] }];
 
-    // Restore: URL params win, else localStorage, else defaults already in place.
+    // Restore: localStorage is the base — it holds everything, including
+    // the custom form, which the shareable URL doesn't encode. URL params,
+    // when present, then override the shareable subset on top.
+    loadLocalStorage();
     const usedURL = applyURLState(window.location.search);
-    if (!usedURL) loadLocalStorage();
 
     // Reflect restored state into the DOM.
     document.getElementById('bpm-display').textContent = state.bpm;
@@ -3986,6 +3993,9 @@ const graph = {
 
     // If URL had state and localStorage didn't (or was different), sync now.
     if (usedURL) saveLocalStorage();
+
+    // Re-open the form editor if it was open when the page was last left.
+    if (restoreEditorOpen) openFormEditor();
   }
 
   // ─── Custom Form Editor ───────────────────────────────────────────────────────
@@ -4020,7 +4030,6 @@ const graph = {
       const toggle = document.getElementById('form-toggle');
       if (toggle) toggle.checked = true;
       document.getElementById('form-controls').classList.remove('disabled');
-      persistState();
     }
     formEditorModal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('form-editor-open');
@@ -4032,12 +4041,14 @@ const graph = {
     document.getElementById('form-editor-mode-chart').setAttribute('aria-pressed', editorMode === 'chart');
     renderFormEditor();
     refreshFormEditorPlayButtons();
+    saveLocalStorage();  // remember the editor is open (+ any formEnabled flip)
   }
 
   function closeFormEditor() {
     if (selectMode) exitSelectMode();
     formEditorModal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('form-editor-open');
+    saveLocalStorage();  // remember the editor is closed
   }
 
   document.getElementById('open-form-editor').addEventListener('click', openFormEditor);
