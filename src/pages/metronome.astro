@@ -1668,7 +1668,11 @@ const graph = {
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
-      padding: 0.4rem 1.85rem 0.45rem 0.5rem;
+      /* Symmetric padding — the absolute delete ✕ only overlaps the top
+         band (sig tag / edit chrome), not the beats row, so the bar
+         doesn't need a wide right gutter. The edit chrome carries its
+         own right padding for delete clearance instead. */
+      padding: 0.4rem 0.5rem 0.45rem 0.5rem;
       background: rgba(91, 141, 232, 0.07);
       border: 1px solid rgba(91, 141, 232, 0.3);
       border-radius: 6px;
@@ -1744,7 +1748,9 @@ const graph = {
       flex-wrap: wrap;
       align-items: center;
       gap: 0.25rem 0.4rem;
-      padding: 0.05rem 0;
+      /* Right padding keeps the sig inputs / Insert button clear of the
+         absolute delete ✕ in the top-right corner. */
+      padding: 0.05rem 1.4rem 0.05rem 0;
     }
     .form-bar.editing .form-bar-edit { display: flex; }
 
@@ -2177,7 +2183,7 @@ const graph = {
       .form-editor-clear { padding: 0.28rem 0.45rem; font-size: 0.65rem; white-space: nowrap; }
       .form-editor-close { width: 30px; height: 30px; }
       .form-editor-body { padding: 1rem 0.75rem 1rem; }
-      .form-bar { padding: 0.5rem 1.6rem 0.45rem 0.5rem; }
+      .form-bar { padding: 0.5rem 0.5rem 0.45rem 0.5rem; }
     }
   </style>
 
@@ -2701,7 +2707,12 @@ const graph = {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    // iOS Safari can drop the context into 'interrupted' (a phone call,
+    // the device locking, sometimes a rotation) as well as 'suspended';
+    // both need a resume() to get audio flowing again.
+    if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+      audioCtx.resume();
+    }
     return audioCtx;
   }
 
@@ -2816,6 +2827,11 @@ const graph = {
 
   function getAdvConfig() {
     if (adv.formEnabled && adv.form.length > 0) {
+      // Clamp advFormIdx — the form can shrink (delete, clear, undo,
+      // form-code load) while playing, leaving advFormIdx pointing past
+      // the end. An out-of-range read here used to throw and kill the
+      // scheduler loop entirely (no more audio until restart).
+      if (advFormIdx < 0 || advFormIdx >= adv.form.length) advFormIdx = 0;
       const e = adv.form[advFormIdx];
       return { beatsPerMeasure: e.beats, beats: e.states, beatUnit: e.unit };
     }
@@ -2823,6 +2839,9 @@ const graph = {
   }
 
   function scheduler() {
+    // The whole body is guarded so a transient error in one tick can't
+    // permanently stop the loop — the reschedule below always runs.
+    try {
     const ctx = getAudioCtx();
 
     while (nextNoteTime < ctx.currentTime + SCHEDULE_AHEAD_S) {
@@ -2876,6 +2895,9 @@ const graph = {
           }
         }
       }
+    }
+    } catch (e) {
+      console.error('metronome scheduler error', e);
     }
 
     schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
@@ -3973,7 +3995,7 @@ const graph = {
     // Update the "Add bar" button label to show the clone target.
     const last = adv.form[adv.form.length - 1];
     const addLabel = document.getElementById('form-editor-add-bar-label');
-    if (addLabel) addLabel.textContent = 'Add a ' + last.beats + '/' + last.unit + ' bar';
+    if (addLabel && last) addLabel.textContent = 'Add a ' + last.beats + '/' + last.unit + ' bar';
   }
 
   // Beat mode — auto-packed rows of bars with beat circles, no manual breaks.
@@ -4131,12 +4153,15 @@ const graph = {
     if (selectMode) { exitSelectMode(); } else { renderFormEditor(); }
   });
 
-  // Re-pack rows on viewport resize so the cap matches the orientation.
-  let resizeTimer = null;
-  window.addEventListener('resize', () => {
+  // Re-pack rows when the orientation actually flips. Listening to the
+  // orientation media query (rather than 'resize') means we don't
+  // re-render on every iOS URL-bar show/hide — those fire 'resize'
+  // constantly and re-rendering mid-edit on each one was a source of
+  // glitches. Wrapped in try/catch so a render hiccup during a rotation
+  // can't leave the editor blank.
+  window.matchMedia('(orientation: portrait)').addEventListener('change', () => {
     if (formEditorModal.getAttribute('aria-hidden') !== 'false') return;
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(renderFormEditor, 150);
+    try { renderFormEditor(); } catch (e) { console.error('form re-render failed', e); }
   });
 
   let formEditingIdx = -1;  // which bar's edit chrome is currently revealed
