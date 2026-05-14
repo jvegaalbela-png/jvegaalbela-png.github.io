@@ -1756,6 +1756,25 @@ const graph = {
       -webkit-appearance: none; margin: 0;
     }
     .form-bar-sig-slash { opacity: 0.5; font-size: 0.8rem; }
+
+    .form-bar-insert {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.85);
+      font-size: 0.72rem;
+      font-family: inherit;
+      letter-spacing: 0.02em;
+      padding: 0.25rem 0.55rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-bar-insert:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
     .form-bar-sig-unit {
       background: rgba(15, 25, 45, 0.6);
       border: 1px solid rgba(91, 141, 232, 0.35);
@@ -3877,8 +3896,17 @@ const graph = {
     sigTag.setAttribute('aria-label', 'Bar ' + (idx + 1) + ' (' + entry.beats + '/' + entry.unit + '). Tap to edit time signature.');
     sigTag.addEventListener('click', (e) => {
       e.stopPropagation();
-      formEditingIdx = (formEditingIdx === idx) ? -1 : idx;
+      const willEnter = (formEditingIdx !== idx);
+      formEditingIdx = willEnter ? idx : -1;
       renderFormEditor();
+      // When entering edit mode, jump straight to the beats input with
+      // its current value pre-selected — saves an extra tap on mobile.
+      if (willEnter) {
+        setTimeout(() => {
+          const input = formEditorGrid.querySelector('.form-bar.editing .form-bar-sig-input');
+          if (input) input.focus();
+        }, 0);
+      }
     });
     card.appendChild(sigTag);
 
@@ -3932,6 +3960,27 @@ const graph = {
     });
     sig.appendChild(unitSel);
     edit.appendChild(sig);
+
+    // Insert-after — clones this bar and drops the copy in right after it.
+    const insertBtn = document.createElement('button');
+    insertBtn.type = 'button';
+    insertBtn.className = 'form-bar-insert';
+    insertBtn.textContent = '+ Insert after';
+    insertBtn.title = 'Insert a copy of this bar right after it';
+    insertBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      saveFormHistory();
+      adv.form.splice(idx + 1, 0, {
+        beats: entry.beats,
+        unit: entry.unit,
+        states: entry.states.slice(),
+        breakAfter: false,
+      });
+      formEditingIdx = idx + 1;  // keep the freshly-inserted bar selected
+      renderFormEditor();
+    });
+    edit.appendChild(insertBtn);
+
     card.appendChild(edit);
 
     // Always-visible delete in the top-right
