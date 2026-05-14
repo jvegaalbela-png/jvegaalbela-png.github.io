@@ -3923,12 +3923,6 @@ const graph = {
     beatsIn.className = 'form-bar-sig-input';
     beatsIn.inputMode = 'numeric';
     beatsIn.setAttribute('aria-label', 'Beats per measure for bar ' + (idx + 1));
-    // Auto-select the current value on focus so a single keystroke
-    // replaces it instead of having to clear it first. Use a microtask
-    // because some browsers (Safari) need the focus to settle first.
-    beatsIn.addEventListener('focus', () => {
-      setTimeout(() => beatsIn.select(), 0);
-    });
     beatsIn.addEventListener('change', () => {
       const b = Math.max(1, Math.min(32, +beatsIn.value || entry.beats));
       beatsIn.value = b;
