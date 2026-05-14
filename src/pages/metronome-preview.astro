@@ -3791,6 +3791,13 @@ const graph = {
       if (e.target.closest('.form-chart-tile-delete') || e.target.closest('.form-chart-tile-break')) return;
       formEditingIdx = idx;
       setEditorMode('beat');
+      // Land the user right on the bar they tapped — beat mode just
+      // re-rendered the whole grid, so scroll the now-editing bar into
+      // the center of the scroll area instead of making them hunt.
+      requestAnimationFrame(() => {
+        const editingBar = formEditorGrid.querySelector('.form-bar.editing');
+        if (editingBar) editingBar.scrollIntoView({ block: 'center' });
+      });
     });
 
     // Delete
