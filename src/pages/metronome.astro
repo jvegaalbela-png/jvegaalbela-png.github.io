@@ -328,7 +328,7 @@ const graph = {
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Random Mute</div>
-          <div class="adv-feature-desc">Each beat has a chance of being silenced at random</div>
+          <div class="adv-feature-desc">Each beat — and optionally each subdivision — has a chance of being silenced at random</div>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="random-mute-toggle" />
@@ -337,9 +337,15 @@ const graph = {
       </div>
       <div id="random-mute-controls" class="adv-controls disabled">
         <div class="adv-row">
-          <span class="adv-label">Probability</span>
+          <span class="adv-label">Beats</span>
           <input type="range" id="random-mute-slider" min="0" max="100" value="30" />
           <span class="adv-value" id="random-mute-val">30</span>
+          <span class="adv-unit">%</span>
+        </div>
+        <div class="adv-row">
+          <span class="adv-label">Subdivisions</span>
+          <input type="range" id="random-mute-sub-slider" min="0" max="100" value="0" />
+          <span class="adv-value" id="random-mute-sub-val">0</span>
           <span class="adv-unit">%</span>
         </div>
       </div>
@@ -649,7 +655,7 @@ const graph = {
   const adv = {
     enabled: false,
     gapEnabled: false, gapPlay: 2, gapSilent: 2,
-    randomMuteEnabled: false, randomMutePct: 30,
+    randomMuteEnabled: false, randomMutePct: 30, randomMuteSubPct: 0,
     formEnabled: false,
     form: [],   // [{ beats, unit, states[] }]
   };
@@ -832,8 +838,9 @@ const graph = {
 
       if (adv.gapEnabled && advGapPhase === 'silent') clickType = 'mute';
 
-      if (adv.randomMuteEnabled && sub === 0 && clickType !== 'mute') {
-        if (Math.random() < adv.randomMutePct / 100) clickType = 'mute';
+      if (adv.randomMuteEnabled && clickType !== 'mute') {
+        const p = sub === 0 ? adv.randomMutePct : adv.randomMuteSubPct;
+        if (p > 0 && Math.random() < p / 100) clickType = 'mute';
       }
 
       scheduleClick(time, clickType);
@@ -1675,6 +1682,12 @@ const graph = {
     persistState();
   });
 
+  document.getElementById('random-mute-sub-slider').addEventListener('input', e => {
+    adv.randomMuteSubPct = +e.target.value;
+    document.getElementById('random-mute-sub-val').textContent = adv.randomMuteSubPct;
+    persistState();
+  });
+
   document.getElementById('form-toggle').addEventListener('change', e => {
     adv.formEnabled = e.target.checked;
     document.getElementById('form-controls').classList.toggle('disabled', !adv.formEnabled);
@@ -1720,7 +1733,10 @@ const graph = {
     if (state.subdivision !== 1) params.set('sub', String(state.subdivision));
     if (soundMode !== 'electronic') params.set('snd', SOUND_TO_CHAR[soundMode]);
     if (adv.gapEnabled) params.set('gap', adv.gapPlay + '-' + adv.gapSilent);
-    if (adv.randomMuteEnabled) params.set('rmute', String(adv.randomMutePct));
+    if (adv.randomMuteEnabled) {
+      params.set('rmute', String(adv.randomMutePct));
+      if (adv.randomMuteSubPct > 0) params.set('rsub', String(adv.randomMuteSubPct));
+    }
     return params.toString();
   }
 
@@ -1765,6 +1781,10 @@ const graph = {
       adv.randomMuteEnabled = true;
       adv.randomMutePct = Math.round(rmute);
     }
+    const rsub = +params.get('rsub');
+    if (rsub >= 0 && rsub <= 100 && params.has('rsub')) {
+      adv.randomMuteSubPct = Math.round(rsub);
+    }
     return true;
   }
 
@@ -1779,7 +1799,7 @@ const graph = {
         soundMode,
         adv: {
           gapEnabled: adv.gapEnabled, gapPlay: adv.gapPlay, gapSilent: adv.gapSilent,
-          randomMuteEnabled: adv.randomMuteEnabled, randomMutePct: adv.randomMutePct,
+          randomMuteEnabled: adv.randomMuteEnabled, randomMutePct: adv.randomMutePct, randomMuteSubPct: adv.randomMuteSubPct,
           formEnabled: adv.formEnabled,
           form: adv.form,
         },
@@ -1808,6 +1828,7 @@ const graph = {
         if (d.adv.gapSilent >= 1 && d.adv.gapSilent <= 16) adv.gapSilent = d.adv.gapSilent;
         adv.randomMuteEnabled = !!d.adv.randomMuteEnabled;
         if (d.adv.randomMutePct >= 0 && d.adv.randomMutePct <= 100) adv.randomMutePct = d.adv.randomMutePct;
+        if (d.adv.randomMuteSubPct >= 0 && d.adv.randomMuteSubPct <= 100) adv.randomMuteSubPct = d.adv.randomMuteSubPct;
         adv.formEnabled = !!d.adv.formEnabled;
         if (Array.isArray(d.adv.form) && d.adv.form.length > 0) adv.form = d.adv.form;
       }
@@ -1900,6 +1921,8 @@ const graph = {
     document.getElementById('random-mute-controls').classList.toggle('disabled', !adv.randomMuteEnabled);
     document.getElementById('random-mute-slider').value = adv.randomMutePct;
     document.getElementById('random-mute-val').textContent = adv.randomMutePct;
+    document.getElementById('random-mute-sub-slider').value = adv.randomMuteSubPct;
+    document.getElementById('random-mute-sub-val').textContent = adv.randomMuteSubPct;
     document.getElementById('form-toggle').checked = adv.formEnabled;
     document.getElementById('form-controls').classList.toggle('disabled', !adv.formEnabled);
 
