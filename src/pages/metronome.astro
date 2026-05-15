@@ -616,19 +616,14 @@ const graph = {
       </div>
 
       <div class="form-code-panel">
-        <div class="form-code-title">Save / Load Form</div>
-        <p class="form-code-help">Copy the code below and save it anywhere — a note, a file, Google Drive. Paste it back in to reload this form on any device.</p>
+        <div class="form-code-title">Share form</div>
+        <p class="form-code-help">Copy a link to send this form anywhere. Opening it loads the form with the same tempo.</p>
         <div class="form-code-row">
           <button class="form-code-btn" id="form-code-copy" type="button">
-            <span>Copy form code</span>
+            <span>Copy share link</span>
             <span class="form-code-copied" id="form-code-copied" aria-live="polite">Copied</span>
           </button>
         </div>
-        <div class="form-code-row">
-          <input type="text" class="form-code-input" id="form-code-input" placeholder="Paste a form code here…" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" />
-          <button class="form-code-btn" id="form-code-load" type="button">Load</button>
-        </div>
-        <div class="form-code-msg" id="form-code-msg" aria-live="polite"></div>
       </div>
     </div>
     <div class="form-editor-mobile-play" id="form-editor-mobile-play">
@@ -637,7 +632,7 @@ const graph = {
   </div>
 </div>
 
-<script is:inline>
+<script>
   // ─── State ───────────────────────────────────────────────────────────────────
   const state = {
     bpm: 120,
@@ -1854,7 +1849,7 @@ const graph = {
   });
 
   // ─── Init ─────────────────────────────────────────────────────────────────────
-  function init() {
+  async function init() {
     state.beats = Array(state.beatsPerMeasure).fill('normal');
     state.beats[0] = 'accent';
     adv.form = [{ beats: 4, unit: 4, states: ['accent','normal','normal','normal'] }];
@@ -1864,6 +1859,22 @@ const graph = {
     // when present, then override the shareable subset on top.
     loadLocalStorage();
     const usedURL = applyURLState(window.location.search);
+
+    // Share-link path: if the URL carries ?f=..., decompress it and load it
+    // as the active form (overriding localStorage). ?open=1 pops the editor
+    // open on arrival so a recipient lands inside the form they were sent.
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('f')) {
+      try {
+        const code = await inflateText(base64UrlToBytes(urlParams.get('f')));
+        const decoded = decodeFormCode(code);
+        if (decoded && !decoded.error && decoded.form.length > 0) {
+          adv.form = decoded.form;
+          adv.formEnabled = true;
+          if (urlParams.get('open') === '1') restoreEditorOpen = true;
+        }
+      } catch (e) { /* malformed share link — fall back to defaults / localStorage */ }
+    }
 
     // Reflect restored state into the DOM.
     document.getElementById('bpm-display').textContent = state.bpm;
@@ -1889,6 +1900,8 @@ const graph = {
     document.getElementById('random-mute-controls').classList.toggle('disabled', !adv.randomMuteEnabled);
     document.getElementById('random-mute-slider').value = adv.randomMutePct;
     document.getElementById('random-mute-val').textContent = adv.randomMutePct;
+    document.getElementById('form-toggle').checked = adv.formEnabled;
+    document.getElementById('form-controls').classList.toggle('disabled', !adv.formEnabled);
 
     populateUnitSelect('unit-select', state.beatUnit);
     populateUnitSelect('bulk-unit', 4);
@@ -2613,13 +2626,53 @@ const graph = {
     return { form };
   }
 
+  // ─── Share links ──────────────────────────────────────────────────────────────
+  // The form is gzipped (via DecompressionStream — universal modern-browser
+  // support) and base64url-encoded into ?f=... in the URL. A typical form
+  // compresses to ~30% of the raw code length and the result is URL-safe (no
+  // % escapes for slashes/semicolons that ballooned the raw code).
+  async function deflateText(text) {
+    const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    const buf = await new Response(stream).arrayBuffer();
+    return new Uint8Array(buf);
+  }
+  async function inflateText(bytes) {
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Response(stream).text();
+  }
+  function bytesToBase64Url(bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function base64UrlToBytes(s) {
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    const bin = atob(s);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  async function generateShareLink() {
+    const compressed = bytesToBase64Url(await deflateText(encodeFormCode()));
+    const params = new URLSearchParams();
+    params.set('bpm', String(state.bpm));
+    params.set('open', '1');
+    params.set('f', compressed);
+    return window.location.origin + window.location.pathname + '?' + params.toString();
+  }
   document.getElementById('form-code-copy').addEventListener('click', async () => {
-    const code = encodeFormCode();
+    let link;
     try {
-      await navigator.clipboard.writeText(code);
+      link = await generateShareLink();
+    } catch (e) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
     } catch (e) {
       const ta = document.createElement('textarea');
-      ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      ta.value = link; ta.style.position = 'fixed'; ta.style.opacity = '0';
       document.body.appendChild(ta); ta.select();
       try { document.execCommand('copy'); } catch (_) {}
       document.body.removeChild(ta);
@@ -2627,25 +2680,6 @@ const graph = {
     const btn = document.getElementById('form-code-copy');
     btn.classList.add('copied');
     setTimeout(() => btn.classList.remove('copied'), 1400);
-  });
-
-  document.getElementById('form-code-load').addEventListener('click', () => {
-    const input = document.getElementById('form-code-input');
-    const msg = document.getElementById('form-code-msg');
-    const result = decodeFormCode(input.value);
-    if (result.error) {
-      msg.textContent = result.error;
-      msg.className = 'form-code-msg error';
-      return;
-    }
-    saveFormHistory();
-    adv.form = result.form;
-    formEditingIdx = -1;
-    renderFormEditor();
-    input.value = '';
-    const n = result.form.length;
-    msg.textContent = 'Loaded ' + n + ' bar' + (n !== 1 ? 's' : '') + '.';
-    msg.className = 'form-code-msg success';
   });
 
   // Sync the editor's play buttons with the existing transport.
@@ -2688,6 +2722,6 @@ const graph = {
     }
   }, 200);
 
-  init();
+  init().catch((e) => console.error('init failed', e));
 </script>
 </Layout>
