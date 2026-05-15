@@ -617,18 +617,13 @@ const graph = {
 
       <div class="form-code-panel">
         <div class="form-code-title">Share form</div>
-        <p class="form-code-help">Copy a link to send this form anywhere — text, email, anywhere a link works. Opening the link loads the form with the same tempo.</p>
+        <p class="form-code-help">Copy a link to send this form anywhere. Opening it loads the form with the same tempo.</p>
         <div class="form-code-row">
           <button class="form-code-btn" id="form-code-copy" type="button">
             <span>Copy share link</span>
             <span class="form-code-copied" id="form-code-copied" aria-live="polite">Copied</span>
           </button>
         </div>
-        <div class="form-code-row">
-          <input type="url" class="form-code-input" id="form-code-input" placeholder="Paste a share link here…" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" />
-          <button class="form-code-btn" id="form-code-load" type="button">Load</button>
-        </div>
-        <div class="form-code-msg" id="form-code-msg" aria-live="polite"></div>
       </div>
     </div>
     <div class="form-editor-mobile-play" id="form-editor-mobile-play">
@@ -2666,40 +2661,11 @@ const graph = {
     params.set('f', compressed);
     return window.location.origin + window.location.pathname + '?' + params.toString();
   }
-  // Accept either a full share URL, a query-string fragment, or a raw
-  // JVAFORM1;... code (back-compat for anyone who saved an old code).
-  async function decodeShareInput(input) {
-    const v = (input || '').trim();
-    if (!v) return { error: 'Paste a share link first.' };
-    // Raw form code — old back-compat path.
-    if (v.startsWith('JVAFORM1')) return decodeFormCode(v);
-    // Try to pull ?f= out of whatever URL-ish thing was pasted.
-    let f = null;
-    try {
-      const url = new URL(v, window.location.origin);
-      f = url.searchParams.get('f');
-    } catch (_) {
-      // Maybe they pasted just "?f=...&bpm=120" without an origin.
-      const qm = v.indexOf('?');
-      if (qm >= 0) {
-        try { f = new URLSearchParams(v.slice(qm + 1)).get('f'); } catch (_) {}
-      }
-    }
-    if (!f) return { error: 'That link doesn’t contain a form.' };
-    let code;
-    try { code = await inflateText(base64UrlToBytes(f)); }
-    catch (e) { return { error: 'Couldn’t read that share link — it may be incomplete or from a different version.' }; }
-    return decodeFormCode(code);
-  }
-
   document.getElementById('form-code-copy').addEventListener('click', async () => {
-    const msg = document.getElementById('form-code-msg');
     let link;
     try {
       link = await generateShareLink();
     } catch (e) {
-      msg.textContent = 'Couldn’t generate a share link.';
-      msg.className = 'form-code-msg error';
       return;
     }
     try {
@@ -2714,28 +2680,6 @@ const graph = {
     const btn = document.getElementById('form-code-copy');
     btn.classList.add('copied');
     setTimeout(() => btn.classList.remove('copied'), 1400);
-    msg.textContent = '';
-    msg.className = 'form-code-msg';
-  });
-
-  document.getElementById('form-code-load').addEventListener('click', async () => {
-    const input = document.getElementById('form-code-input');
-    const msg = document.getElementById('form-code-msg');
-    const result = await decodeShareInput(input.value);
-    if (result.error) {
-      msg.textContent = result.error;
-      msg.className = 'form-code-msg error';
-      return;
-    }
-    saveFormHistory();
-    adv.form = result.form;
-    formEditingIdx = -1;
-    renderFormEditor();
-    input.value = '';
-    const n = result.form.length;
-    msg.textContent = 'Loaded ' + n + ' bar' + (n !== 1 ? 's' : '') + '.';
-    msg.className = 'form-code-msg success';
-    persistState();
   });
 
   // Sync the editor's play buttons with the existing transport.
