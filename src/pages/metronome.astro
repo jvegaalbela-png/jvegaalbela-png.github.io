@@ -251,6 +251,23 @@ const graph = {
         <span class="sub-label">Quadruplet</span>
       </button>
     </div>
+    <div class="swing-controls" id="swing-controls">
+      <div class="swing-presets-row">
+        <span class="swing-label">Swing</span>
+        <div class="swing-presets" role="radiogroup" aria-label="Swing preset">
+          <button class="swing-preset active" data-swing="50" type="button">Straight</button>
+          <button class="swing-preset" data-swing="60" type="button">Quintuplet</button>
+          <button class="swing-preset" data-swing="66.67" type="button">Triplet</button>
+          <button class="swing-preset" data-swing="75" type="button">Dotted</button>
+        </div>
+      </div>
+      <div class="swing-slider-row">
+        <input type="range" id="swing-slider" min="50" max="75" step="any" value="50" aria-label="Swing percentage" />
+        <span class="swing-val" id="swing-val">50</span>
+        <span class="swing-unit">%</span>
+      </div>
+      <div class="swing-hint" id="swing-hint">Applies to duplet (♪♪) subdivision</div>
+    </div>
   </div>
 
   <!-- Sound Library -->
@@ -652,6 +669,7 @@ const graph = {
     beatsPerMeasure: 4,
     beatUnit: 4,
     subdivision: 1,
+    swingPct: 50,
     beats: [],        // 'accent' | 'normal' | 'soft' | 'mute'
     isPlaying: false,
     currentBeat: -1,
@@ -863,7 +881,21 @@ const graph = {
       // (4 / beatUnit), so an x/8 meter ticks twice as fast as x/4 at
       // the same BPM, x/16 ticks four times as fast, x/2 ticks half as
       // fast, etc.
-      nextNoteTime += (60.0 / state.bpm) * (4 / cfg.beatUnit) / state.subdivision;
+      // Per-step duration. For duplet subdivision (sub=2) with swing != 50,
+      // the two halves of the beat are uneven: sub 0 is followed by a gap of
+      // (S/100)·beat, sub 1 by (1 - S/100)·beat — keeping the total beat
+      // length constant. Other subdivisions stay even.
+      {
+        const beatDur = (60.0 / state.bpm) * (4 / cfg.beatUnit);
+        let stepDur;
+        if (state.subdivision === 2 && state.swingPct !== 50) {
+          const s = state.swingPct / 100;
+          stepDur = schedulerSub === 0 ? beatDur * s : beatDur * (1 - s);
+        } else {
+          stepDur = beatDur / state.subdivision;
+        }
+        nextNoteTime += stepDur;
+      }
 
       schedulerSub++;
       if (schedulerSub >= state.subdivision) {
@@ -1235,12 +1267,40 @@ const graph = {
     document.querySelectorAll('.btn-sub').forEach(btn => {
       btn.classList.toggle('active', +btn.dataset.sub === sub);
     });
+    // Swing only affects duplet subdivisions; dim the controls when not
+    // applicable so it's clear they're inert at the moment.
+    document.getElementById('swing-controls').classList.toggle('inactive', sub !== 2);
     renderSubDots();
     persistState();
   }
 
   document.querySelectorAll('.btn-sub').forEach(btn => {
     btn.addEventListener('click', () => setSubdivision(+btn.dataset.sub));
+  });
+
+  // ─── Swing ────────────────────────────────────────────────────────────────────
+  // Pure UI sync — used by both preset clicks, slider drags, and init().
+  // Caller decides whether to persist.
+  function setSwingPct(v) {
+    v = Math.max(50, Math.min(75, +v || 50));
+    state.swingPct = v;
+    const slider = document.getElementById('swing-slider');
+    if (Math.abs(+slider.value - v) > 0.001) slider.value = v;
+    document.getElementById('swing-val').textContent = String(Math.round(v * 10) / 10);
+    document.querySelectorAll('.swing-preset').forEach((b) => {
+      const pv = +b.dataset.swing;
+      b.classList.toggle('active', Math.abs(pv - v) < 0.01);
+    });
+  }
+  document.getElementById('swing-slider').addEventListener('input', (e) => {
+    setSwingPct(+e.target.value);
+    persistState();
+  });
+  document.querySelectorAll('.swing-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setSwingPct(+btn.dataset.swing);
+      persistState();
+    });
   });
 
   // ─── Beat Grid ────────────────────────────────────────────────────────────────
@@ -1773,6 +1833,7 @@ const graph = {
     params.set('unit', String(state.beatUnit));
     params.set('p', state.beats.map((b) => BEAT_TO_CHAR[b] || 'N').join(''));
     if (state.subdivision !== 1) params.set('sub', String(state.subdivision));
+    if (state.swingPct !== 50) params.set('sw', String(state.swingPct));
     if (soundMode !== 'electronic') params.set('snd', SOUND_TO_CHAR[soundMode]);
     if (adv.gapEnabled) {
       let v = adv.gapPlay + '-' + adv.gapSilent;
@@ -1810,6 +1871,9 @@ const graph = {
     const sub = +params.get('sub');
     if (sub >= 1 && sub <= 4) state.subdivision = Math.round(sub);
 
+    const sw = +params.get('sw');
+    if (sw >= 50 && sw <= 75 && params.has('sw')) state.swingPct = sw;
+
     const snd = params.get('snd');
     if (snd && CHAR_TO_SOUND[snd]) soundMode = CHAR_TO_SOUND[snd];
 
@@ -1844,6 +1908,7 @@ const graph = {
         beatUnit: state.beatUnit,
         beats: state.beats,
         subdivision: state.subdivision,
+        swingPct: state.swingPct,
         soundMode,
         adv: {
           gapEnabled: adv.gapEnabled, gapPlay: adv.gapPlay, gapSilent: adv.gapSilent, gapUnit: adv.gapUnit,
@@ -1869,6 +1934,7 @@ const graph = {
         state.beats = d.beats.filter((b) => b in BEAT_TO_CHAR);
       }
       if (d.subdivision >= 1 && d.subdivision <= 4) state.subdivision = d.subdivision;
+      if (d.swingPct >= 50 && d.swingPct <= 75) state.swingPct = d.swingPct;
       if (d.soundMode === 'clave' || d.soundMode === 'electronic') soundMode = d.soundMode;
       if (d.adv) {
         adv.gapEnabled = !!d.adv.gapEnabled;
@@ -1953,6 +2019,8 @@ const graph = {
     document.querySelectorAll('.btn-sub').forEach((b) => {
       b.classList.toggle('active', +b.dataset.sub === state.subdivision);
     });
+    setSwingPct(state.swingPct);
+    document.getElementById('swing-controls').classList.toggle('inactive', state.subdivision !== 2);
     document.querySelectorAll('.btn-sound').forEach((b) => {
       b.classList.toggle('active', b.dataset.sound === soundMode);
     });

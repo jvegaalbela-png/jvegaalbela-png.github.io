@@ -353,6 +353,73 @@
       gap: 0.5rem;
     }
 
+    /* Swing controls — sit inside the subdivisions card, dim when the
+       current subdivision isn't a duplet (the only case swing affects). */
+    .metronome-shell .swing-controls {
+      margin-top: 0.7rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: opacity 0.15s;
+    }
+    .metronome-shell .swing-controls.inactive { opacity: 0.5; }
+    .metronome-shell .swing-presets-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .metronome-shell .swing-label {
+      font-size: 0.78rem;
+      color: rgba(245, 243, 238, 0.65);
+      letter-spacing: 0.05em;
+    }
+    .metronome-shell .swing-presets {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      flex: 1;
+    }
+    .metronome-shell .swing-preset {
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      border-radius: 6px;
+      color: rgba(245, 243, 238, 0.7);
+      font-family: inherit;
+      font-size: 0.74rem;
+      padding: 0.3rem 0.55rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .swing-preset:hover { background: rgba(91, 141, 232, 0.22); color: var(--cream); }
+    .metronome-shell .swing-preset.active {
+      background: rgba(91, 141, 232, 0.28);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .metronome-shell .swing-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .metronome-shell .swing-slider-row input[type="range"] { flex: 1; }
+    .metronome-shell .swing-val {
+      min-width: 2.5em;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--cream);
+    }
+    .metronome-shell .swing-unit { font-size: 0.7rem; color: rgba(245, 243, 238, 0.4); }
+    .metronome-shell .swing-hint {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.5);
+      font-style: italic;
+      display: none;
+    }
+    .metronome-shell .swing-controls.inactive .swing-hint { display: block; }
+
     .metronome-shell .btn-sub {
       display: flex;
       flex-direction: column;
