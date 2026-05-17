@@ -414,9 +414,6 @@ const graph = {
           </div>
         </div>
       </div>
-      <div class="form-editor-play-row">
-        <button class="btn btn-play form-editor-play" id="form-editor-play" type="button">▶ Start</button>
-      </div>
       <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
         <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
         <div class="form-select-actions">
@@ -458,6 +455,7 @@ const graph = {
       <div id="form-controls" class="adv-controls"></div>
       <div class="form-counter" id="form-counter"></div>
       <button id="play-stop-form" type="button">play</button>
+      <button id="form-editor-play" type="button">play</button>
       <div class="form-toolbar">
         <button class="btn form-tool-btn" id="form-undo" disabled>↩ Undo</button>
         <button class="btn form-tool-btn" id="form-redo" disabled>↪ Redo</button>
@@ -655,6 +653,14 @@ const graph = {
     </ul>
   </div>
 </article>
+
+<!-- Floating play pill. Auto-hides when the main Pulse-tab play button
+     (#play-stop) is visible in the viewport — so it only appears when
+     play access from the current scroll/tab needs a shortcut. -->
+<button class="metronome-play-pill is-hidden" id="play-pill" type="button" aria-label="Start metronome">
+  <span class="metronome-play-pill-icon" aria-hidden="true">▶</span>
+  <span class="metronome-play-pill-label">Start</span>
+</button>
 
 
 <script>
@@ -1374,6 +1380,15 @@ const graph = {
       btn.textContent = state.isPlaying ? '■ Stop' : '▶ Start';
       btn.classList.toggle('playing', state.isPlaying);
     });
+    // Floating play pill (persists across all carousel screens)
+    const pill = document.getElementById('play-pill');
+    if (pill) {
+      const playing = state.isPlaying;
+      pill.querySelector('.metronome-play-pill-icon').textContent = playing ? '■' : '▶';
+      pill.querySelector('.metronome-play-pill-label').textContent = playing ? 'Stop' : 'Start';
+      pill.classList.toggle('is-playing', playing);
+      pill.setAttribute('aria-label', playing ? 'Stop metronome' : 'Start metronome');
+    }
   }
 
   document.getElementById('play-stop').addEventListener('click', togglePlay);
@@ -1805,6 +1820,30 @@ const graph = {
         });
       },
     };
+  })();
+
+  // ─── Floating play pill ──────────────────────────────────────────────────────
+  // Persistent play/stop affordance in the bottom-right. Auto-hides whenever
+  // the Pulse-tab's main play button (#play-stop) is visible in the viewport
+  // — so it only appears when the primary control isn't reachable (user is
+  // scrolled past it OR is on Practice / Forms tab, where #play-stop is
+  // off-screen horizontally inside the carousel).
+  (() => {
+    const pill = document.getElementById('play-pill');
+    if (!pill) return;
+    pill.addEventListener('click', () => togglePlay());
+    const primary = document.getElementById('play-stop');
+    if (primary && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          pill.classList.toggle('is-hidden', e.isIntersecting);
+        }
+      }, { threshold: 0.1 });
+      io.observe(primary);
+    } else {
+      // No IO: just always show the pill.
+      pill.classList.remove('is-hidden');
+    }
   })();
 
   document.getElementById('gap-toggle').addEventListener('change', e => {
