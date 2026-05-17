@@ -397,24 +397,20 @@ const graph = {
         </label>
       </div>
       <div class="form-editor-toolbar">
-        <div class="form-editor-toolbar-left">
-          <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
-            <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
-            <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
-          </div>
-          <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
-            <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↺</button>
-            <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↻</button>
-          </div>
+        <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
+          <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
+          <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
         </div>
-        <div class="form-editor-toolbar-right">
-          <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
-          <div class="form-editor-bpm">
-            <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
-            <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
-            <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
-            <span class="form-editor-bpm-label">BPM</span>
-          </div>
+        <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
+          <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↺</button>
+          <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↻</button>
+        </div>
+        <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
+        <div class="form-editor-bpm">
+          <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
+          <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
+          <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
+          <span class="form-editor-bpm-label">BPM</span>
         </div>
       </div>
     </div><!-- /.card.card-form -->

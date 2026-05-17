@@ -1425,12 +1425,16 @@
     .form-editor-toolbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       flex-wrap: wrap;
-      gap: 0.6rem 0.75rem;
-      margin-top: 0.75rem;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
       /* No bottom border / margin — this is the last thing in the card. */
     }
+    /* Don't let toolbar children shrink — wrap to a new row instead,
+       otherwise the Beat/Chart toggle (with overflow: hidden for its
+       pill-radius) clips its label on narrow viewports. */
+    .form-editor-toolbar > * { flex-shrink: 0; }
     .form-editor-toolbar-left,
     .form-editor-toolbar-right {
       display: flex;
@@ -2285,6 +2289,13 @@
       .form-editor-mode-btn { padding: 0.28rem 0.5rem; font-size: 0.65rem; }
       .form-editor-clear { padding: 0.28rem 0.45rem; font-size: 0.65rem; white-space: nowrap; }
       .form-editor-close { width: 30px; height: 30px; }
-      .form-editor-body { padding: 1rem 0.75rem 1rem; }
+      .form-editor-body { padding: 0; }
       .form-bar { padding: 0.5rem 0.5rem 0.45rem 0.5rem; }
+    }
+
+    /* The Forms-tab card holds just the header bar (label/desc/toggle/
+       mode/undo/redo/Clear all/BPM). Tighter padding than the default
+       .card since there's less content to breathe around. */
+    .metronome-shell .card-form {
+      padding: 0.9rem 1.1rem;
     }
