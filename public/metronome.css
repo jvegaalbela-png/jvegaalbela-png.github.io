@@ -30,6 +30,63 @@
       max-width: 620px;
     }
 
+    /* ─── Carousel ────────────────────────────────────────────────────────
+       The three tool screens (Pulse / Practice / Forms) live inside a
+       horizontally-snapping scroll container. Mobile swipes between them,
+       desktop uses the tab nav at the top. Each screen is the full width
+       of the carousel container (which is .app at max 620px). Educational
+       content sits below the carousel and stays untouched. */
+    .metronome-shell .metronome-carousel {
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+    .metronome-shell .carousel-tabs {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.7rem;
+      padding: 0.25rem;
+      background: rgba(91, 141, 232, 0.08);
+      border: 1px solid rgba(91, 141, 232, 0.22);
+      border-radius: 8px;
+    }
+    .metronome-shell .carousel-tab {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      color: rgba(245, 243, 238, 0.55);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .carousel-tab:hover { color: var(--cream); }
+    .metronome-shell .carousel-tab.active {
+      background: rgba(91, 141, 232, 0.28);
+      color: var(--cream);
+    }
+    .metronome-shell .carousel-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      overscroll-behavior-x: contain;
+      /* Hide native scrollbar — the tab nav is the visible indicator. */
+      scrollbar-width: none;
+    }
+    .metronome-shell .carousel-track::-webkit-scrollbar { display: none; }
+    .metronome-shell .carousel-screen {
+      flex: 0 0 100%;
+      min-width: 0;       /* allow children with overflow to shrink */
+      scroll-snap-align: start;
+      /* Vertical scroll inside each screen for content that overflows */
+      /* (most screens fit a phone viewport; long forms may need scroll). */
+    }
+
     .metronome-shell .header {
       display: flex;
       align-items: center;

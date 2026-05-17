@@ -163,6 +163,15 @@ const graph = {
     <div class="beat-flash" id="beat-flash-2"></div>
   </div>
 
+  <div class="metronome-carousel">
+    <nav class="carousel-tabs" role="tablist" aria-label="Metronome sections">
+      <button class="carousel-tab active" type="button" data-screen="0" role="tab" aria-selected="true" aria-controls="screen-pulse">Pulse</button>
+      <button class="carousel-tab" type="button" data-screen="1" role="tab" aria-selected="false" aria-controls="screen-practice">Practice</button>
+      <button class="carousel-tab" type="button" data-screen="2" role="tab" aria-selected="false" aria-controls="screen-forms">Forms</button>
+    </nav>
+    <div class="carousel-track" id="carousel-track">
+      <section class="carousel-screen" id="screen-pulse" role="tabpanel" aria-label="Pulse">
+
   <div class="basic-grid">
 
   <!-- BPM -->
@@ -295,18 +304,9 @@ const graph = {
   </div>
 
   </div><!-- /.basic-grid -->
+      </section>
 
-  <!-- Advanced Mode Toggle -->
-  <div class="adv-toggle-row" id="adv-toggle-row">
-    <span class="adv-toggle-label">~ &nbsp;A D V A N C E D &nbsp; M O D E&nbsp; ~</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="adv-toggle" />
-      <span class="toggle-track"></span>
-    </label>
-  </div>
-
-  <!-- Advanced Panel -->
-  <div class="adv-panel" id="adv-panel">
+      <section class="carousel-screen" id="screen-practice" role="tabpanel" aria-label="Practice">
     <div class="adv-grid">
 
     <!-- Gap Click -->
@@ -376,6 +376,12 @@ const graph = {
       </div>
     </div>
 
+    </div><!-- /.adv-grid -->
+      </section>
+
+      <section class="carousel-screen" id="screen-forms" role="tabpanel" aria-label="Forms">
+    <div class="adv-grid">
+
     <!-- Custom Form -->
     <div class="card card-form" id="custom-form">
       <div class="adv-feature-header">
@@ -417,7 +423,9 @@ const graph = {
     </div>
 
     </div><!-- /.adv-grid -->
-  </div>
+      </section>
+    </div><!-- /.carousel-track -->
+  </div><!-- /.metronome-carousel -->
 </div>
 </main>
 
@@ -1753,11 +1761,54 @@ const graph = {
     renderFormList(); updateFormCounter(advFormIdx);
   });
 
-  document.getElementById('adv-toggle').addEventListener('change', e => {
-    adv.enabled = e.target.checked;
-    document.getElementById('adv-panel').classList.toggle('open', adv.enabled);
-    document.getElementById('adv-toggle-row').classList.toggle('active', adv.enabled);
-  });
+  // ─── Carousel navigation ─────────────────────────────────────────────────────
+  // Three horizontally-snapping screens: Pulse / Practice / Forms. Tabs at the
+  // top reflect the active screen as the user swipes; clicking a tab scrolls
+  // smoothly to that screen. Active screen index is persisted to localStorage
+  // so a reload lands on the same tab.
+  (() => {
+    const track = document.getElementById('carousel-track');
+    if (!track) return;
+    const screens = Array.from(track.querySelectorAll('.carousel-screen'));
+    const tabs = Array.from(document.querySelectorAll('.carousel-tab'));
+    const KEY = 'metronomeCarouselScreen_v1';
+
+    function setActive(idx) {
+      tabs.forEach((t, i) => {
+        const on = i === idx;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', String(on));
+      });
+      try { localStorage.setItem(KEY, String(idx)); } catch (_) {}
+    }
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => {
+        screens[i].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+        setActive(i);
+      });
+    });
+    // Sync the active tab as the user swipes/scrolls horizontally.
+    const io = new IntersectionObserver((entries) => {
+      // Pick the screen whose center is closest to the track's center.
+      let best = null, bestRatio = 0;
+      entries.forEach((e) => {
+        if (e.intersectionRatio > bestRatio) { best = e; bestRatio = e.intersectionRatio; }
+      });
+      if (best && bestRatio > 0.5) setActive(screens.indexOf(best.target));
+    }, { root: track, threshold: [0.5, 0.75, 1.0] });
+    screens.forEach((s) => io.observe(s));
+
+    // Restore the last-active screen on load (default = Pulse).
+    let restore = 0;
+    try { const v = parseInt(localStorage.getItem(KEY), 10); if (v >= 0 && v < screens.length) restore = v; } catch (_) {}
+    if (restore !== 0) {
+      // Defer one frame so layout is settled before the programmatic scroll.
+      requestAnimationFrame(() => {
+        screens[restore].scrollIntoView({ behavior: 'instant', inline: 'start', block: 'nearest' });
+        setActive(restore);
+      });
+    }
+  })();
 
   document.getElementById('gap-toggle').addEventListener('change', e => {
     adv.gapEnabled = e.target.checked;
