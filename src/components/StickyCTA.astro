@@ -1,13 +1,12 @@
 ---
-// Persistent contact affordance — a small "Contact" pill anchored
-// bottom-LEFT. Tap to expand into Email + Call/text buttons that
-// pop up above the pill. Auto-hides while the hero / page's final
-// cta-band / footer is on screen so it never competes with a more
-// contextual CTA.
+// Persistent contact affordance — a full-width band on mobile and
+// a compact pill anchored bottom-right on desktop. Hidden while
+// the hero, the page's final cta-band, or the footer is on screen
+// so it never overlaps a more contextual CTA.
 ---
 
 <aside class="sticky-cta" id="stickyCta" aria-label="Contact Jacobo">
-  <div class="sticky-cta-menu" id="stickyCtaMenu" aria-hidden="true">
+  <div class="sticky-cta-inner">
     <a
       class="sticky-cta-btn sticky-cta-email"
       href="mailto:jacobovamusic@gmail.com"
@@ -23,112 +22,70 @@
       onclick="gtag('event', 'cta_call_click', { location: 'sticky_cta' })"
     >
       <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M5.5 3h2.4a1 1 0 0 1 1 .8l.6 2.4a1 1 0 0 1-.27.95L7.7 8.6a11 11 0 0 0 4.7 4.7l1.45-1.53a1 1 0 0 1 .95-.27l2.4.6a1 1 0 0 1 .8 1V15.5A2.5 2.5 0 0 1 15.5 18 14 14 0 0 1 2 4.5 2.5 2.5 0 0 1 4.5 2"/></svg>
-      <span>Call or text</span>
+      <span class="sticky-cta-call-label">Call or text</span>
     </a>
   </div>
-  <button
-    type="button"
-    class="sticky-cta-trigger"
-    id="stickyCtaTrigger"
-    aria-expanded="false"
-    aria-controls="stickyCtaMenu"
-    aria-label="Open contact options"
-  >
-    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8l-3 3v-3H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/></svg>
-    <span>Contact</span>
-  </button>
 </aside>
 
 <style>
   .sticky-cta {
     position: fixed;
-    left: calc(env(safe-area-inset-left, 0px) + 14px);
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
-    z-index: 95;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
     pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
+    transform: translateY(0);
     transition: transform .26s ease, opacity .2s ease;
   }
   .sticky-cta.is-hidden {
     transform: translateY(140%);
     opacity: 0;
   }
-  .sticky-cta-trigger {
+  .sticky-cta-inner {
     pointer-events: auto;
-    display: inline-flex;
-    align-items: center;
+    max-width: 520px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
     background: rgba(9, 21, 40, 0.94);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    color: var(--cream);
-    border: 1px solid rgba(91, 141, 232, 0.35);
-    border-radius: 999px;
-    padding: 10px 16px;
-    font: 700 13px/1 var(--sans);
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36);
-    transition: background .18s, border-color .18s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .sticky-cta-trigger svg { width: 16px; height: 16px; flex: none; }
-  .sticky-cta-trigger:hover,
-  .sticky-cta-trigger:focus-visible {
-    background: rgba(15, 28, 52, 1);
-    border-color: rgba(141, 173, 234, 0.55);
-  }
-  .sticky-cta-menu {
-    pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    background: rgba(9, 21, 40, 0.96);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(91, 141, 232, 0.28);
-    border-radius: 10px;
-    padding: 6px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36);
-    transform-origin: bottom left;
-    transform: scale(0.94) translateY(6px);
-    opacity: 0;
-    visibility: hidden;
-    transition: transform .16s ease, opacity .14s ease, visibility .14s;
-  }
-  .sticky-cta[data-open="true"] .sticky-cta-menu {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-    visibility: visible;
+    border: 1px solid rgba(91, 141, 232, 0.18);
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
   }
   .sticky-cta-btn {
     display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 8px;
     text-decoration: none;
     font: 600 13px/1 var(--sans);
     letter-spacing: .08em;
     text-transform: uppercase;
-    padding: 10px 14px;
-    min-height: 40px;
-    min-width: 12rem;
+    padding: 12px 14px;
+    min-height: 44px;
     border-radius: 6px;
     transition: background .18s, transform .18s;
-    white-space: nowrap;
   }
-  .sticky-cta-btn svg { width: 16px; height: 16px; flex: none; }
+  .sticky-cta-btn svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
   .sticky-cta-email {
     background: rgba(245, 243, 238, 0.08);
     color: var(--cream);
     border: 1px solid rgba(245, 243, 238, 0.28);
   }
   .sticky-cta-email:hover,
-  .sticky-cta-email:focus-visible { background: rgba(245, 243, 238, 0.14); }
+  .sticky-cta-email:focus-visible {
+    background: rgba(245, 243, 238, 0.14);
+  }
   .sticky-cta-call {
     background: var(--orange);
     color: var(--navy);
@@ -138,32 +95,70 @@
   .sticky-cta-call:focus-visible {
     background: var(--orange-lt);
     border-color: var(--orange-lt);
+    transform: translateY(-1px);
+  }
+
+  /* Desktop: shrink to a compact pill in the bottom-right. The
+     email button collapses to an icon-only square; the call
+     button stays labeled because tap-to-call still works on
+     laptops with iPhone Continuity / FaceTime. */
+  @media (min-width: 781px) {
+    .sticky-cta {
+      left: auto;
+      right: 16px;
+      bottom: 16px;
+      padding: 0;
+    }
+    .sticky-cta-inner {
+      max-width: none;
+      grid-template-columns: auto auto;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    }
+    .sticky-cta-btn {
+      padding: 8px 14px;
+      min-height: 36px;
+      font-size: 12px;
+      letter-spacing: .1em;
+      border-radius: 999px;
+    }
+    .sticky-cta-email {
+      padding: 8px;
+      width: 36px;
+      gap: 0;
+    }
+    .sticky-cta-email span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
   }
 
   @media print { .sticky-cta { display: none; } }
   @media (prefers-reduced-motion: reduce) {
-    .sticky-cta,
-    .sticky-cta-menu { transition: none; }
+    .sticky-cta { transition: none; }
   }
 </style>
 
 <script>
-  // (1) Hide the pill while ANY "blocker" element is on screen — the
-  // hero (so we don't compete with its tel-link), the final cta-band,
-  // or the footer (where the page already shows email and phone).
-  // Falls back to a scroll threshold if there's no hero on the page.
-  // (2) Tap the trigger to expand/collapse the email + call menu.
-  // (3) Tap outside the pill (or press Escape) to collapse the menu.
+  // Hide the band while ANY "blocker" element is on screen — the
+  // hero (so we don't compete with its tel-link), the final
+  // cta-band, or the footer (where the page already shows email
+  // and phone). Falls back to a scroll threshold if there's no
+  // hero element on the page.
   (function () {
     function init() {
       const band = document.getElementById('stickyCta');
       if (!band) return;
-      const trigger = document.getElementById('stickyCtaTrigger');
-      const menu = document.getElementById('stickyCtaMenu');
-
       band.classList.add('is-hidden');
-
-      // --- blocker visibility ---
       const blockers = document.querySelectorAll('.hero, .cta-band, footer');
       if (blockers.length && 'IntersectionObserver' in window) {
         const visible = new Set();
@@ -176,36 +171,22 @@
           else band.classList.remove('is-hidden');
         }, { threshold: 0 });
         blockers.forEach(function (el) { obs.observe(el); });
-      } else {
-        const SHOW_AFTER = 320;
-        let ticking = false;
-        function update() {
-          if (window.scrollY < SHOW_AFTER) band.classList.add('is-hidden');
-          else band.classList.remove('is-hidden');
-          ticking = false;
+        return;
+      }
+      const SHOW_AFTER = 320;
+      let ticking = false;
+      function update() {
+        if (window.scrollY < SHOW_AFTER) band.classList.add('is-hidden');
+        else band.classList.remove('is-hidden');
+        ticking = false;
+      }
+      update();
+      window.addEventListener('scroll', function () {
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
         }
-        update();
-        window.addEventListener('scroll', function () {
-          if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
-        }, { passive: true });
-      }
-
-      // --- expand / collapse ---
-      function setOpen(open) {
-        band.dataset.open = String(open);
-        trigger.setAttribute('aria-expanded', String(open));
-        menu.setAttribute('aria-hidden', String(!open));
-      }
-      setOpen(false);
-      trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        setOpen(band.dataset.open !== 'true');
-      });
-      menu.addEventListener('click', function (e) { e.stopPropagation(); });
-      document.addEventListener('click', function () { setOpen(false); });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && band.dataset.open === 'true') setOpen(false);
-      });
+      }, { passive: true });
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
