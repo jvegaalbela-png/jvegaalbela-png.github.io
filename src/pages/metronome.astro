@@ -224,7 +224,7 @@ const graph = {
     </div>
     <div class="custom-sig">
       <span class="custom-sig-label">Custom:</span>
-      <input type="number" id="beats-input" min="1" max="32" value="4" />
+      <input type="number" id="beats-input" min="1" max="32" value="4" inputmode="numeric" />
       <span class="custom-sig-slash">/</span>
       <select id="unit-select"></select>
     </div>
@@ -264,7 +264,7 @@ const graph = {
       </div>
       <div class="swing-slider-row">
         <input type="range" id="swing-slider" min="50" max="75" step="any" value="50" aria-label="Swing percentage" />
-        <span class="swing-val" id="swing-val">50</span>
+        <span class="swing-val" id="swing-val" contenteditable="true" spellcheck="false" inputmode="decimal" role="textbox" aria-label="Swing percentage value">50</span>
         <span class="swing-unit">%</span>
       </div>
       <div class="swing-hint" id="swing-hint">Applies to duplet (♪♪) subdivision</div>
@@ -332,13 +332,13 @@ const graph = {
         <div class="adv-row">
           <span class="adv-label">Play</span>
           <input type="range" id="gap-play-slider" min="1" max="16" value="2" />
-          <span class="adv-value" id="gap-play-val">2</span>
+          <span class="adv-value" id="gap-play-val" contenteditable="true" spellcheck="false" inputmode="numeric" role="textbox" aria-label="Gap click play count">2</span>
           <span class="adv-unit" id="gap-play-unit">measures</span>
         </div>
         <div class="adv-row">
           <span class="adv-label">Silence</span>
           <input type="range" id="gap-silent-slider" min="1" max="16" value="2" />
-          <span class="adv-value" id="gap-silent-val">2</span>
+          <span class="adv-value" id="gap-silent-val" contenteditable="true" spellcheck="false" inputmode="numeric" role="textbox" aria-label="Gap click silent count">2</span>
           <span class="adv-unit" id="gap-silent-unit">measures</span>
         </div>
         <div class="gap-phase-indicator">
@@ -364,13 +364,13 @@ const graph = {
         <div class="adv-row">
           <span class="adv-label">Beats</span>
           <input type="range" id="random-mute-slider" min="0" max="100" value="30" />
-          <span class="adv-value" id="random-mute-val">30</span>
+          <span class="adv-value" id="random-mute-val" contenteditable="true" spellcheck="false" inputmode="numeric" role="textbox" aria-label="Random mute beats percentage">30</span>
           <span class="adv-unit">%</span>
         </div>
         <div class="adv-row">
           <span class="adv-label">Subdivisions</span>
           <input type="range" id="random-mute-sub-slider" min="0" max="100" value="0" />
-          <span class="adv-value" id="random-mute-sub-val">0</span>
+          <span class="adv-value" id="random-mute-sub-val" contenteditable="true" spellcheck="false" inputmode="numeric" role="textbox" aria-label="Random mute subdivisions percentage">0</span>
           <span class="adv-unit">%</span>
         </div>
       </div>
@@ -1071,6 +1071,37 @@ const graph = {
   function getTempoName(bpm) {
     for (const [max, name] of TEMPO_MARKS) if (bpm <= max) return name;
     return 'Prestissimo';
+  }
+
+  // Wire a span/element to behave like a tap-to-edit number: tap selects
+  // all (so the next keypress replaces), Enter or blur commits, Escape
+  // reverts. inputmode triggers the iOS numeric/decimal keypad. Used by
+  // every slider's value readout so they're directly editable in addition
+  // to the slider/preset controls.
+  function wireEditableNumber(el, opts) {
+    if (!el) return;
+    const { min, max, isFloat = false, format = (v) => String(v), current, onCommit } = opts;
+    el.addEventListener('click', () => {
+      setTimeout(() => {
+        const r = document.createRange();
+        r.selectNodeContents(el);
+        const s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+      }, 0);
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+      else if (e.key === 'Escape') { e.preventDefault(); el.textContent = format(current()); el.blur(); }
+    });
+    el.addEventListener('blur', () => {
+      let raw = el.textContent.replace(isFloat ? /[^\d.]/g : /\D/g, '');
+      let v = isFloat ? parseFloat(raw) : parseInt(raw, 10);
+      if (!isFinite(v)) v = current();
+      v = Math.max(min, Math.min(max, v));
+      el.textContent = format(v);
+      onCommit(v);
+    });
   }
 
   function setBPM(value) {
@@ -2863,6 +2894,60 @@ const graph = {
       refreshFormEditorPlayButtons();
     }
   }, 200);
+
+  // Wire every slider's value readout for tap-to-edit. Each one stays in
+  // sync with its slider (slider handler also updates the textContent),
+  // these handlers just add a direct edit path: tap → numpad → type → Enter.
+  wireEditableNumber(document.getElementById('gap-play-val'), {
+    min: 1, max: 16,
+    current: () => adv.gapPlay,
+    onCommit: (v) => {
+      adv.gapPlay = v;
+      document.getElementById('gap-play-slider').value = v;
+      persistState();
+    },
+  });
+  wireEditableNumber(document.getElementById('gap-silent-val'), {
+    min: 1, max: 16,
+    current: () => adv.gapSilent,
+    onCommit: (v) => {
+      adv.gapSilent = v;
+      document.getElementById('gap-silent-slider').value = v;
+      persistState();
+    },
+  });
+  wireEditableNumber(document.getElementById('random-mute-val'), {
+    min: 0, max: 100,
+    current: () => adv.randomMutePct,
+    onCommit: (v) => {
+      adv.randomMutePct = v;
+      document.getElementById('random-mute-slider').value = v;
+      persistState();
+    },
+  });
+  wireEditableNumber(document.getElementById('random-mute-sub-val'), {
+    min: 0, max: 100,
+    current: () => adv.randomMuteSubPct,
+    onCommit: (v) => {
+      adv.randomMuteSubPct = v;
+      document.getElementById('random-mute-sub-slider').value = v;
+      persistState();
+    },
+  });
+  wireEditableNumber(document.getElementById('swing-val'), {
+    min: 50, max: 75, isFloat: true,
+    format: (v) => String(Math.round(v * 10) / 10),
+    current: () => state.swingPct,
+    onCommit: (v) => { setSwingPct(v); persistState(); },
+  });
+
+  // Make the beats-per-measure <input type=number> select-all on tap, so
+  // the typed digit replaces instead of inserting next to the existing one.
+  (() => {
+    const bi = document.getElementById('beats-input');
+    if (!bi) return;
+    bi.addEventListener('focus', () => setTimeout(() => bi.select(), 0));
+  })();
 
   init().catch((e) => console.error('init failed', e));
 </script>
