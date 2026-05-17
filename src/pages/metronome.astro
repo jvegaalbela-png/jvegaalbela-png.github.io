@@ -391,6 +391,26 @@ const graph = {
       </section>
 
       <section class="carousel-screen" id="screen-forms" role="tabpanel" aria-label="Forms">
+    <!-- Saved forms library — name and revisit forms later. Stored in
+         localStorage under metronomeSavedForms_v1. The encoded form
+         payload reuses the JVAFORM1 share-link format so saved entries
+         are tiny and portable. -->
+    <div class="card card-saved" id="saved-forms-card">
+      <div class="adv-feature-header">
+        <div>
+          <div class="section-label">Saved Forms</div>
+          <div class="adv-feature-desc">Build a library of charts to come back to</div>
+        </div>
+        <div class="form-saved-actions">
+          <button class="form-saved-action" id="form-saved-import-btn" type="button">Import link</button>
+          <button class="form-saved-action save" id="form-saved-save-btn" type="button">Save current</button>
+        </div>
+      </div>
+      <div class="form-saved-list" id="form-saved-list">
+        <div class="form-saved-empty" id="form-saved-empty">No saved forms yet</div>
+      </div>
+    </div>
+
     <!-- The "header" controls (label, description, form-mode toggle, mode
          switcher, undo/redo, Clear all, BPM) live in a regular card —
          same header pattern as Gap Click / Random Mute on the Practice
@@ -2981,6 +3001,190 @@ const graph = {
     btn.classList.add('copied');
     setTimeout(() => btn.classList.remove('copied'), 1400);
   });
+
+  // ─── Saved forms library ────────────────────────────────────────────────────
+  // localStorage-backed list of named form snapshots. Each entry stores the
+  // JVAFORM1-encoded form (compact) plus the BPM it was saved at, so loading
+  // a saved chart restores both the bars and the tempo it was meant for.
+  // localStorage works in iOS PWAs (storage persists across sessions in
+  // installed mode), so this gives iPad/iPhone users a "my charts" library
+  // without needing native code.
+  const SAVED_FORMS_KEY = 'metronomeSavedForms_v1';
+
+  function loadSavedForms() {
+    try {
+      const raw = localStorage.getItem(SAVED_FORMS_KEY);
+      if (!raw) return [];
+      const list = JSON.parse(raw);
+      if (!Array.isArray(list)) return [];
+      return list.filter((e) =>
+        e && typeof e.id === 'string' && typeof e.name === 'string' && typeof e.code === 'string'
+      );
+    } catch (_) { return []; }
+  }
+
+  function writeSavedForms(list) {
+    try { localStorage.setItem(SAVED_FORMS_KEY, JSON.stringify(list)); } catch (_) {}
+  }
+
+  function renderSavedForms() {
+    const container = document.getElementById('form-saved-list');
+    const empty = document.getElementById('form-saved-empty');
+    if (!container) return;
+    for (const el of container.querySelectorAll('.form-saved-chip')) el.remove();
+    const list = loadSavedForms();
+    if (list.length === 0) {
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+    // Newest first so the latest save is at the front of the strip.
+    const sorted = list.slice().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+    for (const entry of sorted) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'form-saved-chip';
+      chip.dataset.id = entry.id;
+      chip.setAttribute('aria-label', 'Load ' + entry.name);
+
+      const decoded = decodeFormCode(entry.code);
+      const barCount = (decoded && !decoded.error) ? decoded.form.length : 0;
+
+      const name = document.createElement('span');
+      name.className = 'form-saved-chip-name';
+      name.textContent = entry.name;
+
+      const meta = document.createElement('span');
+      meta.className = 'form-saved-chip-meta';
+      const bpmTxt = entry.bpm ? (' · ' + entry.bpm + ' bpm') : '';
+      meta.textContent = barCount + ' bar' + (barCount === 1 ? '' : 's') + bpmTxt;
+
+      const del = document.createElement('span');
+      del.className = 'form-saved-chip-del';
+      del.setAttribute('role', 'button');
+      del.setAttribute('aria-label', 'Delete ' + entry.name);
+      del.tabIndex = 0;
+      del.textContent = '×';
+
+      chip.append(name, meta, del);
+      container.append(chip);
+    }
+  }
+
+  function saveCurrentForm() {
+    if (!adv.form || adv.form.length === 0) {
+      alert('Add at least one bar before saving.');
+      return;
+    }
+    const name = prompt('Name this form:');
+    if (!name || !name.trim()) return;
+    const list = loadSavedForms();
+    list.push({
+      id: 'f_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+      name: name.trim().slice(0, 60),
+      code: encodeFormCode(),
+      bpm: state.bpm,
+      savedAt: Date.now(),
+    });
+    writeSavedForms(list);
+    renderSavedForms();
+  }
+
+  // Apply a decoded JVAFORM1 form (+ optional bpm) as the current working
+  // form. Shared by "load a saved form" and "import a share link".
+  function applyFormCode(code, bpm) {
+    const decoded = decodeFormCode(code);
+    if (!decoded || decoded.error || !decoded.form || decoded.form.length === 0) {
+      return decoded && decoded.error ? decoded.error : 'That form code is empty or unreadable.';
+    }
+    adv.form = decoded.form;
+    adv.formEnabled = true;
+    if (bpm && bpm >= 1 && bpm <= 500) setBPM(bpm);
+    document.getElementById('form-toggle').checked = true;
+    document.getElementById('form-controls').classList.toggle('disabled', false);
+    lastRenderedFormIdx = -1;
+    renderBeatGridForEntry(adv.form[0]);
+    renderFormEditor();
+    updateFormCounter(advFormIdx);
+    persistState();
+    return null;
+  }
+
+  function applySavedForm(id) {
+    const entry = loadSavedForms().find((e) => e.id === id);
+    if (!entry) return;
+    const err = applyFormCode(entry.code, entry.bpm);
+    if (err) alert('That saved form looks corrupted and couldn’t be loaded.');
+  }
+
+  // Parse pasted input — accepts a full share URL, just the query string,
+  // or a raw JVAFORM1 code. Returns { code, bpm } on success, throws on
+  // failure. Async because URL-shaped inputs require deflate decompression.
+  async function parseShareInput(raw) {
+    const s = (raw || '').trim();
+    if (!s) throw new Error('Nothing to import — paste a share link or form code first.');
+
+    // Raw form code path — no decompression needed.
+    if (s.startsWith('JVAFORM1;')) return { code: s, bpm: null };
+
+    // URL or query-string path — pull ?f= and (optional) ?bpm=.
+    let qs;
+    if (s.startsWith('http')) {
+      try { qs = new URL(s).search; } catch (_) { throw new Error('That URL didn’t parse.'); }
+    } else if (s.startsWith('?')) {
+      qs = s;
+    } else {
+      throw new Error('That doesn’t look like a JVA Music share link or form code.');
+    }
+    const params = new URLSearchParams(qs);
+    const f = params.get('f');
+    if (!f) throw new Error('No form found in that link (missing ?f= parameter).');
+    const code = await inflateText(base64UrlToBytes(f));
+    const bpmStr = params.get('bpm');
+    const bpm = bpmStr ? parseInt(bpmStr, 10) : null;
+    return { code, bpm };
+  }
+
+  async function importShareLink() {
+    const raw = prompt('Paste a JVA Music share link (or a form code) to import:');
+    if (raw === null) return;
+    let parsed;
+    try {
+      parsed = await parseShareInput(raw);
+    } catch (e) {
+      alert(e && e.message ? e.message : 'Couldn’t parse that input.');
+      return;
+    }
+    const err = applyFormCode(parsed.code, parsed.bpm);
+    if (err) { alert(err); return; }
+  }
+
+  function deleteSavedForm(id) {
+    const list = loadSavedForms();
+    const entry = list.find((e) => e.id === id);
+    if (!entry) return;
+    if (!confirm('Delete “' + entry.name + '”?')) return;
+    writeSavedForms(list.filter((e) => e.id !== id));
+    renderSavedForms();
+  }
+
+  document.getElementById('form-saved-save-btn').addEventListener('click', saveCurrentForm);
+  document.getElementById('form-saved-import-btn').addEventListener('click', importShareLink);
+
+  // Single delegated click on the chips list: chip body loads, the × inside
+  // it deletes. stopPropagation on the delete prevents both firing.
+  document.getElementById('form-saved-list').addEventListener('click', (e) => {
+    const chip = e.target.closest('.form-saved-chip');
+    if (!chip) return;
+    if (e.target.closest('.form-saved-chip-del')) {
+      e.stopPropagation();
+      deleteSavedForm(chip.dataset.id);
+      return;
+    }
+    applySavedForm(chip.dataset.id);
+  });
+
+  renderSavedForms();
 
   // Sync the editor's play buttons with the existing transport.
   function refreshFormEditorPlayButtons() {

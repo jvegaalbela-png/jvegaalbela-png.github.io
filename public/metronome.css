@@ -2331,6 +2331,128 @@
       text-overflow: ellipsis;
     }
 
+    /* ─── Saved forms library card ────────────────────────────────────────
+       Mirrors .card-form's tight padding; sits above it in the Forms
+       screen. The save button lives in the header (top-right) so the
+       primary action is visually paired with the "Saved Forms" label.
+       Chips below scroll horizontally on mobile (no awkward wrapping
+       on a 320px viewport). */
+    .metronome-shell .card-saved {
+      padding: 0.7rem 1.1rem;
+    }
+    .metronome-shell .card-saved .adv-feature-header {
+      margin-bottom: 0.55rem;
+      align-items: center;
+    }
+    .form-saved-actions {
+      display: flex;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+    .form-saved-action {
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.36);
+      color: var(--cream);
+      font: 600 0.7rem/1 var(--sans);
+      letter-spacing: 0.04em;
+      padding: 0.4rem 0.65rem;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s, border-color 0.18s, opacity 0.18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-saved-action:hover {
+      background: rgba(91, 141, 232, 0.22);
+      border-color: var(--blue-lt);
+    }
+    /* Save current is the primary action — warm accent like the
+       Copy share link button. */
+    .form-saved-action.save {
+      background: rgba(232, 101, 10, 0.18);
+      border-color: rgba(245, 136, 42, 0.5);
+    }
+    .form-saved-action.save:hover {
+      background: rgba(232, 101, 10, 0.3);
+      border-color: var(--orange-lt);
+    }
+    @media (max-width: 420px) {
+      .form-saved-action { padding: 0.4rem 0.55rem; font-size: 0.66rem; }
+    }
+
+    .form-saved-list {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0.1rem 0 0.2rem;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+    .form-saved-list::-webkit-scrollbar { height: 4px; }
+    .form-saved-list::-webkit-scrollbar-thumb {
+      background: rgba(245, 243, 238, 0.18);
+      border-radius: 4px;
+    }
+    .form-saved-empty {
+      font-size: 0.72rem;
+      color: rgba(245, 243, 238, 0.4);
+      font-style: italic;
+      padding: 0.4rem 0.2rem;
+      flex: 1;
+    }
+    .form-saved-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-shrink: 0;
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      border-radius: 999px;
+      color: var(--cream);
+      font: 500 0.74rem/1 var(--sans);
+      padding: 0.4rem 0.55rem 0.4rem 0.8rem;
+      cursor: pointer;
+      max-width: 14rem;
+      transition: background 0.18s, border-color 0.18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-saved-chip:hover {
+      background: rgba(91, 141, 232, 0.22);
+      border-color: var(--blue-lt);
+    }
+    .form-saved-chip-name {
+      max-width: 9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .form-saved-chip-meta {
+      font-size: 0.65rem;
+      color: rgba(245, 243, 238, 0.5);
+      white-space: nowrap;
+    }
+    .form-saved-chip-del {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      line-height: 1;
+      color: rgba(245, 243, 238, 0.55);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-saved-chip-del:hover {
+      background: rgba(232, 30, 30, 0.25);
+      color: rgba(255, 220, 220, 1);
+    }
+
     /* ─── Standalone PWA chromeless mode ──────────────────────────────────
        When the metronome is launched from the home-screen install (Add to
        Home Screen on iOS, or the install prompt on Android/desktop), drop
