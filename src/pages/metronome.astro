@@ -1783,10 +1783,51 @@ const graph = {
       });
       try { localStorage.setItem(KEY, String(idx)); } catch (_) {}
     }
+    // Horizontal-only scroll to a screen. Element.scrollIntoView() touches
+    // BOTH axes (it'll yank the page vertically to align the screen's top
+    // with the viewport when you tap a tab) — we only want the carousel
+    // track to slide left/right, leaving the user's vertical scroll alone.
+    function scrollToScreen(idx, smooth) {
+      const target = screens[idx];
+      if (!target) return;
+      // offsetLeft inside the flex track gives us the screen's start
+      // position; scrollTo on the track moves only the track's content.
+      track.scrollTo({ left: target.offsetLeft, behavior: smooth ? 'smooth' : 'instant' });
+    }
+    // Tab clicks shouldn't move the document's vertical scroll — the
+    // user just wants the carousel to slide horizontally. Two issues
+    // conspire against that with sticky-positioned <button> tabs:
+    //   1. The browser scrolls the page to surface a focused button's
+    //      "natural" position (even when the button is already visible
+    //      via position: sticky).
+    //   2. That focus + scroll happens between mousedown and click, so
+    //      capturing window.scrollY inside the click handler is already
+    //      too late.
+    // Fix: capture scrollY on mousedown/touchstart (before focus fires),
+    // then snap the document back across the next frame + timeouts in
+    // case the focus-scroll arrives smoothly over several frames. Mouse/
+    // touch clicks also blur the tab so it doesn't keep stealing focus;
+    // keyboard activations (e.detail === 0) preserve focus.
+    let preTapY = 0;
+    let preTapX = 0;
+    function capturePreTap() {
+      preTapY = window.scrollY;
+      preTapX = window.scrollX;
+    }
     tabs.forEach((t, i) => {
-      t.addEventListener('click', () => {
-        screens[i].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+      t.addEventListener('mousedown', capturePreTap);
+      t.addEventListener('touchstart', capturePreTap, { passive: true });
+      t.addEventListener('click', (e) => {
+        const y = preTapY;
+        const x = preTapX;
+        if (e.detail !== 0) t.blur();
+        scrollToScreen(i, true);
         setActive(i);
+        const snap = () => { if (window.scrollY !== y) window.scrollTo({ left: x, top: y }); };
+        snap();
+        requestAnimationFrame(snap);
+        setTimeout(snap, 100);
+        setTimeout(snap, 400);
       });
     });
     // Sync the active tab as the user swipes/scrolls horizontally.
@@ -1806,7 +1847,7 @@ const graph = {
     if (restore !== 0) {
       // Defer one frame so layout is settled before the programmatic scroll.
       requestAnimationFrame(() => {
-        screens[restore].scrollIntoView({ behavior: 'instant', inline: 'start', block: 'nearest' });
+        scrollToScreen(restore, false);
         setActive(restore);
       });
     }
@@ -1815,7 +1856,7 @@ const graph = {
       setScreen(idx) {
         if (idx < 0 || idx >= screens.length) return;
         requestAnimationFrame(() => {
-          screens[idx].scrollIntoView({ behavior: 'instant', inline: 'start', block: 'nearest' });
+          scrollToScreen(idx, false);
           setActive(idx);
         });
       },
