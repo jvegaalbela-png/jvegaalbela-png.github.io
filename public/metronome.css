@@ -2169,9 +2169,28 @@
       border-color: var(--orange-lt);
     }
     @media (max-width: 700px) {
-      .metronome-shell .card.form-select-bar { padding: 0.6rem 0.85rem; }
-      .form-select-status { font-size: 0.7rem; }
-      .form-select-action { padding: 0.3rem 0.5rem; font-size: 0.68rem; }
+      /* Stack the status above a single row of evenly-divided buttons
+         so the action array always fits on one line, no matter how
+         many actions or how wide their labels are. */
+      .metronome-shell .card.form-select-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.6rem 0.85rem;
+      }
+      .form-select-status { font-size: 0.7rem; text-align: center; }
+      .form-select-actions {
+        flex-wrap: nowrap;
+        gap: 0.3rem;
+        width: 100%;
+      }
+      .form-select-action {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0.3rem 0.25rem;
+        font-size: 0.66rem;
+        text-align: center;
+      }
     }
 
     /* Selected-range highlight (works for both beat-mode cards and chart
@@ -2302,4 +2321,12 @@
     }
     .metronome-shell .card-form .adv-feature-header {
       margin-bottom: 0.35rem;
+    }
+    /* Keep the explainer to a single line on phones — the copy is short
+       enough; nowrap guards against any future fontsize / token tweaks
+       wrapping it. */
+    .metronome-shell .card-form .adv-feature-desc {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
