@@ -380,19 +380,21 @@ const graph = {
       </section>
 
       <section class="carousel-screen" id="screen-forms" role="tabpanel" aria-label="Forms">
-    <!-- Form editor (was a popped-over modal; now lives directly inside the Forms tab). -->
-    <div class="form-tab-header">
-      <div class="form-tab-header-text">
-        <div class="section-label">Custom Form</div>
-        <div class="adv-feature-desc">Chain measures with shifting time signatures, looping continuously</div>
+    <!-- Form editor (was a popped-over modal; now lives directly inside the Forms tab
+         as a regular card — same header pattern as Gap Click / Random Mute on the
+         Practice tab, with the form-mode toggle in the top-right of the card. -->
+    <div class="card card-form" id="custom-form">
+      <div class="adv-feature-header">
+        <div>
+          <div class="section-label">Custom Form</div>
+          <div class="adv-feature-desc">Chain measures with shifting time signatures, looping continuously</div>
+        </div>
+        <label class="toggle-switch" title="Play this form (instead of the basic Pulse settings)">
+          <input type="checkbox" id="form-toggle" />
+          <span class="toggle-track"></span>
+        </label>
       </div>
-      <label class="toggle-switch" title="Play this form (instead of the basic Pulse settings)">
-        <input type="checkbox" id="form-toggle" />
-        <span class="toggle-track"></span>
-      </label>
-    </div>
-
-    <div class="form-editor-shell" id="form-editor-shell">
+      <div class="form-editor-shell" id="form-editor-shell">
       <div class="form-editor-toolbar">
         <div class="form-editor-toolbar-left">
           <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
@@ -447,7 +449,8 @@ const graph = {
       <div class="form-editor-mobile-play" id="form-editor-mobile-play">
         <button class="btn btn-play" id="form-editor-mobile-play-btn" type="button">▶ Start</button>
       </div>
-    </div>
+    </div><!-- /.form-editor-shell -->
+    </div><!-- /.card.card-form -->
 
     <!-- Hidden DOM stubs so the existing JS handlers don't NPE on elements
          that lived on the old Custom Form card or in legacy form-list UI. -->
