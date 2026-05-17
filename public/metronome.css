@@ -1428,9 +1428,8 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.6rem 0.75rem;
-      padding: 0.6rem 0 0.7rem;
-      margin-bottom: 0.7rem;
-      border-bottom: 1px solid rgba(91, 141, 232, 0.18);
+      margin-top: 0.75rem;
+      /* No bottom border / margin — this is the last thing in the card. */
     }
     .form-editor-toolbar-left,
     .form-editor-toolbar-right {

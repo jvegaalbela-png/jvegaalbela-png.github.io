@@ -380,9 +380,11 @@ const graph = {
       </section>
 
       <section class="carousel-screen" id="screen-forms" role="tabpanel" aria-label="Forms">
-    <!-- Form editor (was a popped-over modal; now lives directly inside the Forms tab
-         as a regular card — same header pattern as Gap Click / Random Mute on the
-         Practice tab, with the form-mode toggle in the top-right of the card. -->
+    <!-- The "header" controls (label, description, form-mode toggle, mode
+         switcher, undo/redo, Clear all, BPM) live in a regular card —
+         same header pattern as Gap Click / Random Mute on the Practice
+         tab. The bar grid, action buttons, and share panel sit below
+         the card so they flow freely without any extra container. -->
     <div class="card card-form" id="custom-form">
       <div class="adv-feature-header">
         <div>
@@ -394,7 +396,6 @@ const graph = {
           <span class="toggle-track"></span>
         </label>
       </div>
-      <div class="form-editor-shell" id="form-editor-shell">
       <div class="form-editor-toolbar">
         <div class="form-editor-toolbar-left">
           <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
@@ -416,6 +417,9 @@ const graph = {
           </div>
         </div>
       </div>
+    </div><!-- /.card.card-form -->
+
+    <div class="form-editor-shell" id="form-editor-shell">
       <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
         <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
         <div class="form-select-actions">
@@ -450,7 +454,6 @@ const graph = {
         <button class="btn btn-play" id="form-editor-mobile-play-btn" type="button">▶ Start</button>
       </div>
     </div><!-- /.form-editor-shell -->
-    </div><!-- /.card.card-form -->
 
     <!-- Hidden DOM stubs so the existing JS handlers don't NPE on elements
          that lived on the old Custom Form card or in legacy form-list UI. -->
