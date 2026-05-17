@@ -2330,3 +2330,24 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    /* ─── Standalone PWA chromeless mode ──────────────────────────────────
+       When the metronome is launched from the home-screen install (Add to
+       Home Screen on iOS, or the install prompt on Android/desktop), drop
+       the site nav, footer, and contact pill so the metronome reads like
+       a real app rather than a webpage. The display-mode media query only
+       matches in installed-PWA mode — a regular browser tab still gets
+       the full site chrome.
+
+       Padding the shell with env(safe-area-inset-top) keeps the
+       "Metronome" h1 below the iOS status bar (which we draw under via
+       apple-mobile-web-app-status-bar-style: black-translucent). */
+    @media (display-mode: standalone) {
+      body.metronome-page .site-header,
+      body.metronome-page footer,
+      body.metronome-page .sticky-cta { display: none; }
+
+      body.metronome-page .metronome-shell {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+      }
+    }
