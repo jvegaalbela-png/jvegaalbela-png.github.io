@@ -296,7 +296,7 @@ const graph = {
       <div class="adv-feature-header">
         <div>
           <div class="section-label">Gap Click</div>
-          <div class="adv-feature-desc">Play for N measures, then silence for M — trains your internal clock</div>
+          <div class="adv-feature-desc">Play for N, then silence for M — trains your internal clock</div>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="gap-toggle" />
@@ -304,17 +304,24 @@ const graph = {
         </label>
       </div>
       <div id="gap-controls" class="adv-controls disabled">
+        <div class="adv-row gap-unit-row">
+          <span class="adv-label">Count by</span>
+          <div class="gap-unit-toggle" role="radiogroup" aria-label="Gap counting unit">
+            <button class="gap-unit-btn active" id="gap-unit-measure" type="button" aria-pressed="true">Measures</button>
+            <button class="gap-unit-btn" id="gap-unit-beat" type="button" aria-pressed="false">Beats</button>
+          </div>
+        </div>
         <div class="adv-row">
           <span class="adv-label">Play</span>
           <input type="range" id="gap-play-slider" min="1" max="16" value="2" />
           <span class="adv-value" id="gap-play-val">2</span>
-          <span class="adv-unit">measures</span>
+          <span class="adv-unit" id="gap-play-unit">measures</span>
         </div>
         <div class="adv-row">
           <span class="adv-label">Silence</span>
           <input type="range" id="gap-silent-slider" min="1" max="16" value="2" />
           <span class="adv-value" id="gap-silent-val">2</span>
-          <span class="adv-unit">measures</span>
+          <span class="adv-unit" id="gap-silent-unit">measures</span>
         </div>
         <div class="gap-phase-indicator">
           <span class="phase-pill" id="gap-phase-pill">● Waiting</span>
@@ -654,7 +661,7 @@ const graph = {
   // ─── Advanced Mode State ──────────────────────────────────────────────────────
   const adv = {
     enabled: false,
-    gapEnabled: false, gapPlay: 2, gapSilent: 2,
+    gapEnabled: false, gapPlay: 2, gapSilent: 2, gapUnit: 'measure',
     randomMuteEnabled: false, randomMutePct: 30, randomMuteSubPct: 0,
     formEnabled: false,
     form: [],   // [{ beats, unit, states[] }]
@@ -862,9 +869,17 @@ const graph = {
       if (schedulerSub >= state.subdivision) {
         schedulerSub = 0;
         schedulerBeat++;
+        // Beats-mode gap counter: tick once per beat (fires on every
+        // beat rollover, not just at the bar line).
+        if (adv.gapEnabled && adv.gapUnit === 'beat') {
+          advGapCount++;
+          if (advGapPhase === 'play'   && advGapCount >= adv.gapPlay)   { advGapPhase = 'silent'; advGapCount = 0; }
+          else if (advGapPhase === 'silent' && advGapCount >= adv.gapSilent) { advGapPhase = 'play';   advGapCount = 0; }
+        }
         if (schedulerBeat >= cfg.beatsPerMeasure) {
           schedulerBeat = 0;
-          if (adv.gapEnabled) {
+          // Measures-mode gap counter: ticks once per measure (the original behavior).
+          if (adv.gapEnabled && adv.gapUnit !== 'beat') {
             advGapCount++;
             if (advGapPhase === 'play'   && advGapCount >= adv.gapPlay)   { advGapPhase = 'silent'; advGapCount = 0; }
             else if (advGapPhase === 'silent' && advGapCount >= adv.gapSilent) { advGapPhase = 'play';   advGapCount = 0; }
@@ -1299,16 +1314,17 @@ const graph = {
       prog.textContent = '';
       return;
     }
+    const unitWord = adv.gapUnit === 'beat' ? 'beat' : 'measure';
     if (phase === 'play') {
       pill.className = 'phase-pill play';
       pill.textContent = '▶ Playing';
       const left = adv.gapPlay - count;
-      prog.textContent = left + ' measure' + (left !== 1 ? 's' : '') + ' left';
+      prog.textContent = left + ' ' + unitWord + (left !== 1 ? 's' : '') + ' left';
     } else {
       pill.className = 'phase-pill silent';
       pill.textContent = '● Silent';
       const left = adv.gapSilent - count;
-      prog.textContent = left + ' measure' + (left !== 1 ? 's' : '') + ' left';
+      prog.textContent = left + ' ' + unitWord + (left !== 1 ? 's' : '') + ' left';
     }
   }
 
@@ -1658,6 +1674,32 @@ const graph = {
     persistState();
   });
 
+  // Pure UI sync for the gap-unit pill — used by both the user-initiated
+  // click handlers and by init()'s DOM reflection. Caller decides whether
+  // to also reset playback state / persist.
+  function setGapUnit(unit) {
+    if (unit !== 'measure' && unit !== 'beat') return;
+    adv.gapUnit = unit;
+    const isBeat = unit === 'beat';
+    document.getElementById('gap-unit-measure').classList.toggle('active', !isBeat);
+    document.getElementById('gap-unit-measure').setAttribute('aria-pressed', String(!isBeat));
+    document.getElementById('gap-unit-beat').classList.toggle('active', isBeat);
+    document.getElementById('gap-unit-beat').setAttribute('aria-pressed', String(isBeat));
+    const word = isBeat ? 'beats' : 'measures';
+    document.getElementById('gap-play-unit').textContent = word;
+    document.getElementById('gap-silent-unit').textContent = word;
+  }
+  function pickGapUnit(unit) {
+    setGapUnit(unit);
+    // Flipping mid-playback: reset the phase + count so we don't apply a
+    // stale measure-count to a beat threshold (or vice versa).
+    advGapPhase = 'play';
+    advGapCount = 0;
+    persistState();
+  }
+  document.getElementById('gap-unit-measure').addEventListener('click', () => pickGapUnit('measure'));
+  document.getElementById('gap-unit-beat').addEventListener('click', () => pickGapUnit('beat'));
+
   document.getElementById('gap-play-slider').addEventListener('input', e => {
     adv.gapPlay = +e.target.value;
     document.getElementById('gap-play-val').textContent = adv.gapPlay;
@@ -1732,7 +1774,11 @@ const graph = {
     params.set('p', state.beats.map((b) => BEAT_TO_CHAR[b] || 'N').join(''));
     if (state.subdivision !== 1) params.set('sub', String(state.subdivision));
     if (soundMode !== 'electronic') params.set('snd', SOUND_TO_CHAR[soundMode]);
-    if (adv.gapEnabled) params.set('gap', adv.gapPlay + '-' + adv.gapSilent);
+    if (adv.gapEnabled) {
+      let v = adv.gapPlay + '-' + adv.gapSilent;
+      if (adv.gapUnit === 'beat') v += '-b';
+      params.set('gap', v);
+    }
     if (adv.randomMuteEnabled) {
       params.set('rmute', String(adv.randomMutePct));
       if (adv.randomMuteSubPct > 0) params.set('rsub', String(adv.randomMuteSubPct));
@@ -1769,11 +1815,13 @@ const graph = {
 
     const gap = params.get('gap');
     if (gap) {
-      const [p, s] = gap.split('-').map(Number);
+      const parts = gap.split('-');
+      const p = +parts[0], s = +parts[1];
       if (p >= 1 && p <= 16 && s >= 1 && s <= 16) {
         adv.gapEnabled = true;
         adv.gapPlay = p;
         adv.gapSilent = s;
+        adv.gapUnit = parts[2] === 'b' ? 'beat' : 'measure';
       }
     }
     const rmute = +params.get('rmute');
@@ -1798,7 +1846,7 @@ const graph = {
         subdivision: state.subdivision,
         soundMode,
         adv: {
-          gapEnabled: adv.gapEnabled, gapPlay: adv.gapPlay, gapSilent: adv.gapSilent,
+          gapEnabled: adv.gapEnabled, gapPlay: adv.gapPlay, gapSilent: adv.gapSilent, gapUnit: adv.gapUnit,
           randomMuteEnabled: adv.randomMuteEnabled, randomMutePct: adv.randomMutePct, randomMuteSubPct: adv.randomMuteSubPct,
           formEnabled: adv.formEnabled,
           form: adv.form,
@@ -1826,6 +1874,7 @@ const graph = {
         adv.gapEnabled = !!d.adv.gapEnabled;
         if (d.adv.gapPlay >= 1 && d.adv.gapPlay <= 16) adv.gapPlay = d.adv.gapPlay;
         if (d.adv.gapSilent >= 1 && d.adv.gapSilent <= 16) adv.gapSilent = d.adv.gapSilent;
+        if (d.adv.gapUnit === 'beat' || d.adv.gapUnit === 'measure') adv.gapUnit = d.adv.gapUnit;
         adv.randomMuteEnabled = !!d.adv.randomMuteEnabled;
         if (d.adv.randomMutePct >= 0 && d.adv.randomMutePct <= 100) adv.randomMutePct = d.adv.randomMutePct;
         if (d.adv.randomMuteSubPct >= 0 && d.adv.randomMuteSubPct <= 100) adv.randomMuteSubPct = d.adv.randomMuteSubPct;
@@ -1917,6 +1966,7 @@ const graph = {
     document.getElementById('gap-play-val').textContent = adv.gapPlay;
     document.getElementById('gap-silent-slider').value = adv.gapSilent;
     document.getElementById('gap-silent-val').textContent = adv.gapSilent;
+    setGapUnit(adv.gapUnit);  // syncs pill state + the two "measures/beats" unit labels
     document.getElementById('random-mute-toggle').checked = adv.randomMuteEnabled;
     document.getElementById('random-mute-controls').classList.toggle('disabled', !adv.randomMuteEnabled);
     document.getElementById('random-mute-slider').value = adv.randomMutePct;
