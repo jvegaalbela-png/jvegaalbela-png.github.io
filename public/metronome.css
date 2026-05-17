@@ -2117,19 +2117,19 @@
       border-color: var(--blue-lt);
     }
 
-    /* Contextual selection strip — pinned below the toolbar while in
-       select mode. Shows the range status + Duplicate/Delete/Cancel. */
-    .form-select-bar {
+    /* Contextual selection card — appears below the toolbar while in
+       select mode. Shows the range status + Duplicate/Delete/Cancel.
+       Uses the same .card surface as the rest of the Forms tab so it
+       reads as part of the page chrome (not a modal-era strip). */
+    .metronome-shell .card.form-select-bar {
       display: none;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.4rem 0.5rem;
-      padding: 0.5rem 0.85rem;
-      background: rgba(91, 141, 232, 0.16);
-      border-bottom: 1px solid rgba(91, 141, 232, 0.35);
+      padding: 0.7rem 1.1rem;
     }
-    .form-select-bar[aria-hidden="false"] { display: flex; }
+    .metronome-shell .card.form-select-bar[aria-hidden="false"] { display: flex; }
     .form-select-status {
       font-size: 0.78rem;
       color: var(--cream);
@@ -2169,7 +2169,7 @@
       border-color: var(--orange-lt);
     }
     @media (max-width: 700px) {
-      .form-select-bar { padding: 0.5rem 0.6rem; }
+      .metronome-shell .card.form-select-bar { padding: 0.6rem 0.85rem; }
       .form-select-status { font-size: 0.7rem; }
       .form-select-action { padding: 0.3rem 0.5rem; font-size: 0.68rem; }
     }
@@ -2295,7 +2295,11 @@
 
     /* The Forms-tab card holds just the header bar (label/desc/toggle/
        mode/undo/redo/Clear all/BPM). Tighter padding than the default
-       .card since there's less content to breathe around. */
+       .card since there's less content to breathe around, and the
+       header→toolbar gap shrinks to bring the card's height down. */
     .metronome-shell .card-form {
-      padding: 0.9rem 1.1rem;
+      padding: 0.7rem 1.1rem;
+    }
+    .metronome-shell .card-form .adv-feature-header {
+      margin-bottom: 0.35rem;
     }
