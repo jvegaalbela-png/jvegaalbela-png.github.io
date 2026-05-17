@@ -380,41 +380,43 @@ const graph = {
       </section>
 
       <section class="carousel-screen" id="screen-forms" role="tabpanel" aria-label="Forms">
-    <!-- Form editor (was a popped-over modal; now lives directly inside the Forms tab). -->
-    <div class="form-tab-header">
-      <div class="form-tab-header-text">
-        <div class="section-label">Custom Form</div>
-        <div class="adv-feature-desc">Chain measures with shifting time signatures, looping continuously</div>
+    <!-- The "header" controls (label, description, form-mode toggle, mode
+         switcher, undo/redo, Clear all, BPM) live in a regular card —
+         same header pattern as Gap Click / Random Mute on the Practice
+         tab. The bar grid, action buttons, and share panel sit below
+         the card so they flow freely without any extra container. -->
+    <div class="card card-form" id="custom-form">
+      <div class="adv-feature-header">
+        <div>
+          <div class="section-label">Custom Form</div>
+          <div class="adv-feature-desc">Chain measures with shifting time signatures</div>
+        </div>
+        <label class="toggle-switch" title="Play this form (instead of the basic Pulse settings)">
+          <input type="checkbox" id="form-toggle" />
+          <span class="toggle-track"></span>
+        </label>
       </div>
-      <label class="toggle-switch" title="Play this form (instead of the basic Pulse settings)">
-        <input type="checkbox" id="form-toggle" />
-        <span class="toggle-track"></span>
-      </label>
-    </div>
+      <div class="form-editor-toolbar">
+        <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
+          <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
+          <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
+        </div>
+        <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
+          <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↺</button>
+          <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↻</button>
+        </div>
+        <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
+        <div class="form-editor-bpm">
+          <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
+          <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
+          <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
+          <span class="form-editor-bpm-label">BPM</span>
+        </div>
+      </div>
+    </div><!-- /.card.card-form -->
 
     <div class="form-editor-shell" id="form-editor-shell">
-      <div class="form-editor-toolbar">
-        <div class="form-editor-toolbar-left">
-          <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
-            <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
-            <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
-          </div>
-          <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
-            <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↺</button>
-            <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↻</button>
-          </div>
-        </div>
-        <div class="form-editor-toolbar-right">
-          <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
-          <div class="form-editor-bpm">
-            <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
-            <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
-            <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
-            <span class="form-editor-bpm-label">BPM</span>
-          </div>
-        </div>
-      </div>
-      <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
+      <div class="card form-select-bar" id="form-select-bar" aria-hidden="true">
         <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
         <div class="form-select-actions">
           <button class="form-select-action play" id="form-select-play-from" type="button" disabled>▶ Play from</button>
@@ -447,7 +449,7 @@ const graph = {
       <div class="form-editor-mobile-play" id="form-editor-mobile-play">
         <button class="btn btn-play" id="form-editor-mobile-play-btn" type="button">▶ Start</button>
       </div>
-    </div>
+    </div><!-- /.form-editor-shell -->
 
     <!-- Hidden DOM stubs so the existing JS handlers don't NPE on elements
          that lived on the old Custom Form card or in legacy form-list UI. -->
