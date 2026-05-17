@@ -676,6 +676,33 @@
 
     .metronome-shell .adv-unit { font-size: 0.7rem; color: rgba(245, 243, 238, 0.4); }
 
+    /* Gap "Count by" pill — two-button radio group inside the gap card */
+    .metronome-shell .gap-unit-row { justify-content: flex-start; gap: 0.6rem; }
+    .metronome-shell .gap-unit-toggle {
+      display: inline-flex;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .metronome-shell .gap-unit-btn {
+      background: transparent;
+      border: 0;
+      color: rgba(245, 243, 238, 0.6);
+      font-family: inherit;
+      font-size: 0.78rem;
+      padding: 0.32rem 0.7rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .gap-unit-btn + .gap-unit-btn {
+      border-left: 1px solid rgba(91, 141, 232, 0.35);
+    }
+    .metronome-shell .gap-unit-btn:hover { background: rgba(91, 141, 232, 0.12); color: var(--cream); }
+    .metronome-shell .gap-unit-btn.active {
+      background: rgba(91, 141, 232, 0.22);
+      color: var(--cream);
+    }
+
     .metronome-shell .gap-phase-indicator {
       display: flex;
       align-items: center;
