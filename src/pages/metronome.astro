@@ -380,49 +380,101 @@ const graph = {
       </section>
 
       <section class="carousel-screen" id="screen-forms" role="tabpanel" aria-label="Forms">
-    <div class="adv-grid">
-
-    <!-- Custom Form -->
-    <div class="card card-form" id="custom-form">
-      <div class="adv-feature-header">
-        <div>
-          <div class="section-label">Custom Form</div>
-          <div class="adv-feature-desc">Chain measures with shifting time signatures, looping continuously</div>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="form-toggle" />
-          <span class="toggle-track"></span>
-        </label>
+    <!-- Form editor (was a popped-over modal; now lives directly inside the Forms tab). -->
+    <div class="form-tab-header">
+      <div class="form-tab-header-text">
+        <div class="section-label">Custom Form</div>
+        <div class="adv-feature-desc">Chain measures with shifting time signatures, looping continuously</div>
       </div>
-      <div id="form-controls" class="adv-controls disabled">
-        <div class="form-counter" id="form-counter"></div>
-        <button class="btn btn-open-editor" id="open-form-editor">Open form editor →</button>
-        <div class="play-row" style="margin-top:0.75rem">
-          <button class="btn btn-play" id="play-stop-form">▶ Start</button>
-        </div>
-        <!-- Legacy form-list UI (hidden; still in the DOM so existing JS handlers don't NPE). -->
-        <div style="display:none" aria-hidden="true">
-          <div class="form-toolbar">
-            <button class="btn form-tool-btn" id="form-undo" disabled>↩ Undo</button>
-            <button class="btn form-tool-btn" id="form-redo" disabled>↪ Redo</button>
-            <button class="btn form-tool-btn" id="form-save">↓ Save</button>
-            <label class="btn form-tool-btn" id="form-load-label">↑ Load
-              <input type="file" id="form-load-input" accept=".json" />
-            </label>
+      <label class="toggle-switch" title="Play this form (instead of the basic Pulse settings)">
+        <input type="checkbox" id="form-toggle" />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="form-editor-shell" id="form-editor-shell">
+      <div class="form-editor-toolbar">
+        <div class="form-editor-toolbar-left">
+          <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
+            <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
+            <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
           </div>
-          <div class="form-bulk-row">
-            <input type="number" class="form-beats-input" id="bulk-count" min="1" max="64" value="4" />
-            <input type="number" class="form-beats-input" id="bulk-beats" min="1" max="32" value="4" />
-            <select class="form-unit-select" id="bulk-unit"></select>
-            <button class="btn form-tool-btn" id="bulk-add-btn">+ Add</button>
+          <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
+            <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↺</button>
+            <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↻</button>
           </div>
-          <div class="form-list" id="form-list"></div>
-          <button class="btn btn-add-measure" id="add-measure-btn">+ Add Single Measure</button>
         </div>
+        <div class="form-editor-toolbar-right">
+          <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
+          <div class="form-editor-bpm">
+            <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
+            <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
+            <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
+            <span class="form-editor-bpm-label">BPM</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-editor-play-row">
+        <button class="btn btn-play form-editor-play" id="form-editor-play" type="button">▶ Start</button>
+      </div>
+      <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
+        <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
+        <div class="form-select-actions">
+          <button class="form-select-action play" id="form-select-play-from" type="button" disabled>▶ Play from</button>
+          <button class="form-select-action play" id="form-select-loop" type="button" disabled>↻ Loop</button>
+          <button class="form-select-action" id="form-select-duplicate" type="button" disabled>Duplicate</button>
+          <button class="form-select-action danger" id="form-select-delete" type="button" disabled>Delete</button>
+          <button class="form-select-action" id="form-select-cancel" type="button">Cancel</button>
+        </div>
+      </div>
+      <div class="form-editor-body">
+        <div class="form-editor-grid" id="form-editor-grid"></div>
+        <div class="form-editor-body-actions">
+          <button class="form-editor-add-bar" id="form-editor-add-bar" type="button">
+            <span class="form-editor-add-bar-plus" aria-hidden="true">+</span>
+            <span id="form-editor-add-bar-label">Add a 4/4 bar</span>
+          </button>
+          <button class="form-editor-select-btn" id="form-editor-select-btn" type="button">Select bars</button>
+        </div>
+        <div class="form-code-panel">
+          <div class="form-code-title">Share form</div>
+          <p class="form-code-help">Copy a link to send this form anywhere. Opening it loads the form with the same tempo.</p>
+          <div class="form-code-row">
+            <button class="form-code-btn" id="form-code-copy" type="button">
+              <span>Copy share link</span>
+              <span class="form-code-copied" id="form-code-copied" aria-live="polite">Copied</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="form-editor-mobile-play" id="form-editor-mobile-play">
+        <button class="btn btn-play" id="form-editor-mobile-play-btn" type="button">▶ Start</button>
       </div>
     </div>
 
-    </div><!-- /.adv-grid -->
+    <!-- Hidden DOM stubs so the existing JS handlers don't NPE on elements
+         that lived on the old Custom Form card or in legacy form-list UI. -->
+    <div style="display:none" aria-hidden="true">
+      <div id="form-controls" class="adv-controls"></div>
+      <div class="form-counter" id="form-counter"></div>
+      <button id="play-stop-form" type="button">play</button>
+      <div class="form-toolbar">
+        <button class="btn form-tool-btn" id="form-undo" disabled>↩ Undo</button>
+        <button class="btn form-tool-btn" id="form-redo" disabled>↪ Redo</button>
+        <button class="btn form-tool-btn" id="form-save">↓ Save</button>
+        <label class="btn form-tool-btn" id="form-load-label">↑ Load
+          <input type="file" id="form-load-input" accept=".json" />
+        </label>
+      </div>
+      <div class="form-bulk-row">
+        <input type="number" class="form-beats-input" id="bulk-count" min="1" max="64" value="4" />
+        <input type="number" class="form-beats-input" id="bulk-beats" min="1" max="32" value="4" />
+        <select class="form-unit-select" id="bulk-unit"></select>
+        <button class="btn form-tool-btn" id="bulk-add-btn">+ Add</button>
+      </div>
+      <div class="form-list" id="form-list"></div>
+      <button class="btn btn-add-measure" id="add-measure-btn">+ Add Single Measure</button>
+    </div>
       </section>
     </div><!-- /.carousel-track -->
   </div><!-- /.metronome-carousel -->
@@ -604,72 +656,6 @@ const graph = {
   </div>
 </article>
 
-<!-- Custom form editor. Hidden by default; opens when the user clicks
-     "Open form editor" inside the Custom Form card. -->
-<div class="form-editor-modal" id="form-editor-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="form-editor-title">
-  <div class="form-editor-shell">
-    <div class="form-editor-toolbar">
-      <div class="form-editor-toolbar-left">
-        <button class="form-editor-close" id="form-editor-close" type="button" aria-label="Close form editor">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M3 3l10 10 M13 3l-10 10"/></svg>
-        </button>
-        <h2 class="form-editor-title" id="form-editor-title">Form Editor</h2>
-        <div class="form-editor-mode-toggle" role="group" aria-label="Editor view mode">
-          <button class="form-editor-mode-btn active" id="form-editor-mode-beat" type="button" aria-pressed="true">Beat</button>
-          <button class="form-editor-mode-btn" id="form-editor-mode-chart" type="button" aria-pressed="false">Chart</button>
-        </div>
-        <div class="form-editor-undoredo" role="group" aria-label="Undo and redo">
-          <button class="form-editor-ur-btn" id="form-editor-undo" type="button" aria-label="Undo (Ctrl+Z)" title="Undo — Ctrl+Z" disabled>↺</button>
-          <button class="form-editor-ur-btn" id="form-editor-redo" type="button" aria-label="Redo (Ctrl+Y)" title="Redo — Ctrl+Y" disabled>↻</button>
-        </div>
-      </div>
-      <div class="form-editor-toolbar-right">
-        <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
-        <div class="form-editor-bpm">
-          <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
-          <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
-          <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
-          <span class="form-editor-bpm-label">BPM</span>
-        </div>
-        <button class="btn btn-play form-editor-play" id="form-editor-play" type="button">▶ Start</button>
-      </div>
-    </div>
-    <div class="form-select-bar" id="form-select-bar" aria-hidden="true">
-      <span class="form-select-status" id="form-select-status">Tap the first bar of the range</span>
-      <div class="form-select-actions">
-        <button class="form-select-action play" id="form-select-play-from" type="button" disabled>▶ Play from</button>
-        <button class="form-select-action play" id="form-select-loop" type="button" disabled>↻ Loop</button>
-        <button class="form-select-action" id="form-select-duplicate" type="button" disabled>Duplicate</button>
-        <button class="form-select-action danger" id="form-select-delete" type="button" disabled>Delete</button>
-        <button class="form-select-action" id="form-select-cancel" type="button">Cancel</button>
-      </div>
-    </div>
-    <div class="form-editor-body">
-      <div class="form-editor-grid" id="form-editor-grid"></div>
-      <div class="form-editor-body-actions">
-        <button class="form-editor-add-bar" id="form-editor-add-bar" type="button">
-          <span class="form-editor-add-bar-plus" aria-hidden="true">+</span>
-          <span id="form-editor-add-bar-label">Add a 4/4 bar</span>
-        </button>
-        <button class="form-editor-select-btn" id="form-editor-select-btn" type="button">Select bars</button>
-      </div>
-
-      <div class="form-code-panel">
-        <div class="form-code-title">Share form</div>
-        <p class="form-code-help">Copy a link to send this form anywhere. Opening it loads the form with the same tempo.</p>
-        <div class="form-code-row">
-          <button class="form-code-btn" id="form-code-copy" type="button">
-            <span>Copy share link</span>
-            <span class="form-code-copied" id="form-code-copied" aria-live="polite">Copied</span>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="form-editor-mobile-play" id="form-editor-mobile-play">
-      <button class="btn btn-play" id="form-editor-mobile-play-btn" type="button">▶ Start</button>
-    </div>
-  </div>
-</div>
 
 <script>
   // ─── State ───────────────────────────────────────────────────────────────────
@@ -1765,10 +1751,11 @@ const graph = {
   // Three horizontally-snapping screens: Pulse / Practice / Forms. Tabs at the
   // top reflect the active screen as the user swipes; clicking a tab scrolls
   // smoothly to that screen. Active screen index is persisted to localStorage
-  // so a reload lands on the same tab.
-  (() => {
+  // so a reload lands on the same tab. The returned API lets init() jump to a
+  // specific screen — e.g. share-link arrival should land on Forms.
+  const Carousel = (() => {
     const track = document.getElementById('carousel-track');
-    if (!track) return;
+    if (!track) return { setScreen() {} };
     const screens = Array.from(track.querySelectorAll('.carousel-screen'));
     const tabs = Array.from(document.querySelectorAll('.carousel-tab'));
     const KEY = 'metronomeCarouselScreen_v1';
@@ -1808,6 +1795,16 @@ const graph = {
         setActive(restore);
       });
     }
+
+    return {
+      setScreen(idx) {
+        if (idx < 0 || idx >= screens.length) return;
+        requestAnimationFrame(() => {
+          screens[idx].scrollIntoView({ behavior: 'instant', inline: 'start', block: 'nearest' });
+          setActive(idx);
+        });
+      },
+    };
   })();
 
   document.getElementById('gap-toggle').addEventListener('change', e => {
@@ -2140,8 +2137,11 @@ const graph = {
     // If URL had state and localStorage didn't (or was different), sync now.
     if (usedURL) saveLocalStorage();
 
-    // Re-open the form editor if it was open when the page was last left.
-    if (restoreEditorOpen) openFormEditor();
+    // The editor is now a tab in the carousel, not a popped-over modal.
+    // Sync its initial state once, then — if the page was last left on the
+    // Forms tab OR the URL is a share link (?open=1 / ?f=), land on Forms.
+    syncFormEditorOnLoad();
+    if (restoreEditorOpen) Carousel.setScreen(2);
   }
 
   // ─── Custom Form Editor ───────────────────────────────────────────────────────
@@ -2160,7 +2160,11 @@ const graph = {
   //   - Hover gap between bars: "↵" cue to insert a line break after
   //   - Click "BREAK" badge on an existing line: remove that break
 
-  const formEditorModal = document.getElementById('form-editor-modal');
+  // The editor used to live in a popped-over modal; it's now a tab page
+  // (Forms in the carousel). Existing code still asks "is the editor open?"
+  // via formEditorModal.getAttribute('aria-hidden'). The editor is always
+  // mounted now, so the dummy always reports 'false' (= not hidden).
+  const formEditorModal = { getAttribute: () => 'false', setAttribute: () => {} };
   const formEditorGrid  = document.getElementById('form-editor-grid');
   const formEditorBpmEl = document.getElementById('form-editor-bpm');
   const formEditorPlayBtns = [
@@ -2168,37 +2172,20 @@ const graph = {
     document.getElementById('form-editor-mobile-play-btn'),
   ];
 
-  function openFormEditor() {
-    // Turn the form mode on if not already (the editor only makes sense
-    // when the scheduler is using adv.form).
-    if (!adv.formEnabled) {
-      adv.formEnabled = true;
-      const toggle = document.getElementById('form-toggle');
-      if (toggle) toggle.checked = true;
-      document.getElementById('form-controls').classList.remove('disabled');
-    }
-    formEditorModal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('form-editor-open');
+  // The editor is no longer a modal — it's the Forms tab on the carousel.
+  // Initial editor-state sync happens once after the DOM is ready: reflect
+  // the persisted editor mode (beat/chart) in the toolbar, paint the grid,
+  // and sync the editor's play buttons. Subsequent updates happen via the
+  // normal handlers (mode-toggle clicks, mutation handlers, the 200ms poll).
+  function syncFormEditorOnLoad() {
     formEditorBpmEl.textContent = state.bpm;
-    // Reflect persisted mode in the toolbar toggle UI
     document.getElementById('form-editor-mode-beat').classList.toggle('active', editorMode === 'beat');
     document.getElementById('form-editor-mode-beat').setAttribute('aria-pressed', editorMode === 'beat');
     document.getElementById('form-editor-mode-chart').classList.toggle('active', editorMode === 'chart');
     document.getElementById('form-editor-mode-chart').setAttribute('aria-pressed', editorMode === 'chart');
     renderFormEditor();
     refreshFormEditorPlayButtons();
-    saveLocalStorage();  // remember the editor is open (+ any formEnabled flip)
   }
-
-  function closeFormEditor() {
-    if (selectMode) exitSelectMode();
-    formEditorModal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('form-editor-open');
-    saveLocalStorage();  // remember the editor is closed
-  }
-
-  document.getElementById('open-form-editor').addEventListener('click', openFormEditor);
-  document.getElementById('form-editor-close').addEventListener('click', closeFormEditor);
 
   // BPM controls inside the editor — wire +/- and contenteditable to the
   // shared setBPM() so the change cascades to the slider, scheduler, and
@@ -2236,12 +2223,8 @@ const graph = {
     }, 0);
   });
 
-  // Esc closes the modal.
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && formEditorModal.getAttribute('aria-hidden') === 'false') {
-      closeFormEditor();
-    }
-  });
+  // (The editor used to have an Escape-closes-modal handler here; the
+  // editor is now a tab, not a modal, so Esc no longer has a job to do.)
 
   // Editor view mode: 'beat' (rich, tap-to-edit per beat) or 'chart' (a
   // sequence of compact tiles showing just the time signatures, for
