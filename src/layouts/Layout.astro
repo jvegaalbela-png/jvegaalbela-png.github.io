@@ -160,6 +160,15 @@ const ogType = og?.type ?? 'website';
   {resolved.alt && <meta name="twitter:image:alt" content={resolved.alt} />}
   <title>{title}</title>
   <link rel="icon" type="image/webp" href="/favicon.webp" />
+  {/* PWA — installable as an app via Add to Home Screen / browser install.
+      The metronome page is the start_url so launching from a home-screen
+      icon opens straight into the tool. iOS uses apple-touch-icon for the
+      home-screen icon (it ignores the manifest's icons for that). */}
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Metronome" />
   <style is:global set:html={fontFaces}></style>
   <slot name="head" />
   <GoogleAnalytics />
@@ -169,5 +178,18 @@ const ogType = og?.type ?? 'website';
   <slot />
   <Footer />
   <StickyCTA />
+  <script is:inline>
+    // Register the PWA service worker. Only runs in production (and only
+    // on HTTPS, which 'serviceWorker' availability already implies). The
+    // SW caches same-origin GETs so the metronome works offline once the
+    // user has visited it.
+    if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.protocol === 'https:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.warn('SW registration failed:', err);
+        });
+      });
+    }
+  </script>
 </body>
 </html>
