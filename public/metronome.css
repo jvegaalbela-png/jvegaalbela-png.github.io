@@ -83,8 +83,12 @@
       flex: 0 0 100%;
       min-width: 0;       /* allow children with overflow to shrink */
       scroll-snap-align: start;
-      /* Vertical scroll inside each screen for content that overflows */
-      /* (most screens fit a phone viewport; long forms may need scroll). */
+      /* The carousel screens are <section> elements, which the site-wide
+         global.css gives 72 px of vertical padding + a top rule for landing
+         pages. Reset both here — we don't want that breathing room inside
+         the carousel. */
+      padding: 0;
+      border-top: 0;
     }
 
     .metronome-shell .header {
