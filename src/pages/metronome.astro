@@ -155,6 +155,17 @@ const graph = {
 
 <link slot="head" rel="stylesheet" href="/metronome.css" />
 
+{/* PWA — installable as an app via Add to Home Screen / browser install.
+    Scoped to /metronome/ (manifest + sw.js both live under that path) so
+    only the metronome behaves like an installed app; the rest of the
+    site stays a plain website. iOS uses apple-touch-icon for the
+    home-screen icon (it ignores the manifest's icons for that). */}
+<link slot="head" rel="manifest" href="/metronome/site.webmanifest" />
+<link slot="head" rel="apple-touch-icon" href="/icons/icon-180.png" />
+<meta slot="head" name="apple-mobile-web-app-capable" content="yes" />
+<meta slot="head" name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta slot="head" name="apple-mobile-web-app-title" content="Metronome" />
+
 <main class="metronome-shell">
 <div class="app">
   <div class="header">
@@ -3066,5 +3077,18 @@ const graph = {
   })();
 
   init().catch((e) => console.error('init failed', e));
+</script>
+
+<script is:inline>
+  // Register the metronome service worker. Scoped to /metronome/ because
+  // the SW lives at /metronome/sw.js — the rest of the site is not
+  // intercepted. Skipped on localhost so dev builds aren't cached.
+  if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.protocol === 'https:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/metronome/sw.js').catch((err) => {
+        console.warn('SW registration failed:', err);
+      });
+    });
+  }
 </script>
 </Layout>

@@ -1,25 +1,26 @@
-// JVA Music — service worker
+// JVA Music Metronome — service worker
 //
-// Caches same-origin GET responses on first fetch so the metronome (and
-// the rest of the site) keeps working offline after the user has visited
-// once. Strategy: cache-first, fall back to network, fall back to cached
-// HTML if everything fails (so an offline launch still shows the page).
+// Scoped to /metronome/ (the SW lives at /metronome/sw.js, so the default
+// scope is the directory it's served from — the rest of the site isn't
+// intercepted). Caches same-origin GETs the page makes so the metronome
+// keeps working offline after the user has visited once. Strategy:
+// cache-first, fall back to network, fall back to the cached metronome
+// page if everything fails.
 //
 // Bump CACHE_NAME to invalidate all caches on the next visit — useful
 // when shipping a hard-incompatible change.
 
-const CACHE_NAME = 'jva-music-v1';
+const CACHE_NAME = 'jva-music-metronome-v1';
 const OFFLINE_FALLBACK = '/metronome/';
 
 // Files we want to be definitely cached even before the user navigates
-// to them. Astro emits content-hashed assets we can't list here (they
+// to them. Astro emits content-hashed JS assets we can't list here (they
 // change every build), so those are picked up by the runtime cache.
 const CORE_ASSETS = [
-  '/',
   '/metronome/',
   '/metronome.css',
   '/favicon.webp',
-  '/site.webmanifest',
+  '/metronome/site.webmanifest',
   '/icons/icon-180.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -49,8 +50,6 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  // Don't intercept analytics or admin tools.
-  if (url.pathname.startsWith('/admin') || url.pathname.includes('gtag')) return;
 
   event.respondWith(
     caches.match(req).then((cached) => {
