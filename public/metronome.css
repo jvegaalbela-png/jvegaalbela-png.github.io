@@ -744,7 +744,8 @@
     .metronome-shell .adv-unit { font-size: 0.7rem; color: rgba(245, 243, 238, 0.4); }
 
     /* Tap-to-edit affordance for every numeric readout next to a slider.
-       Subtle by default, soft hover bg, clear focus ring + bg when active. */
+       Subtle by default, soft hover bg, clear focus ring + bg when active.
+       font-size: 16px so iOS Safari doesn't auto-zoom the page on focus. */
     .metronome-shell .adv-value[contenteditable="true"],
     .metronome-shell .swing-val[contenteditable="true"] {
       outline: none;
@@ -752,6 +753,7 @@
       padding: 0.05rem 0.3rem;
       margin: -0.05rem -0.3rem;
       cursor: text;
+      font-size: 16px;
       transition: background 0.12s, box-shadow 0.12s;
       -webkit-tap-highlight-color: transparent;
     }
@@ -765,6 +767,9 @@
       box-shadow: 0 0 0 1px rgba(141, 173, 234, 0.6);
       color: var(--cream);
     }
+    /* Same 16px rule for the beats-per-measure <input>: stops iOS auto-zoom
+       on focus. */
+    .metronome-shell #beats-input { font-size: 16px; }
 
     /* Gap "Count by" pill — two-button radio group inside the gap card */
     .metronome-shell .gap-unit-row { justify-content: flex-start; gap: 0.6rem; }
