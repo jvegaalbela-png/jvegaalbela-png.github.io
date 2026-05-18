@@ -391,31 +391,11 @@ const graph = {
       </section>
 
       <section class="carousel-screen" id="screen-forms" role="tabpanel" aria-label="Forms">
-    <!-- Saved forms library — name and revisit forms later. Stored in
-         localStorage under metronomeSavedForms_v1. The encoded form
-         payload reuses the JVAFORM1 share-link format so saved entries
-         are tiny and portable. -->
-    <div class="card card-saved" id="saved-forms-card">
-      <div class="adv-feature-header">
-        <div>
-          <div class="section-label">Saved Forms</div>
-          <div class="adv-feature-desc">Build a library of charts to come back to</div>
-        </div>
-        <div class="form-saved-actions">
-          <button class="form-saved-action" id="form-saved-import-btn" type="button">Import link</button>
-          <button class="form-saved-action save" id="form-saved-save-btn" type="button">Save current</button>
-        </div>
-      </div>
-      <div class="form-saved-list" id="form-saved-list">
-        <div class="form-saved-empty" id="form-saved-empty">No saved forms yet</div>
-      </div>
-    </div>
-
     <!-- The "header" controls (label, description, form-mode toggle, mode
          switcher, undo/redo, Clear all, BPM) live in a regular card —
          same header pattern as Gap Click / Random Mute on the Practice
-         tab. The bar grid, action buttons, and share panel sit below
-         the card so they flow freely without any extra container. -->
+         tab. The bar grid, action buttons, and share/save panel sit
+         below the card so they flow freely without any extra container. -->
     <div class="card card-form" id="custom-form">
       <div class="adv-feature-header">
         <div>
@@ -467,13 +447,22 @@ const graph = {
           <button class="form-editor-select-btn" id="form-editor-select-btn" type="button">Select bars</button>
         </div>
         <div class="form-code-panel">
-          <div class="form-code-title">Share form</div>
-          <p class="form-code-help">Copy a link to send this form anywhere. Opening it loads the form with the same tempo.</p>
+          <div class="form-code-title">Save &amp; Share</div>
+          <p class="form-code-help">Save forms to your device for later, share by link, or import a link someone sent you.</p>
           <div class="form-code-row">
+            <button class="form-code-btn" id="form-saved-save-btn" type="button">
+              <span>Save form</span>
+            </button>
             <button class="form-code-btn" id="form-code-copy" type="button">
               <span>Copy share link</span>
               <span class="form-code-copied" id="form-code-copied" aria-live="polite">Copied</span>
             </button>
+            <button class="form-code-btn" id="form-saved-import-btn" type="button">
+              <span>Import link</span>
+            </button>
+          </div>
+          <div class="form-saved-list" id="form-saved-list">
+            <div class="form-saved-empty" id="form-saved-empty">No saved forms yet</div>
           </div>
         </div>
       </div>
