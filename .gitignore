@@ -5,6 +5,7 @@ dist/
 # CMS preview styles — copied from src/styles/ by scripts/sync-cms-preview-styles.mjs
 public/admin/_tokens.css
 public/admin/global.css
+public/admin/blog-post.css
 
 # dependencies
 node_modules/

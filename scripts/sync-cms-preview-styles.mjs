@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(root, 'src', 'styles');
 const DST = join(root, 'public', 'admin');
-const FILES = ['_tokens.css', 'global.css'];
+const FILES = ['_tokens.css', 'global.css', 'blog-post.css'];
 
 for (const name of FILES) {
   const from = join(SRC, name);
