@@ -2971,24 +2971,49 @@ const graph = {
     return window.location.origin + window.location.pathname + '?' + params.toString();
   }
   document.getElementById('form-code-copy').addEventListener('click', async () => {
-    let link;
-    try {
-      link = await generateShareLink();
-    } catch (e) {
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(link);
-    } catch (e) {
-      const ta = document.createElement('textarea');
-      ta.value = link; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); } catch (_) {}
-      document.body.removeChild(ta);
-    }
     const btn = document.getElementById('form-code-copy');
-    btn.classList.add('copied');
-    setTimeout(() => btn.classList.remove('copied'), 1400);
+    let copied = false;
+
+    // iOS Safari quirk: an `await` before navigator.clipboard.writeText()
+    // breaks the user-activation context, so the call silently no-ops and
+    // nothing lands on the clipboard. The workaround: navigator.clipboard
+    // .write() accepts a Promise<Blob> inside a ClipboardItem — the
+    // .write() call itself happens synchronously inside the click handler
+    // (still inside the gesture), and Safari resolves the promise from
+    // within that gesture so the clipboard actually gets written.
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
+      try {
+        const blobP = generateShareLink().then((t) => new Blob([t], { type: 'text/plain' }));
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': blobP })]);
+        copied = true;
+      } catch (_) { /* fall through to writeText */ }
+    }
+
+    // Non-Safari path (Chrome / Firefox) — generate, then writeText.
+    if (!copied) {
+      try {
+        const link = await generateShareLink();
+        await navigator.clipboard.writeText(link);
+        copied = true;
+      } catch (_) { /* fall through to legacy fallback */ }
+    }
+
+    // Last-resort fallback: legacy textarea + execCommand('copy').
+    if (!copied) {
+      try {
+        const link = await generateShareLink();
+        const ta = document.createElement('textarea');
+        ta.value = link; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); copied = true; } catch (_) {}
+        document.body.removeChild(ta);
+      } catch (_) {}
+    }
+
+    if (copied) {
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1400);
+    }
   });
 
   // ─── Saved forms library ────────────────────────────────────────────────────
