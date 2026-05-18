@@ -2224,7 +2224,11 @@
       pointer-events: none;
     }
 
-    /* Save / Load form-code panel — at the bottom of the editor body */
+    /* Save & Share panel — bottom-of-page library hub. Save the current
+       form, copy a share link, or import a pasted share link. The chip
+       strip below the buttons is the saved-forms library (tap to load,
+       × to delete). Visible in both beat and chart modes — the library
+       is useful regardless of which editor view you're in. */
     .form-code-panel {
       margin-top: 1.75rem;
       padding: 0.85rem;
@@ -2233,9 +2237,6 @@
       border-radius: 8px;
       max-width: 480px;
     }
-    /* The save/load panel belongs to beat-mode editing — hide it in
-       chart mode, which is the structural overview. */
-    .form-editor-grid.chart-mode ~ .form-code-panel { display: none; }
     .form-code-title {
       font-size: 0.65rem;
       text-transform: uppercase;
@@ -2251,6 +2252,7 @@
     }
     .form-code-row {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       margin-bottom: 0.5rem;
     }
@@ -2331,60 +2333,16 @@
       text-overflow: ellipsis;
     }
 
-    /* ─── Saved forms library card ────────────────────────────────────────
-       Mirrors .card-form's tight padding; sits above it in the Forms
-       screen. The save button lives in the header (top-right) so the
-       primary action is visually paired with the "Saved Forms" label.
-       Chips below scroll horizontally on mobile (no awkward wrapping
-       on a 320px viewport). */
-    .metronome-shell .card-saved {
-      padding: 0.7rem 1.1rem;
-    }
-    .metronome-shell .card-saved .adv-feature-header {
-      margin-bottom: 0.55rem;
-      align-items: center;
-    }
-    .form-saved-actions {
-      display: flex;
-      gap: 0.35rem;
-      flex-shrink: 0;
-    }
-    .form-saved-action {
-      background: rgba(91, 141, 232, 0.12);
-      border: 1px solid rgba(91, 141, 232, 0.36);
-      color: var(--cream);
-      font: 600 0.7rem/1 var(--sans);
-      letter-spacing: 0.04em;
-      padding: 0.4rem 0.65rem;
-      border-radius: 6px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.18s, border-color 0.18s, opacity 0.18s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .form-saved-action:hover {
-      background: rgba(91, 141, 232, 0.22);
-      border-color: var(--blue-lt);
-    }
-    /* Save current is the primary action — warm accent like the
-       Copy share link button. */
-    .form-saved-action.save {
-      background: rgba(232, 101, 10, 0.18);
-      border-color: rgba(245, 136, 42, 0.5);
-    }
-    .form-saved-action.save:hover {
-      background: rgba(232, 101, 10, 0.3);
-      border-color: var(--orange-lt);
-    }
-    @media (max-width: 420px) {
-      .form-saved-action { padding: 0.4rem 0.55rem; font-size: 0.66rem; }
-    }
-
+    /* Saved forms library — the chip strip below the Save/Share/Import
+       button row inside .form-code-panel. Tap a chip to load the form;
+       the × inside each chip deletes it. Horizontal scroll so a long
+       library doesn't wrap awkwardly on narrow viewports. */
     .form-saved-list {
       display: flex;
       gap: 0.4rem;
       overflow-x: auto;
       overflow-y: hidden;
+      margin-top: 0.45rem;
       padding: 0.1rem 0 0.2rem;
       scrollbar-width: thin;
       -webkit-overflow-scrolling: touch;
