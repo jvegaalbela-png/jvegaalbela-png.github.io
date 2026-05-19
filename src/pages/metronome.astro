@@ -211,7 +211,7 @@ const graph = {
     </div>
     <div class="slider-row">
       <span class="slider-label">1</span>
-      <input type="range" id="bpm-slider" min="1" max="500" step="0.1" value="120" />
+      <input type="range" id="bpm-slider" min="1" max="500" value="120" />
       <span class="slider-label">500</span>
     </div>
     <div class="tap-row">
@@ -1134,22 +1134,32 @@ const graph = {
   }
 
   function setBPM(value) {
-    // Snap to 0.1 precision — fine enough to be useful for nudging
-    // tempo by less than a beat, coarse enough that float drift doesn't
-    // accumulate weird trailing-digit displays.
+    // Snap to 0.1 precision — fine enough to be useful for typing a
+    // decimal BPM, coarse enough that float drift doesn't accumulate
+    // weird trailing-digit displays.
     const snapped = Math.round(value * 10) / 10;
     state.bpm = Math.max(1, Math.min(500, snapped));
     document.getElementById('bpm-display').textContent = formatBpm(state.bpm);
-    document.getElementById('bpm-slider').value = state.bpm;
+    // Slider's visual position rounds to the nearest int (the slider
+    // itself has integer step). When state.bpm is fractional from a
+    // typed value, the slider sits at the nearest int rather than
+    // showing the same float (which different browsers would handle
+    // inconsistently with a step=1 input).
+    document.getElementById('bpm-slider').value = Math.round(state.bpm);
     document.getElementById('tempo-name').textContent = getTempoName(state.bpm);
     persistState();
   }
 
-  document.getElementById('bpm-slider').addEventListener('input', e => setBPM(+e.target.value));
-  document.getElementById('bpm-minus1').addEventListener('click', () => setBPM(state.bpm - 1));
-  document.getElementById('bpm-plus1').addEventListener('click', () => setBPM(state.bpm + 1));
-  document.getElementById('bpm-minus5').addEventListener('click', () => setBPM(state.bpm - 5));
-  document.getElementById('bpm-plus5').addEventListener('click', () => setBPM(state.bpm + 5));
+  // Slider and ±1 / ±5 buttons stay strictly integer — decimal BPMs are
+  // only reachable by typing into the bpm-display. When the current
+  // state is fractional (e.g. user typed 120.5), nudging discards the
+  // fraction and snaps to the nearest integer in the chosen direction,
+  // so the UI stays clean for incidental clicks.
+  document.getElementById('bpm-slider').addEventListener('input', e => setBPM(Math.round(+e.target.value)));
+  document.getElementById('bpm-minus1').addEventListener('click', () => setBPM(Math.ceil(state.bpm) - 1));
+  document.getElementById('bpm-plus1').addEventListener('click', () => setBPM(Math.floor(state.bpm) + 1));
+  document.getElementById('bpm-minus5').addEventListener('click', () => setBPM(Math.ceil(state.bpm) - 5));
+  document.getElementById('bpm-plus5').addEventListener('click', () => setBPM(Math.floor(state.bpm) + 5));
 
   const bpmEl = document.getElementById('bpm-display');
   bpmEl.addEventListener('focus', () => {
@@ -2213,7 +2223,7 @@ const graph = {
 
     // Reflect restored state into the DOM.
     document.getElementById('bpm-display').textContent = formatBpm(state.bpm);
-    document.getElementById('bpm-slider').value = state.bpm;
+    document.getElementById('bpm-slider').value = Math.round(state.bpm);
     document.getElementById('beats-input').value = state.beatsPerMeasure;
     document.querySelectorAll('.btn-sub').forEach((b) => {
       b.classList.toggle('active', +b.dataset.sub === state.subdivision);
@@ -2310,11 +2320,11 @@ const graph = {
   // shared setBPM() so the change cascades to the slider, scheduler, and
   // persistence layer just like a change on the main page would.
   document.getElementById('form-editor-bpm-minus').addEventListener('click', () => {
-    setBPM(state.bpm - 1);
+    setBPM(Math.ceil(state.bpm) - 1);
     formEditorBpmEl.textContent = formatBpm(state.bpm);
   });
   document.getElementById('form-editor-bpm-plus').addEventListener('click', () => {
-    setBPM(state.bpm + 1);
+    setBPM(Math.floor(state.bpm) + 1);
     formEditorBpmEl.textContent = formatBpm(state.bpm);
   });
   formEditorBpmEl.addEventListener('blur', () => {
