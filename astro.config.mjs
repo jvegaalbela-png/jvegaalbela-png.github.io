@@ -20,16 +20,24 @@ const REDIRECTS = {
  '/lessons-landing': '/drum-lessons',
  '/lessons-landing-3': '/drum-lessons',
  '/lessons-landing-3-mobile-1': '/drum-lessons',
+ '/lessons-landing-3-mobile-2': '/drum-lessons',
  '/lessons-landing-3-old': '/drum-lessons',
  '/lessons-landing-3-dark': '/drum-lessons',
  '/education-1': '/drum-lessons',
  // Old "listen" pages — collapse to the homepage where the album lives
+ '/listen': '/',
  '/listen/unbelonging': '/',
  '/listen/jacobo-vegaalbela-quartet': '/',
  // Old commerce / form URLs
  '/book-now-form': '/',
  '/cart': '/',
  '/store/category-2': '/',
+ // Old Squarespace contact-form variants
+ '/contact-1': '/',
+ '/contact-6': '/',
+ // Old Squarespace events index (Cloudflare also handles subpaths
+ // like /upcoming-events/{slug} via a subpath-matching bulk redirect)
+ '/upcoming-events': '/',
 };
 
 // https://astro.build/config
