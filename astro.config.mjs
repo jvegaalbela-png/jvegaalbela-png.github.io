@@ -35,6 +35,12 @@ const REDIRECTS = {
 // https://astro.build/config
 export default defineConfig({
  site: 'https://jva-music.com',
+ // Force every route to canonicalize on the trailing-slash form
+ // (/drum-lessons/ rather than /drum-lessons). Astro normalizes
+ // Astro.url.pathname to match, so the canonical link in Layout.astro
+ // is consistent regardless of which URL the visitor came in on, and
+ // Google / sitemap / internal links all agree.
+ trailingSlash: 'always',
  redirects: REDIRECTS,
  integrations: [
   mdx(),
