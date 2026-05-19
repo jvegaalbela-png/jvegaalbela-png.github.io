@@ -200,7 +200,7 @@ const graph = {
         <button class="btn btn-step" id="bpm-minus5">−5</button>
       </div>
       <div class="bpm-center">
-        <div class="bpm-number" id="bpm-display" contenteditable="true" spellcheck="false" inputmode="numeric">120</div>
+        <div class="bpm-number" id="bpm-display" contenteditable="true" spellcheck="false" inputmode="decimal">120</div>
         <div class="bpm-unit">BPM</div>
         <div class="tempo-name" id="tempo-name">Allegro</div>
       </div>
@@ -211,7 +211,7 @@ const graph = {
     </div>
     <div class="slider-row">
       <span class="slider-label">1</span>
-      <input type="range" id="bpm-slider" min="1" max="500" value="120" />
+      <input type="range" id="bpm-slider" min="1" max="500" step="0.1" value="120" />
       <span class="slider-label">500</span>
     </div>
     <div class="tap-row">
@@ -419,7 +419,7 @@ const graph = {
         <button class="form-editor-clear" id="form-editor-clear" type="button">Clear all</button>
         <div class="form-editor-bpm">
           <button class="form-editor-bpm-step" id="form-editor-bpm-minus" type="button" aria-label="Decrease BPM by 1">−</button>
-          <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="numeric">120</span>
+          <span class="form-editor-bpm-value" id="form-editor-bpm" contenteditable="true" spellcheck="false" inputmode="decimal">120</span>
           <button class="form-editor-bpm-step" id="form-editor-bpm-plus" type="button" aria-label="Increase BPM by 1">+</button>
           <span class="form-editor-bpm-label">BPM</span>
         </div>
@@ -1126,9 +1126,20 @@ const graph = {
     });
   }
 
+  // Render a bpm as "120" when integer, "120.5" when fractional. Used
+  // wherever state.bpm gets pushed to the DOM, so trailing .0 never
+  // shows up uselessly.
+  function formatBpm(bpm) {
+    return Number.isInteger(bpm) ? String(bpm) : bpm.toFixed(1);
+  }
+
   function setBPM(value) {
-    state.bpm = Math.max(1, Math.min(500, Math.round(value)));
-    document.getElementById('bpm-display').textContent = state.bpm;
+    // Snap to 0.1 precision — fine enough to be useful for nudging
+    // tempo by less than a beat, coarse enough that float drift doesn't
+    // accumulate weird trailing-digit displays.
+    const snapped = Math.round(value * 10) / 10;
+    state.bpm = Math.max(1, Math.min(500, snapped));
+    document.getElementById('bpm-display').textContent = formatBpm(state.bpm);
     document.getElementById('bpm-slider').value = state.bpm;
     document.getElementById('tempo-name').textContent = getTempoName(state.bpm);
     persistState();
@@ -1149,12 +1160,18 @@ const graph = {
     sel.addRange(range);
   });
   bpmEl.addEventListener('blur', () => {
-    const val = parseInt(bpmEl.textContent.replace(/\D/g, ''), 10);
+    const val = parseFloat(bpmEl.textContent.replace(/[^\d.]/g, ''));
     setBPM(isNaN(val) ? 120 : val);
   });
   bpmEl.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); bpmEl.blur(); }
     if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    // Allow digits, one decimal point, and editing keys. Block a
+    // second '.' so the field can't end up with multiple periods.
+    if (e.key === '.') {
+      if (bpmEl.textContent.includes('.')) e.preventDefault();
+      return;
+    }
     if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) {
       e.preventDefault();
     }
@@ -2034,7 +2051,7 @@ const graph = {
     if (!params.has('bpm') && !params.has('beats') && !params.has('p')) return false;
 
     const bpm = +params.get('bpm');
-    if (bpm >= 1 && bpm <= 500) state.bpm = Math.round(bpm);
+    if (bpm >= 1 && bpm <= 500) state.bpm = Math.round(bpm * 10) / 10;
 
     const beats = +params.get('beats');
     const unit = +params.get('unit');
@@ -2195,7 +2212,7 @@ const graph = {
     }
 
     // Reflect restored state into the DOM.
-    document.getElementById('bpm-display').textContent = state.bpm;
+    document.getElementById('bpm-display').textContent = formatBpm(state.bpm);
     document.getElementById('bpm-slider').value = state.bpm;
     document.getElementById('beats-input').value = state.beatsPerMeasure;
     document.querySelectorAll('.btn-sub').forEach((b) => {
@@ -2280,7 +2297,7 @@ const graph = {
   // and sync the editor's play buttons. Subsequent updates happen via the
   // normal handlers (mode-toggle clicks, mutation handlers, the 200ms poll).
   function syncFormEditorOnLoad() {
-    formEditorBpmEl.textContent = state.bpm;
+    formEditorBpmEl.textContent = formatBpm(state.bpm);
     document.getElementById('form-editor-mode-beat').classList.toggle('active', editorMode === 'beat');
     document.getElementById('form-editor-mode-beat').setAttribute('aria-pressed', editorMode === 'beat');
     document.getElementById('form-editor-mode-chart').classList.toggle('active', editorMode === 'chart');
@@ -2294,16 +2311,16 @@ const graph = {
   // persistence layer just like a change on the main page would.
   document.getElementById('form-editor-bpm-minus').addEventListener('click', () => {
     setBPM(state.bpm - 1);
-    formEditorBpmEl.textContent = state.bpm;
+    formEditorBpmEl.textContent = formatBpm(state.bpm);
   });
   document.getElementById('form-editor-bpm-plus').addEventListener('click', () => {
     setBPM(state.bpm + 1);
-    formEditorBpmEl.textContent = state.bpm;
+    formEditorBpmEl.textContent = formatBpm(state.bpm);
   });
   formEditorBpmEl.addEventListener('blur', () => {
-    const v = parseInt(formEditorBpmEl.textContent.replace(/[^\d]/g, ''), 10);
+    const v = parseFloat(formEditorBpmEl.textContent.replace(/[^\d.]/g, ''));
     if (v >= 1 && v <= 500) setBPM(v);
-    formEditorBpmEl.textContent = state.bpm;
+    formEditorBpmEl.textContent = formatBpm(state.bpm);
   });
   formEditorBpmEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -3155,7 +3172,7 @@ const graph = {
     if (!f) throw new Error('No form found in that link (missing ?f= parameter).');
     const code = await inflateText(base64UrlToBytes(f));
     const bpmStr = params.get('bpm');
-    const bpm = bpmStr ? parseInt(bpmStr, 10) : null;
+    const bpm = bpmStr ? parseFloat(bpmStr) : null;
     return { code, bpm };
   }
 
@@ -3208,7 +3225,7 @@ const graph = {
     // refresh runs on a 200ms interval. When the field isn't focused,
     // keep it synced to state.bpm so +/- and main-page changes show up.
     if (document.activeElement !== formEditorBpmEl) {
-      formEditorBpmEl.textContent = state.bpm;
+      formEditorBpmEl.textContent = formatBpm(state.bpm);
     }
   }
   formEditorPlayBtns.forEach((b) => {
