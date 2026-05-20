@@ -5,6 +5,8 @@ import mdx from '@astrojs/mdx';
 
 import sitemap from '@astrojs/sitemap';
 
+import remarkOptimizeBlogImages from './plugins/remark-optimize-blog-images.mjs';
+
 // Pages that carry <meta name="robots" content="noindex"> shouldn't be in
 // the sitemap — sending Google a list that includes URLs we then tell it
 // not to index produces "Excluded by 'noindex' tag" entries in Search
@@ -71,5 +73,8 @@ export default defineConfig({
  ],
  build: {
   inlineStylesheets: 'always',
+ },
+ markdown: {
+  remarkPlugins: [remarkOptimizeBlogImages],
  },
 });
