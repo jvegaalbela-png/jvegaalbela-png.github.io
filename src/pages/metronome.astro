@@ -1835,7 +1835,7 @@ const graph = {
     // Horizontal-only scroll to a screen. Element.scrollIntoView() touches
     // BOTH axes (it'll yank the page vertically to align the screen's top
     // with the viewport when you tap a tab) — we only want the carousel
-    // track to slide left/right, leaving the user's vertical scroll alone.
+    // track to slide left/right, leaving the vertical scroll to us.
     function scrollToScreen(idx, smooth) {
       const target = screens[idx];
       if (!target) return;
@@ -1843,61 +1843,89 @@ const graph = {
       // position; scrollTo on the track moves only the track's content.
       track.scrollTo({ left: target.offsetLeft, behavior: smooth ? 'smooth' : 'instant' });
     }
-    // Tab clicks shouldn't move the document's vertical scroll — the
-    // user just wants the carousel to slide horizontally. Two issues
-    // conspire against that with sticky-positioned <button> tabs:
-    //   1. The browser scrolls the page to surface a focused button's
-    //      "natural" position (even when the button is already visible
-    //      via position: sticky).
-    //   2. That focus + scroll happens between mousedown and click, so
-    //      capturing window.scrollY inside the click handler is already
-    //      too late.
-    // Fix: capture scrollY on mousedown/touchstart (before focus fires),
-    // then snap the document back across the next frame + timeouts in
-    // case the focus-scroll arrives smoothly over several frames. Mouse/
-    // touch clicks also blur the tab so it doesn't keep stealing focus;
-    // keyboard activations (e.detail === 0) preserve focus.
-    let preTapY = 0;
-    let preTapX = 0;
-    function capturePreTap() {
-      preTapY = window.scrollY;
-      preTapX = window.scrollX;
+
+    // ── Per-screen vertical scroll memory ──────────────────────────────
+    // All three screens stretch to the tallest one's height (Pulse), so
+    // scrolling down on Pulse and swiping to Practice/Forms leaves you
+    // staring at their empty lower halves. We remember each screen's
+    // vertical scroll position: leaving a screen stashes its scrollY,
+    // arriving at a screen restores it (0 until the user has scrolled it).
+    // Net effect: Practice/Forms snap to their top, and returning to Pulse
+    // lands you back where you were.
+    let currentScreen = 0;
+    const scrollMemory = screens.map(() => 0);
+    // Suppress the swipe-sync observer while WE drive the track (tab
+    // clicks, load restore, setScreen) so screens we pass over don't fire
+    // spurious scroll saves/restores.
+    let programmatic = false;
+
+    function applyScreenScroll(idx) {
+      window.scrollTo({ top: scrollMemory[idx] || 0, left: 0, behavior: 'instant' });
     }
+    // Central transition: stash the outgoing screen's scroll, flip the
+    // active tab, restore the incoming screen's scroll. `outgoingY` lets
+    // tab clicks pass a scrollY captured before the browser's focus-scroll
+    // perturbs it; swipes omit it and use the live value.
+    function changeScreen(idx, outgoingY) {
+      if (idx === currentScreen) return;
+      scrollMemory[currentScreen] = (outgoingY != null) ? outgoingY : window.scrollY;
+      currentScreen = idx;
+      setActive(idx);
+      // Defer the vertical restore one frame so a swipe's horizontal
+      // scroll-snap has settled and the long prose article's
+      // content-visibility heights are final before we set scrollY —
+      // otherwise the target can drift a few dozen px.
+      requestAnimationFrame(() => applyScreenScroll(idx));
+    }
+
+    // Tab clicks: capture scrollY on mousedown (before focus fires), slide
+    // the carousel, then re-assert the incoming screen's scroll across the
+    // next frame + timeouts to override the browser's sticky-button
+    // focus-scroll. Mouse/touch clicks blur the tab so it stops stealing
+    // focus; keyboard activations (e.detail === 0) keep focus.
+    let preTapY = 0;
+    function capturePreTap() { preTapY = window.scrollY; }
     tabs.forEach((t, i) => {
       t.addEventListener('mousedown', capturePreTap);
       t.addEventListener('touchstart', capturePreTap, { passive: true });
       t.addEventListener('click', (e) => {
-        const y = preTapY;
-        const x = preTapX;
+        const outgoingY = preTapY;
         if (e.detail !== 0) t.blur();
+        programmatic = true;
         scrollToScreen(i, true);
-        setActive(i);
-        const snap = () => { if (window.scrollY !== y) window.scrollTo({ left: x, top: y }); };
+        changeScreen(i, outgoingY);
+        const targetY = scrollMemory[i] || 0;
+        const snap = () => { if (window.scrollY !== targetY) window.scrollTo({ top: targetY, left: 0 }); };
         snap();
         requestAnimationFrame(snap);
         setTimeout(snap, 100);
-        setTimeout(snap, 400);
+        setTimeout(() => { snap(); programmatic = false; }, 400);
       });
     });
-    // Sync the active tab as the user swipes/scrolls horizontally.
+    // Sync the active tab (and apply scroll memory) as the user swipes.
     const io = new IntersectionObserver((entries) => {
+      if (programmatic) return;
       // Pick the screen whose center is closest to the track's center.
       let best = null, bestRatio = 0;
       entries.forEach((e) => {
         if (e.intersectionRatio > bestRatio) { best = e; bestRatio = e.intersectionRatio; }
       });
-      if (best && bestRatio > 0.5) setActive(screens.indexOf(best.target));
+      if (best && bestRatio > 0.5) changeScreen(screens.indexOf(best.target));
     }, { root: track, threshold: [0.5, 0.75, 1.0] });
     screens.forEach((s) => io.observe(s));
 
-    // Restore the last-active screen on load (default = Pulse).
+    // Restore the last-active screen on load (default = Pulse). The page
+    // loads at scrollY 0, so there's nothing to stash — set currentScreen
+    // directly and just slide the track.
     let restore = 0;
     try { const v = parseInt(localStorage.getItem(KEY), 10); if (v >= 0 && v < screens.length) restore = v; } catch (_) {}
     if (restore !== 0) {
-      // Defer one frame so layout is settled before the programmatic scroll.
+      currentScreen = restore;
       requestAnimationFrame(() => {
+        programmatic = true;
         scrollToScreen(restore, false);
         setActive(restore);
+        setTimeout(() => { programmatic = false; }, 120);
       });
     }
 
@@ -1905,8 +1933,10 @@ const graph = {
       setScreen(idx) {
         if (idx < 0 || idx >= screens.length) return;
         requestAnimationFrame(() => {
+          programmatic = true;
           scrollToScreen(idx, false);
-          setActive(idx);
+          changeScreen(idx);
+          setTimeout(() => { programmatic = false; }, 120);
         });
       },
     };
