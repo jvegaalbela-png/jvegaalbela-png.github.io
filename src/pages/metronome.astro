@@ -1820,6 +1820,7 @@ const graph = {
   const Carousel = (() => {
     const track = document.getElementById('carousel-track');
     if (!track) return { setScreen() {} };
+    const carouselEl = track.parentElement; // .metronome-carousel (holds the sticky tabs)
     const screens = Array.from(track.querySelectorAll('.carousel-screen'));
     const tabs = Array.from(document.querySelectorAll('.carousel-tab'));
     const KEY = 'metronomeCarouselScreen_v1';
@@ -1859,8 +1860,25 @@ const graph = {
     // spurious scroll saves/restores.
     let programmatic = false;
 
+    // The document scroll position at which the sticky tabs pin to the top
+    // of the viewport — i.e. the carousel container's own offset from the
+    // top of the document (the H1 header sits above it). The container box
+    // stays put while only its sticky child pins, so rect.top + scrollY is
+    // invariant and safe to read at any scroll position.
+    function tabsPinnedScroll() {
+      const rect = carouselEl.getBoundingClientRect();
+      return Math.max(0, Math.round(rect.top + window.scrollY));
+    }
+    // The scroll target for a screen: its remembered position, but never
+    // less than the tabs-pinned baseline. Keeps the tab selector at a
+    // fixed spot across switches (the H1 stays tucked above) instead of
+    // bouncing between "below the H1" and "pinned to top".
+    function targetScrollFor(idx) {
+      return Math.max(scrollMemory[idx] || 0, tabsPinnedScroll());
+    }
+
     function applyScreenScroll(idx) {
-      window.scrollTo({ top: scrollMemory[idx] || 0, left: 0, behavior: 'instant' });
+      window.scrollTo({ top: targetScrollFor(idx), left: 0, behavior: 'instant' });
     }
     // Central transition: stash the outgoing screen's scroll, flip the
     // active tab, restore the incoming screen's scroll. `outgoingY` lets
@@ -1894,7 +1912,7 @@ const graph = {
         programmatic = true;
         scrollToScreen(i, true);
         changeScreen(i, outgoingY);
-        const targetY = scrollMemory[i] || 0;
+        const targetY = targetScrollFor(i);
         const snap = () => { if (window.scrollY !== targetY) window.scrollTo({ top: targetY, left: 0 }); };
         snap();
         requestAnimationFrame(snap);
