@@ -89,10 +89,11 @@ const graph = {
       creator: { '@id': PERSON_ID },
       publisher: { '@id': ORGANIZATION_ID },
       description:
-        'Free online metronome with subdivisions, four-level beat dynamics (accent, normal, soft, mute), compound and odd-meter clave defaults, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
+        'Free online metronome with subdivisions up to 32 (including programmable custom on/off patterns), four-level beat dynamics (accent, normal, soft, mute), compound and odd-meter clave defaults, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
       featureList: [
         'Custom time signatures (any beats / any unit)',
-        'Subdivisions: duplet, triplet, quadruplet',
+        'Subdivisions: duplet, triplet, quadruplet, sextuplet, or a custom count up to 32',
+        'Programmable custom subdivisions (each inner note on or off) with a follow-beat-mute option',
         'Four-level beat dynamics (accent, normal, soft, mute) with clave defaults for 5/8, 6/8, 7/8, 9/8, 12/8',
         'Gap click — silent measures for internal-clock practice',
         'Random mute — probabilistic beat dropouts',
@@ -545,7 +546,7 @@ const graph = {
       I designed this tool to have something for everyone. The slider lets you make big tempo adjustments, and you can fine-tune with the &minus;1/+1 and &minus;5/+5 buttons. You can also click on the BPM and type in any number from 1&ndash;500 if you have an exact tempo in mind. The subtitle shows the corresponding Italian tempo marking (frequently used in classical music).
     </p>
     <p>
-      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, or four. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually across four levels: <strong>accent</strong> (loud), <strong>normal</strong>, <strong>soft</strong> (a ghost-note voice for inner pulses), or <strong>mute</strong>.
+      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, four, or six, or a custom count of up to 32, with each inner note switchable on or off so you can bake a rhythmic pattern into the beat. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually across four levels: <strong>accent</strong> (loud), <strong>normal</strong>, <strong>soft</strong> (a ghost-note voice for inner pulses), or <strong>mute</strong>.
     </p>
     <p>
       These features are enough for most users, but advanced musicians may benefit from a few additional options. <a href="#gap-click"><strong>Gap click</strong></a> plays the metronome for a set number of measures, then mutes it for a set number of measures. <a href="#random-mute"><strong>Random mute</strong></a> unpredictably silences beats, keeping you on edge and making you more responsible for the time. <a href="#custom-form"><strong>Custom forms</strong></a> let you program a song structure with changing time signatures.
@@ -573,7 +574,7 @@ const graph = {
       An <strong>accent</strong> makes a note louder than the notes around it. In the <a href="#beats">beats menu</a>, you can click any note to cycle through four levels: orange circles are accented, filled blue circles are unaccented, hollow blue circles are softer (think ghost notes), and grey circles are muted. Beat 1 is accented by default to help you track the length of each measure. For 5/8, 6/8, 7/8, 9/8, and 12/8, the metronome pre-loads the standard clave or compound-meter pulse so you hear beat 1 as the strongest accent, the dotted-quarter or grouping pulse as a normal click, and the inner eighths as soft &mdash; see the <a href="#odd-meters">odd meters</a> section below.
     </p>
     <p>
-      <strong>Subdivision</strong> is the splitting of a beat into equal parts. <strong>Duple</strong> subdivision splits the beat into two (eighth notes in 4/4), useful for locking in straight grooves. <strong>Triple</strong> subdivision splits it into three (eighth-note triplets), essential for swing, shuffle, and any triplet feel (think 6/8, 9/8, 12/8). <strong>Quadruple</strong> subdivision splits the beat into four (sixteenth notes), common in fast technical passages, funk, and hip-hop. The more granular the subdivision you can hear and understand, the tighter your time will be.
+      <strong>Subdivision</strong> is the splitting of a beat into equal parts. <strong>Duple</strong> subdivision splits the beat into two (eighth notes in 4/4), useful for locking in straight grooves. <strong>Triple</strong> subdivision splits it into three (eighth-note triplets), essential for swing, shuffle, and any triplet feel (think 6/8, 9/8, 12/8). <strong>Quadruple</strong> subdivision splits the beat into four (sixteenth notes), common in fast technical passages, funk, and hip-hop. <strong>Sextuplet</strong> subdivision splits the beat into six, the natural grid for fast shuffles and triplet-based sixteenth-note playing. When you need something else, the <strong>custom</strong> option covers any count from two up to 32, and you can switch each inner note on or off to program a specific rhythm into every beat. A follow-beat-mute toggle silences those subdivisions on any beat you have muted. The more granular the subdivision you can hear and understand, the tighter your time will be.
     </p>
 
     <h2 id="why-practice-with-metronome">Why Practice With a Metronome at All?</h2>
@@ -759,6 +760,14 @@ const graph = {
   let schedulerTimer = null;
   let schedulerBeat = 0;
   let schedulerSub = 0;
+  // The subdivision the scheduler is actually playing right now. These are
+  // committed from state at each beat boundary (not the instant the user
+  // clicks), so changing the subdivision mid-beat lets the current beat
+  // finish on its existing grid and the new subdivision takes over from the
+  // next downbeat. The primary pulse never gets nudged.
+  let schedulerSubdivision = 1;
+  let schedulerSubCustom = false;
+  let schedulerSubPattern = [];
   const pendingVisuals = [];
 
   const LOOKAHEAD_MS = 25;
@@ -911,6 +920,15 @@ const graph = {
       const time = nextNoteTime;
       const cfg  = getAdvConfig();
 
+      // Commit the live subdivision settings at each beat boundary. Within a
+      // beat the scheduler keeps using the values it started the beat with,
+      // so a mid-beat change can't shorten or stretch the current beat.
+      if (sub === 0) {
+        schedulerSubdivision = state.subdivision;
+        schedulerSubCustom   = state.subCustom;
+        schedulerSubPattern  = state.subPattern.slice();
+      }
+
       let clickType;
       if (sub === 0) {
         const s = cfg.beats[beat] || 'normal';
@@ -919,7 +937,7 @@ const graph = {
         clickType = 'sub';
         // Custom subdivision pattern: silence the inner steps the user
         // toggled off, so rhythmic patterns can be baked into the beat.
-        if (state.subCustom && state.subPattern[sub] === false) clickType = 'mute';
+        if (schedulerSubCustom && schedulerSubPattern[sub] === false) clickType = 'mute';
       }
 
       // Follow-beat-mute: when on, a muted beat also silences its
@@ -936,12 +954,20 @@ const graph = {
       }
 
       scheduleClick(time, clickType);
-      pendingVisuals.push({
+      const vis = {
         beat, sub, time, clickType,
         formIdx: advFormIdx,
         gapPhase: advGapPhase,
         gapCount: advGapCount,
-      });
+      };
+      // Carry the beat's committed subdivision on its downbeat so the visual
+      // loop can swap the sub-dot indicator exactly when the audio swaps.
+      if (sub === 0) {
+        vis.subdivision = schedulerSubdivision;
+        vis.subCustom = schedulerSubCustom;
+        vis.subPattern = schedulerSubPattern;
+      }
+      pendingVisuals.push(vis);
 
       // BPM is interpreted as quarter notes per minute (the standard
       // notation convention: ♩ = bpm). The actual tick rate scales by
@@ -955,17 +981,17 @@ const graph = {
       {
         const beatDur = (60.0 / state.bpm) * (4 / cfg.beatUnit);
         let stepDur;
-        if (state.subdivision === 2 && !state.subCustom && state.swingPct !== 50) {
+        if (schedulerSubdivision === 2 && !schedulerSubCustom && state.swingPct !== 50) {
           const s = state.swingPct / 100;
           stepDur = schedulerSub === 0 ? beatDur * s : beatDur * (1 - s);
         } else {
-          stepDur = beatDur / state.subdivision;
+          stepDur = beatDur / schedulerSubdivision;
         }
         nextNoteTime += stepDur;
       }
 
       schedulerSub++;
-      if (schedulerSub >= state.subdivision) {
+      if (schedulerSub >= schedulerSubdivision) {
         schedulerSub = 0;
         schedulerBeat++;
         // Beats-mode gap counter: tick once per beat (fires on every
@@ -1038,6 +1064,9 @@ const graph = {
     state.isPlaying = true;
     schedulerBeat = 0;
     schedulerSub  = 0;
+    schedulerSubdivision = state.subdivision;
+    schedulerSubCustom   = state.subCustom;
+    schedulerSubPattern  = state.subPattern.slice();
     advGapPhase   = 'play';
     advGapCount   = 0;
     // Normal play starts at bar 0; "play from selection" / "loop
@@ -1060,6 +1089,9 @@ const graph = {
     state.currentBeat = -1;
     state.currentSub  = 0;
     applyBeatVisuals(-1, 0, null, 0);
+    // A subdivision change made mid-beat is deferred during playback; once
+    // stopped, settle the dots onto the current selection right away.
+    renderSubDots();
     updatePlayButton();
     updateGapVisual('idle', 0);
     updateFormVisual(-1);
@@ -1083,6 +1115,12 @@ const graph = {
       const v = pendingVisuals.shift();
       state.currentBeat = v.beat;
       state.currentSub  = v.sub;
+      // Repaint the sub-dot indicator on the downbeat to match the
+      // subdivision this beat is actually playing, so a deferred change
+      // appears in sync with the audio (not the instant it was clicked).
+      if (v.sub === 0 && v.subdivision != null) {
+        renderSubDots(v.subdivision, v.subCustom, v.subPattern);
+      }
       applyBeatVisuals(v.beat, v.sub, v.clickType, v.formIdx);
       if (v.beat === 0 && v.sub === 0) {
         updateGapVisual(v.gapPhase, v.gapCount);
@@ -1426,7 +1464,7 @@ const graph = {
     document.getElementById('sub-followmute').classList.toggle('inactive', state.subdivision <= 1);
     if (custom) renderSubCountUI();
     renderSubPatternGrid();
-    renderSubDots();
+    refreshSubDots();
     persistState();
   }
 
@@ -1460,7 +1498,7 @@ const graph = {
         cell.addEventListener('click', () => {
           state.subPattern[i] = !state.subPattern[i];
           renderSubPatternGrid();
-          renderSubDots();
+          refreshSubDots();
           persistState();
         });
       }
@@ -1482,7 +1520,7 @@ const graph = {
     ensureSubPattern(n);
     renderSubCountUI();
     renderSubPatternGrid();
-    renderSubDots();
+    refreshSubDots();
     persistState();
   });
   wireEditableNumber(document.getElementById('sub-count-val'), {
@@ -1494,7 +1532,7 @@ const graph = {
       ensureSubPattern(v);
       renderSubCountUI();
       renderSubPatternGrid();
-      renderSubDots();
+      refreshSubDots();
       persistState();
     },
   });
@@ -1554,16 +1592,28 @@ const graph = {
     });
   }
 
-  function renderSubDots() {
+  // Defaults to the live state, but the visual loop passes the beat's
+  // committed snapshot so the dots track the audio through a deferred change.
+  function renderSubDots(count, custom, pattern) {
+    if (count == null) count = state.subdivision;
+    if (custom == null) custom = state.subCustom;
+    if (pattern == null) pattern = state.subPattern;
     const container = document.getElementById('sub-indicators');
     container.innerHTML = '';
-    if (state.subdivision <= 1) return;
-    for (let i = 0; i < state.subdivision; i++) {
+    if (count <= 1) return;
+    for (let i = 0; i < count; i++) {
       const dot = document.createElement('div');
       dot.className = 'sub-dot';
-      if (state.subCustom && i > 0 && state.subPattern[i] === false) dot.classList.add('off');
+      if (custom && i > 0 && pattern[i] === false) dot.classList.add('off');
       container.appendChild(dot);
     }
+  }
+
+  // While playing, the dots are driven by the scheduler at each beat
+  // boundary (see visualLoop), so a control change shouldn't repaint them
+  // mid-beat — that would jump ahead of the audio. When stopped, repaint now.
+  function refreshSubDots() {
+    if (!state.isPlaying) renderSubDots();
   }
 
   // ─── Play Button ──────────────────────────────────────────────────────────────
