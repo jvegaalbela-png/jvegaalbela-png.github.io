@@ -426,7 +426,7 @@
 
     .metronome-shell .subdivision-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 0.5rem;
     }
 
@@ -648,6 +648,109 @@
       text-align: center;
       margin-top: 0.75rem;
       letter-spacing: 0.05em;
+    }
+
+    /* ── Custom subdivision panel ───────────────────────────────
+       Count picker + a programmable on/off grid for the inner
+       subdivisions of each beat. Shown only when "Custom" is the
+       active subdivision option. */
+    .metronome-shell .sub-custom-panel {
+      margin-top: 0.7rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .metronome-shell .sub-custom-panel[hidden] { display: none; }
+    .metronome-shell .sub-count-row #sub-count-name {
+      min-width: 5.5em;
+      text-align: right;
+    }
+    .metronome-shell .sub-pattern-head {
+      font-size: 0.78rem;
+      color: rgba(245, 243, 238, 0.65);
+      letter-spacing: 0.05em;
+    }
+    .metronome-shell .sub-pattern-hint {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.45);
+      font-style: italic;
+      letter-spacing: 0;
+    }
+    .metronome-shell .sub-pattern-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .metronome-shell .sub-cell {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      background: rgba(91, 141, 232, 0.1);
+      color: rgba(245, 243, 238, 0.5);
+      font-family: inherit;
+      font-size: 0.85rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .sub-cell.on {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .metronome-shell .sub-cell.off {
+      background: rgba(0, 0, 0, 0.28);
+      border-color: rgba(245, 243, 238, 0.14);
+      color: rgba(245, 243, 238, 0.4);
+    }
+    .metronome-shell .sub-cell.on:hover { background: rgba(42, 92, 200, 0.85); }
+    .metronome-shell .sub-cell.off:hover { background: rgba(91, 141, 232, 0.18); }
+    /* The first cell is the beat itself — voiced by the Beats menu, not
+       togglable here. Styled as a fixed accent marker. */
+    .metronome-shell .sub-cell-beat {
+      cursor: default;
+      background: rgba(232, 101, 10, 0.16);
+      border-color: rgba(232, 101, 10, 0.5);
+      color: var(--orange-lt);
+    }
+
+    /* ── Follow-beat-mute toggle ───────────────────────────────── */
+    .metronome-shell .sub-followmute {
+      margin-top: 0.7rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      transition: opacity 0.15s;
+    }
+    .metronome-shell .sub-followmute.inactive { opacity: 0.5; }
+    .metronome-shell .sub-followmute-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .metronome-shell .sub-followmute-label {
+      font-size: 0.82rem;
+      color: var(--cream);
+      letter-spacing: 0.03em;
+    }
+    .metronome-shell .sub-followmute-desc {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.5);
+    }
+
+    .metronome-shell .sub-dot.off {
+      background: rgba(0, 0, 0, 0.28);
+      border-color: rgba(245, 243, 238, 0.12);
     }
 
     .metronome-shell .tempo-name {

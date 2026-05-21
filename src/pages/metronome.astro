@@ -270,7 +270,38 @@ const graph = {
         <span class="sub-icon">♬♬</span>
         <span class="sub-label">Quadruplet</span>
       </button>
+      <button class="btn btn-sub" data-sub="6">
+        <span class="sub-icon">♬♬♬</span>
+        <span class="sub-label">Sextuplet</span>
+      </button>
+      <button class="btn btn-sub btn-sub-custom" data-sub="custom">
+        <span class="sub-icon">⋯</span>
+        <span class="sub-label">Custom</span>
+      </button>
     </div>
+
+    <div class="sub-custom-panel" id="sub-custom-panel" hidden>
+      <div class="adv-row sub-count-row">
+        <span class="adv-label">Count</span>
+        <input type="range" id="sub-count-slider" min="2" max="32" value="4" aria-label="Custom subdivision count" />
+        <span class="adv-value" id="sub-count-val" contenteditable="true" spellcheck="false" inputmode="numeric" role="textbox" aria-label="Custom subdivision count value">4</span>
+        <span class="adv-unit" id="sub-count-name">Quadruplet</span>
+      </div>
+      <div class="sub-pattern-head">Pattern <span class="sub-pattern-hint">— tap each subdivision to toggle on/off</span></div>
+      <div class="sub-pattern-grid" id="sub-pattern-grid"></div>
+    </div>
+
+    <div class="sub-followmute inactive" id="sub-followmute">
+      <div class="sub-followmute-text">
+        <span class="sub-followmute-label">Follow beat mute</span>
+        <span class="sub-followmute-desc">Silence subdivisions during muted beats</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="sub-followmute-toggle" aria-label="Follow beat mute" />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
     <div class="swing-controls" id="swing-controls">
       <div class="swing-presets-row">
         <span class="swing-label">Swing</span>
@@ -692,6 +723,10 @@ const graph = {
     beatsPerMeasure: 4,
     beatUnit: 4,
     subdivision: 1,
+    subCustom: false,   // true when the "Custom" subdivision option is active
+    subPattern: [],     // booleans, length = subdivision; index 0 is the beat (always on)
+    subFollowMute: false, // when true, subdivisions go silent on muted beats
+    customCount: 4,     // remembered Custom count, so toggling presets ↔ custom is stable
     swingPct: 50,
     beats: [],        // 'accent' | 'normal' | 'soft' | 'mute'
     isPlaying: false,
@@ -882,6 +917,15 @@ const graph = {
         clickType = s === 'mute' ? 'mute' : s === 'accent' ? 'accent' : s === 'soft' ? 'soft' : 'beat';
       } else {
         clickType = 'sub';
+        // Custom subdivision pattern: silence the inner steps the user
+        // toggled off, so rhythmic patterns can be baked into the beat.
+        if (state.subCustom && state.subPattern[sub] === false) clickType = 'mute';
+      }
+
+      // Follow-beat-mute: when on, a muted beat also silences its
+      // subdivisions instead of leaving the inner pulses ticking.
+      if (sub !== 0 && state.subFollowMute && (cfg.beats[beat] || 'normal') === 'mute') {
+        clickType = 'mute';
       }
 
       if (adv.gapEnabled && advGapPhase === 'silent') clickType = 'mute';
@@ -911,7 +955,7 @@ const graph = {
       {
         const beatDur = (60.0 / state.bpm) * (4 / cfg.beatUnit);
         let stepDur;
-        if (state.subdivision === 2 && state.swingPct !== 50) {
+        if (state.subdivision === 2 && !state.subCustom && state.swingPct !== 50) {
           const s = state.swingPct / 100;
           stepDur = schedulerSub === 0 ? beatDur * s : beatDur * (1 - s);
         } else {
@@ -1343,20 +1387,120 @@ const graph = {
   });
 
   // ─── Subdivision ──────────────────────────────────────────────────────────────
-  function setSubdivision(sub) {
-    state.subdivision = sub;
+  const SUB_NAMES = {
+    2: 'Duplet', 3: 'Triplet', 4: 'Quadruplet', 5: 'Quintuplet', 6: 'Sextuplet',
+    7: 'Septuplet', 8: 'Octuplet', 9: 'Nonuplet',
+  };
+  function subdivisionName(n) { return SUB_NAMES[n] || (n + ' per beat'); }
+
+  // Keep state.subPattern sized to n. Index 0 is the beat itself (always on —
+  // its sound is governed by the Beats menu); new inner steps default to on.
+  function ensureSubPattern(n) {
+    const prev = state.subPattern || [];
+    const next = [];
+    for (let i = 0; i < n; i++) next[i] = i === 0 ? true : (prev[i] === undefined ? true : !!prev[i]);
+    state.subPattern = next;
+  }
+
+  // sub: a preset count (1,2,3,4,6); custom: true selects the Custom option,
+  // which uses state.customCount and the programmable on/off pattern.
+  function setSubdivision(sub, custom) {
+    custom = !!custom;
+    state.subCustom = custom;
+    if (custom) {
+      const n = Math.max(2, Math.min(32, state.customCount || 4));
+      state.customCount = n;
+      state.subdivision = n;
+      ensureSubPattern(n);
+    } else {
+      state.subdivision = sub;
+    }
     document.querySelectorAll('.btn-sub').forEach(btn => {
-      btn.classList.toggle('active', +btn.dataset.sub === sub);
+      const isCustomBtn = btn.dataset.sub === 'custom';
+      btn.classList.toggle('active', custom ? isCustomBtn : (!isCustomBtn && +btn.dataset.sub === state.subdivision));
     });
-    // Swing only affects duplet subdivisions; dim the controls when not
-    // applicable so it's clear they're inert at the moment.
-    document.getElementById('swing-controls').classList.toggle('inactive', sub !== 2);
+    document.getElementById('sub-custom-panel').hidden = !custom;
+    // Swing only affects the duplet *preset*; dim it for everything else.
+    document.getElementById('swing-controls').classList.toggle('inactive', !(state.subdivision === 2 && !custom));
+    // Follow-beat-mute only matters when there are subdivisions to silence.
+    document.getElementById('sub-followmute').classList.toggle('inactive', state.subdivision <= 1);
+    if (custom) renderSubCountUI();
+    renderSubPatternGrid();
     renderSubDots();
     persistState();
   }
 
+  function renderSubCountUI() {
+    const slider = document.getElementById('sub-count-slider');
+    if (+slider.value !== state.subdivision) slider.value = state.subdivision;
+    document.getElementById('sub-count-val').textContent = String(state.subdivision);
+    document.getElementById('sub-count-name').textContent = subdivisionName(state.subdivision);
+  }
+
+  function renderSubPatternGrid() {
+    const grid = document.getElementById('sub-pattern-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (!state.subCustom) return;
+    ensureSubPattern(state.subdivision);
+    state.subPattern.forEach((on, i) => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      if (i === 0) {
+        cell.className = 'sub-cell sub-cell-beat';
+        cell.textContent = '◆';
+        cell.title = 'Beat — set its sound in the Beats menu';
+        cell.setAttribute('aria-label', 'Beat (controlled by the Beats menu)');
+        cell.tabIndex = -1;
+      } else {
+        cell.className = 'sub-cell ' + (on ? 'on' : 'off');
+        cell.textContent = on ? '●' : '○';
+        cell.title = 'Subdivision ' + (i + 1) + ' — ' + (on ? 'on (tap to mute)' : 'off (tap to play)');
+        cell.setAttribute('aria-pressed', on ? 'true' : 'false');
+        cell.addEventListener('click', () => {
+          state.subPattern[i] = !state.subPattern[i];
+          renderSubPatternGrid();
+          renderSubDots();
+          persistState();
+        });
+      }
+      grid.appendChild(cell);
+    });
+  }
+
   document.querySelectorAll('.btn-sub').forEach(btn => {
-    btn.addEventListener('click', () => setSubdivision(+btn.dataset.sub));
+    btn.addEventListener('click', () => {
+      if (btn.dataset.sub === 'custom') setSubdivision(state.customCount, true);
+      else setSubdivision(+btn.dataset.sub, false);
+    });
+  });
+
+  document.getElementById('sub-count-slider').addEventListener('input', (e) => {
+    const n = Math.max(2, Math.min(32, parseInt(e.target.value, 10) || 4));
+    state.customCount = n;
+    state.subdivision = n;
+    ensureSubPattern(n);
+    renderSubCountUI();
+    renderSubPatternGrid();
+    renderSubDots();
+    persistState();
+  });
+  wireEditableNumber(document.getElementById('sub-count-val'), {
+    min: 2, max: 32,
+    current: () => state.subdivision,
+    onCommit: (v) => {
+      state.customCount = v;
+      state.subdivision = v;
+      ensureSubPattern(v);
+      renderSubCountUI();
+      renderSubPatternGrid();
+      renderSubDots();
+      persistState();
+    },
+  });
+  document.getElementById('sub-followmute-toggle').addEventListener('change', (e) => {
+    state.subFollowMute = e.target.checked;
+    persistState();
   });
 
   // ─── Swing ────────────────────────────────────────────────────────────────────
@@ -1417,6 +1561,7 @@ const graph = {
     for (let i = 0; i < state.subdivision; i++) {
       const dot = document.createElement('div');
       dot.className = 'sub-dot';
+      if (state.subCustom && i > 0 && state.subPattern[i] === false) dot.classList.add('off');
       container.appendChild(dot);
     }
   }
@@ -2090,6 +2235,8 @@ const graph = {
     params.set('unit', String(state.beatUnit));
     params.set('p', state.beats.map((b) => BEAT_TO_CHAR[b] || 'N').join(''));
     if (state.subdivision !== 1) params.set('sub', String(state.subdivision));
+    if (state.subCustom) params.set('subp', state.subPattern.map((on, i) => (i === 0 || on) ? '1' : '0').join(''));
+    if (state.subFollowMute) params.set('subfm', '1');
     if (state.swingPct !== 50) params.set('sw', String(state.swingPct));
     if (soundMode !== 'electronic') params.set('snd', SOUND_TO_CHAR[soundMode]);
     if (adv.gapEnabled) {
@@ -2126,7 +2273,16 @@ const graph = {
     }
 
     const sub = +params.get('sub');
-    if (sub >= 1 && sub <= 4) state.subdivision = Math.round(sub);
+    if (sub >= 1 && sub <= 32) state.subdivision = Math.round(sub);
+    const subp = params.get('subp');
+    if (subp && /^[01]+$/.test(subp)) {
+      state.subCustom = true;
+      state.customCount = state.subdivision >= 2 ? state.subdivision : subp.length;
+      if (state.subdivision < 2) state.subdivision = subp.length;
+      state.subPattern = subp.split('').map((c, i) => i === 0 ? true : c === '1');
+      ensureSubPattern(state.subdivision);
+    }
+    state.subFollowMute = params.get('subfm') === '1';
 
     const sw = +params.get('sw');
     if (sw >= 50 && sw <= 75 && params.has('sw')) state.swingPct = sw;
@@ -2165,6 +2321,10 @@ const graph = {
         beatUnit: state.beatUnit,
         beats: state.beats,
         subdivision: state.subdivision,
+        subCustom: state.subCustom,
+        subPattern: state.subPattern,
+        subFollowMute: state.subFollowMute,
+        customCount: state.customCount,
         swingPct: state.swingPct,
         soundMode,
         adv: {
@@ -2190,7 +2350,11 @@ const graph = {
       if (Array.isArray(d.beats) && d.beats.length > 0) {
         state.beats = d.beats.filter((b) => b in BEAT_TO_CHAR);
       }
-      if (d.subdivision >= 1 && d.subdivision <= 4) state.subdivision = d.subdivision;
+      if (d.subdivision >= 1 && d.subdivision <= 32) state.subdivision = d.subdivision;
+      state.subCustom = !!d.subCustom;
+      if (d.customCount >= 2 && d.customCount <= 32) state.customCount = d.customCount;
+      if (Array.isArray(d.subPattern)) state.subPattern = d.subPattern.map((x, i) => i === 0 ? true : !!x);
+      state.subFollowMute = !!d.subFollowMute;
       if (d.swingPct >= 50 && d.swingPct <= 75) state.swingPct = d.swingPct;
       if (d.soundMode === 'clave' || d.soundMode === 'electronic') soundMode = d.soundMode;
       if (d.adv) {
@@ -2273,11 +2437,19 @@ const graph = {
     document.getElementById('bpm-display').textContent = formatBpm(state.bpm);
     document.getElementById('bpm-slider').value = Math.round(state.bpm);
     document.getElementById('beats-input').value = state.beatsPerMeasure;
-    document.querySelectorAll('.btn-sub').forEach((b) => {
-      b.classList.toggle('active', +b.dataset.sub === state.subdivision);
-    });
     setSwingPct(state.swingPct);
-    document.getElementById('swing-controls').classList.toggle('inactive', state.subdivision !== 2);
+    document.getElementById('sub-followmute-toggle').checked = state.subFollowMute;
+    // Reflect the restored subdivision through setSubdivision so the active
+    // button, custom panel, count picker, pattern grid, swing/follow-mute
+    // dimming, and sub-dots all sync from one place.
+    if (state.subCustom) {
+      if (!(state.customCount >= 2 && state.customCount <= 32)) {
+        state.customCount = Math.max(2, Math.min(32, state.subdivision || 4));
+      }
+      setSubdivision(state.customCount, true);
+    } else {
+      setSubdivision(state.subdivision, false);
+    }
     document.querySelectorAll('.btn-sound').forEach((b) => {
       b.classList.toggle('active', b.dataset.sound === soundMode);
     });
