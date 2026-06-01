@@ -89,10 +89,11 @@ const graph = {
       creator: { '@id': PERSON_ID },
       publisher: { '@id': ORGANIZATION_ID },
       description:
-        'Free online metronome with subdivisions, four-level beat dynamics (accent, normal, soft, mute), compound and odd-meter clave defaults, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
+        'Free online metronome with subdivisions up to 32 (including programmable custom on/off patterns), four-level beat dynamics (accent, normal, soft, mute), compound and odd-meter clave defaults, custom time signatures, gap click, random mute, and a custom form generator — built by working drummer Jacobo Vega-Albela.',
       featureList: [
         'Custom time signatures (any beats / any unit)',
-        'Subdivisions: duplet, triplet, quadruplet',
+        'Subdivisions: duplet, triplet, quadruplet, sextuplet, or a custom count up to 32',
+        'Programmable custom subdivisions (each inner note on or off) with a follow-beat-mute option',
         'Four-level beat dynamics (accent, normal, soft, mute) with clave defaults for 5/8, 6/8, 7/8, 9/8, 12/8',
         'Gap click — silent measures for internal-clock practice',
         'Random mute — probabilistic beat dropouts',
@@ -270,7 +271,38 @@ const graph = {
         <span class="sub-icon">♬♬</span>
         <span class="sub-label">Quadruplet</span>
       </button>
+      <button class="btn btn-sub" data-sub="6">
+        <span class="sub-icon">♬♬♬</span>
+        <span class="sub-label">Sextuplet</span>
+      </button>
+      <button class="btn btn-sub btn-sub-custom" data-sub="custom">
+        <span class="sub-icon">⋯</span>
+        <span class="sub-label">Custom</span>
+      </button>
     </div>
+
+    <div class="sub-custom-panel" id="sub-custom-panel" hidden>
+      <div class="adv-row sub-count-row">
+        <span class="adv-label">Count</span>
+        <input type="range" id="sub-count-slider" min="2" max="32" value="4" aria-label="Custom subdivision count" />
+        <span class="adv-value" id="sub-count-val" contenteditable="true" spellcheck="false" inputmode="numeric" role="textbox" aria-label="Custom subdivision count value">4</span>
+        <span class="adv-unit" id="sub-count-name">Quadruplet</span>
+      </div>
+      <div class="sub-pattern-head">Pattern <span class="sub-pattern-hint">— tap each subdivision to toggle on/off</span></div>
+      <div class="sub-pattern-grid" id="sub-pattern-grid"></div>
+    </div>
+
+    <div class="sub-followmute inactive" id="sub-followmute">
+      <div class="sub-followmute-text">
+        <span class="sub-followmute-label">Follow beat mute</span>
+        <span class="sub-followmute-desc">Silence subdivisions during muted beats</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="sub-followmute-toggle" aria-label="Follow beat mute" />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
     <div class="swing-controls" id="swing-controls">
       <div class="swing-presets-row">
         <span class="swing-label">Swing</span>
@@ -514,7 +546,7 @@ const graph = {
       I designed this tool to have something for everyone. The slider lets you make big tempo adjustments, and you can fine-tune with the &minus;1/+1 and &minus;5/+5 buttons. You can also click on the BPM and type in any number from 1&ndash;500 if you have an exact tempo in mind. The subtitle shows the corresponding Italian tempo marking (frequently used in classical music).
     </p>
     <p>
-      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, or four. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually across four levels: <strong>accent</strong> (loud), <strong>normal</strong>, <strong>soft</strong> (a ghost-note voice for inner pulses), or <strong>mute</strong>.
+      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, four, or six, or a custom count of up to 32, with each inner note switchable on or off so you can bake a rhythmic pattern into the beat. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually across four levels: <strong>accent</strong> (loud), <strong>normal</strong>, <strong>soft</strong> (a ghost-note voice for inner pulses), or <strong>mute</strong>.
     </p>
     <p>
       These features are enough for most users, but advanced musicians may benefit from a few additional options. <a href="#gap-click"><strong>Gap click</strong></a> plays the metronome for a set number of measures, then mutes it for a set number of measures. <a href="#random-mute"><strong>Random mute</strong></a> unpredictably silences beats, keeping you on edge and making you more responsible for the time. <a href="#custom-form"><strong>Custom forms</strong></a> let you program a song structure with changing time signatures.
@@ -542,7 +574,7 @@ const graph = {
       An <strong>accent</strong> makes a note louder than the notes around it. In the <a href="#beats">beats menu</a>, you can click any note to cycle through four levels: orange circles are accented, filled blue circles are unaccented, hollow blue circles are softer (think ghost notes), and grey circles are muted. Beat 1 is accented by default to help you track the length of each measure. For 5/8, 6/8, 7/8, 9/8, and 12/8, the metronome pre-loads the standard clave or compound-meter pulse so you hear beat 1 as the strongest accent, the dotted-quarter or grouping pulse as a normal click, and the inner eighths as soft &mdash; see the <a href="#odd-meters">odd meters</a> section below.
     </p>
     <p>
-      <strong>Subdivision</strong> is the splitting of a beat into equal parts. <strong>Duple</strong> subdivision splits the beat into two (eighth notes in 4/4), useful for locking in straight grooves. <strong>Triple</strong> subdivision splits it into three (eighth-note triplets), essential for swing, shuffle, and any triplet feel (think 6/8, 9/8, 12/8). <strong>Quadruple</strong> subdivision splits the beat into four (sixteenth notes), common in fast technical passages, funk, and hip-hop. The more granular the subdivision you can hear and understand, the tighter your time will be.
+      <strong>Subdivision</strong> is the splitting of a beat into equal parts. <strong>Duple</strong> subdivision splits the beat into two (eighth notes in 4/4), useful for locking in straight grooves. <strong>Triple</strong> subdivision splits it into three (eighth-note triplets), essential for swing, shuffle, and any triplet feel (think 6/8, 9/8, 12/8). <strong>Quadruple</strong> subdivision splits the beat into four (sixteenth notes), common in fast technical passages, funk, and hip-hop. <strong>Sextuplet</strong> subdivision splits the beat into six, the natural grid for fast shuffles and triplet-based sixteenth-note playing. When you need something else, the <strong>custom</strong> option covers any count from two up to 32, and you can switch each inner note on or off to program a specific rhythm into every beat. A follow-beat-mute toggle silences those subdivisions on any beat you have muted. The more granular the subdivision you can hear and understand, the tighter your time will be.
     </p>
 
     <h2 id="why-practice-with-metronome">Why Practice With a Metronome at All?</h2>
@@ -692,6 +724,10 @@ const graph = {
     beatsPerMeasure: 4,
     beatUnit: 4,
     subdivision: 1,
+    subCustom: false,   // true when the "Custom" subdivision option is active
+    subPattern: [],     // booleans, length = subdivision; index 0 is the beat (always on)
+    subFollowMute: false, // when true, subdivisions go silent on muted beats
+    customCount: 4,     // remembered Custom count, so toggling presets ↔ custom is stable
     swingPct: 50,
     beats: [],        // 'accent' | 'normal' | 'soft' | 'mute'
     isPlaying: false,
@@ -724,6 +760,14 @@ const graph = {
   let schedulerTimer = null;
   let schedulerBeat = 0;
   let schedulerSub = 0;
+  // The subdivision the scheduler is actually playing right now. These are
+  // committed from state at each beat boundary (not the instant the user
+  // clicks), so changing the subdivision mid-beat lets the current beat
+  // finish on its existing grid and the new subdivision takes over from the
+  // next downbeat. The primary pulse never gets nudged.
+  let schedulerSubdivision = 1;
+  let schedulerSubCustom = false;
+  let schedulerSubPattern = [];
   const pendingVisuals = [];
 
   const LOOKAHEAD_MS = 25;
@@ -876,12 +920,30 @@ const graph = {
       const time = nextNoteTime;
       const cfg  = getAdvConfig();
 
+      // Commit the live subdivision settings at each beat boundary. Within a
+      // beat the scheduler keeps using the values it started the beat with,
+      // so a mid-beat change can't shorten or stretch the current beat.
+      if (sub === 0) {
+        schedulerSubdivision = state.subdivision;
+        schedulerSubCustom   = state.subCustom;
+        schedulerSubPattern  = state.subPattern.slice();
+      }
+
       let clickType;
       if (sub === 0) {
         const s = cfg.beats[beat] || 'normal';
         clickType = s === 'mute' ? 'mute' : s === 'accent' ? 'accent' : s === 'soft' ? 'soft' : 'beat';
       } else {
         clickType = 'sub';
+        // Custom subdivision pattern: silence the inner steps the user
+        // toggled off, so rhythmic patterns can be baked into the beat.
+        if (schedulerSubCustom && schedulerSubPattern[sub] === false) clickType = 'mute';
+      }
+
+      // Follow-beat-mute: when on, a muted beat also silences its
+      // subdivisions instead of leaving the inner pulses ticking.
+      if (sub !== 0 && state.subFollowMute && (cfg.beats[beat] || 'normal') === 'mute') {
+        clickType = 'mute';
       }
 
       if (adv.gapEnabled && advGapPhase === 'silent') clickType = 'mute';
@@ -892,12 +954,20 @@ const graph = {
       }
 
       scheduleClick(time, clickType);
-      pendingVisuals.push({
+      const vis = {
         beat, sub, time, clickType,
         formIdx: advFormIdx,
         gapPhase: advGapPhase,
         gapCount: advGapCount,
-      });
+      };
+      // Carry the beat's committed subdivision on its downbeat so the visual
+      // loop can swap the sub-dot indicator exactly when the audio swaps.
+      if (sub === 0) {
+        vis.subdivision = schedulerSubdivision;
+        vis.subCustom = schedulerSubCustom;
+        vis.subPattern = schedulerSubPattern;
+      }
+      pendingVisuals.push(vis);
 
       // BPM is interpreted as quarter notes per minute (the standard
       // notation convention: ♩ = bpm). The actual tick rate scales by
@@ -911,17 +981,17 @@ const graph = {
       {
         const beatDur = (60.0 / state.bpm) * (4 / cfg.beatUnit);
         let stepDur;
-        if (state.subdivision === 2 && state.swingPct !== 50) {
+        if (schedulerSubdivision === 2 && !schedulerSubCustom && state.swingPct !== 50) {
           const s = state.swingPct / 100;
           stepDur = schedulerSub === 0 ? beatDur * s : beatDur * (1 - s);
         } else {
-          stepDur = beatDur / state.subdivision;
+          stepDur = beatDur / schedulerSubdivision;
         }
         nextNoteTime += stepDur;
       }
 
       schedulerSub++;
-      if (schedulerSub >= state.subdivision) {
+      if (schedulerSub >= schedulerSubdivision) {
         schedulerSub = 0;
         schedulerBeat++;
         // Beats-mode gap counter: tick once per beat (fires on every
@@ -994,6 +1064,9 @@ const graph = {
     state.isPlaying = true;
     schedulerBeat = 0;
     schedulerSub  = 0;
+    schedulerSubdivision = state.subdivision;
+    schedulerSubCustom   = state.subCustom;
+    schedulerSubPattern  = state.subPattern.slice();
     advGapPhase   = 'play';
     advGapCount   = 0;
     // Normal play starts at bar 0; "play from selection" / "loop
@@ -1016,6 +1089,9 @@ const graph = {
     state.currentBeat = -1;
     state.currentSub  = 0;
     applyBeatVisuals(-1, 0, null, 0);
+    // A subdivision change made mid-beat is deferred during playback; once
+    // stopped, settle the dots onto the current selection right away.
+    renderSubDots();
     updatePlayButton();
     updateGapVisual('idle', 0);
     updateFormVisual(-1);
@@ -1039,6 +1115,12 @@ const graph = {
       const v = pendingVisuals.shift();
       state.currentBeat = v.beat;
       state.currentSub  = v.sub;
+      // Repaint the sub-dot indicator on the downbeat to match the
+      // subdivision this beat is actually playing, so a deferred change
+      // appears in sync with the audio (not the instant it was clicked).
+      if (v.sub === 0 && v.subdivision != null) {
+        renderSubDots(v.subdivision, v.subCustom, v.subPattern);
+      }
       applyBeatVisuals(v.beat, v.sub, v.clickType, v.formIdx);
       if (v.beat === 0 && v.sub === 0) {
         updateGapVisual(v.gapPhase, v.gapCount);
@@ -1343,20 +1425,120 @@ const graph = {
   });
 
   // ─── Subdivision ──────────────────────────────────────────────────────────────
-  function setSubdivision(sub) {
-    state.subdivision = sub;
+  const SUB_NAMES = {
+    2: 'Duplet', 3: 'Triplet', 4: 'Quadruplet', 5: 'Quintuplet', 6: 'Sextuplet',
+    7: 'Septuplet', 8: 'Octuplet', 9: 'Nonuplet',
+  };
+  function subdivisionName(n) { return SUB_NAMES[n] || (n + ' per beat'); }
+
+  // Keep state.subPattern sized to n. Index 0 is the beat itself (always on —
+  // its sound is governed by the Beats menu); new inner steps default to on.
+  function ensureSubPattern(n) {
+    const prev = state.subPattern || [];
+    const next = [];
+    for (let i = 0; i < n; i++) next[i] = i === 0 ? true : (prev[i] === undefined ? true : !!prev[i]);
+    state.subPattern = next;
+  }
+
+  // sub: a preset count (1,2,3,4,6); custom: true selects the Custom option,
+  // which uses state.customCount and the programmable on/off pattern.
+  function setSubdivision(sub, custom) {
+    custom = !!custom;
+    state.subCustom = custom;
+    if (custom) {
+      const n = Math.max(2, Math.min(32, state.customCount || 4));
+      state.customCount = n;
+      state.subdivision = n;
+      ensureSubPattern(n);
+    } else {
+      state.subdivision = sub;
+    }
     document.querySelectorAll('.btn-sub').forEach(btn => {
-      btn.classList.toggle('active', +btn.dataset.sub === sub);
+      const isCustomBtn = btn.dataset.sub === 'custom';
+      btn.classList.toggle('active', custom ? isCustomBtn : (!isCustomBtn && +btn.dataset.sub === state.subdivision));
     });
-    // Swing only affects duplet subdivisions; dim the controls when not
-    // applicable so it's clear they're inert at the moment.
-    document.getElementById('swing-controls').classList.toggle('inactive', sub !== 2);
-    renderSubDots();
+    document.getElementById('sub-custom-panel').hidden = !custom;
+    // Swing only affects the duplet *preset*; dim it for everything else.
+    document.getElementById('swing-controls').classList.toggle('inactive', !(state.subdivision === 2 && !custom));
+    // Follow-beat-mute only matters when there are subdivisions to silence.
+    document.getElementById('sub-followmute').classList.toggle('inactive', state.subdivision <= 1);
+    if (custom) renderSubCountUI();
+    renderSubPatternGrid();
+    refreshSubDots();
     persistState();
   }
 
+  function renderSubCountUI() {
+    const slider = document.getElementById('sub-count-slider');
+    if (+slider.value !== state.subdivision) slider.value = state.subdivision;
+    document.getElementById('sub-count-val').textContent = String(state.subdivision);
+    document.getElementById('sub-count-name').textContent = subdivisionName(state.subdivision);
+  }
+
+  function renderSubPatternGrid() {
+    const grid = document.getElementById('sub-pattern-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (!state.subCustom) return;
+    ensureSubPattern(state.subdivision);
+    state.subPattern.forEach((on, i) => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      if (i === 0) {
+        cell.className = 'sub-cell sub-cell-beat';
+        cell.textContent = '◆';
+        cell.title = 'Beat — set its sound in the Beats menu';
+        cell.setAttribute('aria-label', 'Beat (controlled by the Beats menu)');
+        cell.tabIndex = -1;
+      } else {
+        cell.className = 'sub-cell ' + (on ? 'on' : 'off');
+        cell.textContent = on ? '●' : '○';
+        cell.title = 'Subdivision ' + (i + 1) + ' — ' + (on ? 'on (tap to mute)' : 'off (tap to play)');
+        cell.setAttribute('aria-pressed', on ? 'true' : 'false');
+        cell.addEventListener('click', () => {
+          state.subPattern[i] = !state.subPattern[i];
+          renderSubPatternGrid();
+          refreshSubDots();
+          persistState();
+        });
+      }
+      grid.appendChild(cell);
+    });
+  }
+
   document.querySelectorAll('.btn-sub').forEach(btn => {
-    btn.addEventListener('click', () => setSubdivision(+btn.dataset.sub));
+    btn.addEventListener('click', () => {
+      if (btn.dataset.sub === 'custom') setSubdivision(state.customCount, true);
+      else setSubdivision(+btn.dataset.sub, false);
+    });
+  });
+
+  document.getElementById('sub-count-slider').addEventListener('input', (e) => {
+    const n = Math.max(2, Math.min(32, parseInt(e.target.value, 10) || 4));
+    state.customCount = n;
+    state.subdivision = n;
+    ensureSubPattern(n);
+    renderSubCountUI();
+    renderSubPatternGrid();
+    refreshSubDots();
+    persistState();
+  });
+  wireEditableNumber(document.getElementById('sub-count-val'), {
+    min: 2, max: 32,
+    current: () => state.subdivision,
+    onCommit: (v) => {
+      state.customCount = v;
+      state.subdivision = v;
+      ensureSubPattern(v);
+      renderSubCountUI();
+      renderSubPatternGrid();
+      refreshSubDots();
+      persistState();
+    },
+  });
+  document.getElementById('sub-followmute-toggle').addEventListener('change', (e) => {
+    state.subFollowMute = e.target.checked;
+    persistState();
   });
 
   // ─── Swing ────────────────────────────────────────────────────────────────────
@@ -1410,15 +1592,28 @@ const graph = {
     });
   }
 
-  function renderSubDots() {
+  // Defaults to the live state, but the visual loop passes the beat's
+  // committed snapshot so the dots track the audio through a deferred change.
+  function renderSubDots(count, custom, pattern) {
+    if (count == null) count = state.subdivision;
+    if (custom == null) custom = state.subCustom;
+    if (pattern == null) pattern = state.subPattern;
     const container = document.getElementById('sub-indicators');
     container.innerHTML = '';
-    if (state.subdivision <= 1) return;
-    for (let i = 0; i < state.subdivision; i++) {
+    if (count <= 1) return;
+    for (let i = 0; i < count; i++) {
       const dot = document.createElement('div');
       dot.className = 'sub-dot';
+      if (custom && i > 0 && pattern[i] === false) dot.classList.add('off');
       container.appendChild(dot);
     }
+  }
+
+  // While playing, the dots are driven by the scheduler at each beat
+  // boundary (see visualLoop), so a control change shouldn't repaint them
+  // mid-beat — that would jump ahead of the audio. When stopped, repaint now.
+  function refreshSubDots() {
+    if (!state.isPlaying) renderSubDots();
   }
 
   // ─── Play Button ──────────────────────────────────────────────────────────────
@@ -2090,6 +2285,8 @@ const graph = {
     params.set('unit', String(state.beatUnit));
     params.set('p', state.beats.map((b) => BEAT_TO_CHAR[b] || 'N').join(''));
     if (state.subdivision !== 1) params.set('sub', String(state.subdivision));
+    if (state.subCustom) params.set('subp', state.subPattern.map((on, i) => (i === 0 || on) ? '1' : '0').join(''));
+    if (state.subFollowMute) params.set('subfm', '1');
     if (state.swingPct !== 50) params.set('sw', String(state.swingPct));
     if (soundMode !== 'electronic') params.set('snd', SOUND_TO_CHAR[soundMode]);
     if (adv.gapEnabled) {
@@ -2126,7 +2323,16 @@ const graph = {
     }
 
     const sub = +params.get('sub');
-    if (sub >= 1 && sub <= 4) state.subdivision = Math.round(sub);
+    if (sub >= 1 && sub <= 32) state.subdivision = Math.round(sub);
+    const subp = params.get('subp');
+    if (subp && /^[01]+$/.test(subp)) {
+      state.subCustom = true;
+      state.customCount = state.subdivision >= 2 ? state.subdivision : subp.length;
+      if (state.subdivision < 2) state.subdivision = subp.length;
+      state.subPattern = subp.split('').map((c, i) => i === 0 ? true : c === '1');
+      ensureSubPattern(state.subdivision);
+    }
+    state.subFollowMute = params.get('subfm') === '1';
 
     const sw = +params.get('sw');
     if (sw >= 50 && sw <= 75 && params.has('sw')) state.swingPct = sw;
@@ -2165,6 +2371,10 @@ const graph = {
         beatUnit: state.beatUnit,
         beats: state.beats,
         subdivision: state.subdivision,
+        subCustom: state.subCustom,
+        subPattern: state.subPattern,
+        subFollowMute: state.subFollowMute,
+        customCount: state.customCount,
         swingPct: state.swingPct,
         soundMode,
         adv: {
@@ -2190,7 +2400,11 @@ const graph = {
       if (Array.isArray(d.beats) && d.beats.length > 0) {
         state.beats = d.beats.filter((b) => b in BEAT_TO_CHAR);
       }
-      if (d.subdivision >= 1 && d.subdivision <= 4) state.subdivision = d.subdivision;
+      if (d.subdivision >= 1 && d.subdivision <= 32) state.subdivision = d.subdivision;
+      state.subCustom = !!d.subCustom;
+      if (d.customCount >= 2 && d.customCount <= 32) state.customCount = d.customCount;
+      if (Array.isArray(d.subPattern)) state.subPattern = d.subPattern.map((x, i) => i === 0 ? true : !!x);
+      state.subFollowMute = !!d.subFollowMute;
       if (d.swingPct >= 50 && d.swingPct <= 75) state.swingPct = d.swingPct;
       if (d.soundMode === 'clave' || d.soundMode === 'electronic') soundMode = d.soundMode;
       if (d.adv) {
@@ -2273,11 +2487,19 @@ const graph = {
     document.getElementById('bpm-display').textContent = formatBpm(state.bpm);
     document.getElementById('bpm-slider').value = Math.round(state.bpm);
     document.getElementById('beats-input').value = state.beatsPerMeasure;
-    document.querySelectorAll('.btn-sub').forEach((b) => {
-      b.classList.toggle('active', +b.dataset.sub === state.subdivision);
-    });
     setSwingPct(state.swingPct);
-    document.getElementById('swing-controls').classList.toggle('inactive', state.subdivision !== 2);
+    document.getElementById('sub-followmute-toggle').checked = state.subFollowMute;
+    // Reflect the restored subdivision through setSubdivision so the active
+    // button, custom panel, count picker, pattern grid, swing/follow-mute
+    // dimming, and sub-dots all sync from one place.
+    if (state.subCustom) {
+      if (!(state.customCount >= 2 && state.customCount <= 32)) {
+        state.customCount = Math.max(2, Math.min(32, state.subdivision || 4));
+      }
+      setSubdivision(state.customCount, true);
+    } else {
+      setSubdivision(state.subdivision, false);
+    }
     document.querySelectorAll('.btn-sound').forEach((b) => {
       b.classList.toggle('active', b.dataset.sound === soundMode);
     });
