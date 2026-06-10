@@ -49,6 +49,10 @@ const faqs = [
     a: "Roughly half. You don't want to get metronome-dependent, but you also want to keep yourself honest about where your time really is.",
   },
   {
+    q: 'What is a "metronome with subdivision," and do I need one?',
+    a: 'A metronome with subdivision plays not just the main beat but the inner pulses within each beat — eighth notes, triplets, sixteenth notes, or any custom on/off pattern you design. Having those inner pulses audible gives you far more feedback about where your timing drifts, which is especially useful for technique work, rudimental studies, or learning any passage with fast inner notes. Use the Subdivisions card on the Pulse tab to choose duplets, triplets, quadruplets, sextuplets, or a custom count up to 32.',
+  },
+  {
     q: 'What does Adagio, Andante, Allegro, or Presto mean in BPM?',
     a: 'These are Italian tempo markings, and each corresponds to a rough range: Adagio ~66–76, Andante ~76–108, Moderato ~108–120, Allegro ~120–168, Presto ~168–200 BPM. The ranges are approximate and give the performer interpretive flexibility.',
   },
@@ -70,6 +74,15 @@ const faqs = [
   },
 ];
 
+// TODO: drop a 1200×630 screenshot at public/metronome-og.png and remove this comment.
+const metronomeOgImage = {
+  url: '/metronome-og.png',
+  width: 1200,
+  height: 630,
+  type: 'image/png',
+  alt: 'Free online metronome with subdivisions — gap click, odd meters, and custom forms on JVA Music',
+};
+
 const graph = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -78,14 +91,15 @@ const graph = {
     {
       '@type': 'WebApplication',
       '@id': toolId,
-      name: 'JVA Music Metronome',
+      name: 'JVA Music Free Online Metronome with Subdivisions',
       url: pageUrl,
-      applicationCategory: 'MultimediaApplication',
+      applicationCategory: 'MusicApplication',
       applicationSubCategory: 'Music practice tool',
-      operatingSystem: 'Any (modern web browser)',
+      operatingSystem: 'Web',
       browserRequirements: 'Requires JavaScript and the Web Audio API',
       isAccessibleForFree: true,
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
+      author: { '@id': PERSON_ID },
       creator: { '@id': PERSON_ID },
       publisher: { '@id': ORGANIZATION_ID },
       description:
@@ -151,6 +165,7 @@ const graph = {
   description="Free online metronome with subdivisions, irrational meters, odd time signatures, and customizable mixed-meter forms — plus a full practice guide."
   themeColor="#0d0d1a"
   bodyClass="metronome-page"
+  image={metronomeOgImage}
 >
   <JsonLd slot="head" data={graph} />
 
@@ -171,7 +186,7 @@ const graph = {
 <div class="app">
   <div class="header">
     <div class="beat-flash" id="beat-flash"></div>
-    <h1>Metronome</h1>
+    <h1>Free Online Metronome with Subdivisions</h1>
     <div class="beat-flash" id="beat-flash-2"></div>
   </div>
 
@@ -625,7 +640,7 @@ const graph = {
       Intermediate and advanced musicians can start exploring two different domains of time: <strong>macro</strong> and <strong>micro</strong>.
     </p>
     <p>
-      <strong>Micro-time</strong> is your ability to subdivide precisely. Work on this with the <a href="#subdivisions">subdivision feature</a>, trying to line up everything you play with the metronome&rsquo;s smaller pulses. This kind of granular work increases accuracy and can reveal small inconsistencies in your technique you didn&rsquo;t know were there. Pair it with rudimental work &mdash; run my <a href="/pdfs/single-surface/tech-routine-1/">Tech Routine 1</a> slowly against the subdivision feature and watch how clean each motion stays.
+      <strong>Micro-time</strong> is your ability to subdivide precisely. A metronome with subdivision enabled is the most direct tool for this: each inner pulse gives you an additional reference point that reveals exactly where each note falls relative to the grid. Work on it with the <a href="#subdivisions">subdivision feature</a>, trying to line up everything you play with the metronome&rsquo;s smaller pulses. This kind of granular work increases accuracy and can reveal small inconsistencies in your technique you didn&rsquo;t know were there. Pair it with rudimental work &mdash; run my <a href="/pdfs/single-surface/tech-routine-1/">Tech Routine 1</a> slowly against the subdivision feature and watch how clean each motion stays.
     </p>
     <p>
       <strong>Macro-time</strong> is your ability to keep a consistent tempo over the length of an entire piece, with no rushing or dragging across minutes of music. The <a href="#gap-click"><strong>gap click</strong></a> feature (under the advanced toggle) is built for this. Set the click to play for, say, 2 measures and mute for 2; then escalate to 1-on/1-off, 1-on/3-off, 1-on/7-off. The more measures you mute in a row, the longer you&rsquo;re on your own, and the more your own internal clock has to carry the time.
