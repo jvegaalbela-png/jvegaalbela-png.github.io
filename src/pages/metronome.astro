@@ -434,6 +434,37 @@ const graph = {
       </div>
     </div>
 
+
+    <!-- Device / Background Play -->
+    <div class="card card-device" id="device-features">
+      <div class="device-card-head">
+        <div class="section-label">Device</div>
+      </div>
+      <div class="adv-feature-header device-feature-row" id="bg-play-row">
+        <div>
+          <div class="device-feature-label">Background play</div>
+          <div class="adv-feature-desc">Keeps playing with your screen off &mdash; great for practice. Uses pre-rendered audio that iOS treats as media playback.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="bg-play-toggle" aria-label="Background play" />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="adv-feature-header device-feature-row" id="wake-lock-row">
+        <div>
+          <div class="device-feature-label">Keep screen awake</div>
+          <div class="adv-feature-desc">Prevents auto-lock while the metronome is running</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="wake-lock-toggle" checked aria-label="Keep screen awake" />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="bg-render-status-bar" id="bg-render-status-bar" hidden>
+        <span class="bg-render-status-text">Preparing background audio&hellip;</span>
+      </div>
+    </div>
+
     </div><!-- /.adv-grid -->
       </section>
 
@@ -785,6 +816,18 @@ const graph = {
   let schedulerSubPattern = [];
   const pendingVisuals = [];
 
+  // ─── Background Mode state ────────────────────────────────────────────────────
+  let bgModeEnabled = false;           // user toggle: use OfflineAudioContext + <audio>
+  let wakeLockUserEnabled = true;      // user toggle: acquire screen wake lock
+  let bgAudioEl = null;                // hidden <audio> element for background playback
+  let bgBlobUrl = null;                // current object URL for the rendered WAV
+  let bgPatternDur = 0;                // rendered pattern length (seconds)
+  let bgPatternStartAudioCtxTime = 0;  // AudioContext.currentTime matching pattern position 0
+  let bgEventTimeline = [];            // [{time,beat,sub,clickType,formIdx}] for visual sync
+  let bgRerenderTimer = null;          // debounce timer for settings-change re-render
+  let bgRenderGeneration = 0;          // incremented each render; stale renders self-cancel
+  let bgActiveMode = 'realtime';       // 'realtime' | 'audio'
+
   const LOOKAHEAD_MS = 25;
   const SCHEDULE_AHEAD_S = 0.1;
 
@@ -857,57 +900,15 @@ const graph = {
     scheduleElectronic(time, type);
   }
 
+  // Thin wrappers used by the realtime scheduler — delegate to the
+  // context-agnostic versions defined further below so both the live
+  // scheduler and the offline render use identical synthesis code.
   function scheduleElectronic(time, type) {
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-    filter.type = 'bandpass';
-    if (type === 'accent') {
-      osc.frequency.value = 1050; filter.frequency.value = 1050; filter.Q.value = 0.6;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(1.0, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-    } else if (type === 'beat') {
-      osc.frequency.value = 800; filter.frequency.value = 800; filter.Q.value = 0.5;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.75, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
-    } else if (type === 'soft') {
-      osc.frequency.value = 600; filter.frequency.value = 600; filter.Q.value = 0.5;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.32, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
-    } else {
-      osc.frequency.value = 1600; filter.frequency.value = 1600; filter.Q.value = 1.2;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.3, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-    }
-    osc.start(time); osc.stop(time + 0.2);
+    scheduleElectronicCtx(getAudioCtx(), time, type);
   }
 
   function scheduleClave(time, type) {
-    // 808-style clave: a single sine oscillator tuned high (the
-    // common 808 clave sits at 2450 Hz, where it cuts through any
-    // mix) with a 0.5 ms exponential attack and a fast exponential
-    // decay. No noise body — that's what made the previous version
-    // sound wet.
-    const ctx = getAudioCtx();
-    const freq  = type === 'accent' ? 2700  : type === 'sub' ? 3300  : type === 'soft' ? 1900 : 2450;
-    const vol   = type === 'accent' ? 0.85  : type === 'beat' ? 0.55 : type === 'soft' ? 0.25 : 0.2;
-    const decay = type === 'sub'    ? 0.025 : type === 'accent' ? 0.08 : type === 'soft' ? 0.04 : 0.06;
-
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    const og = ctx.createGain();
-    og.gain.setValueAtTime(0.00001, time);
-    og.gain.exponentialRampToValueAtTime(vol, time + 0.0005);
-    og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
-    osc.connect(og); og.connect(ctx.destination);
-    osc.start(time); osc.stop(time + decay + 0.01);
+    scheduleClaveCtx(getAudioCtx(), time, type);
   }
 
   function getAdvConfig() {
@@ -924,6 +925,8 @@ const graph = {
   }
 
   function scheduler() {
+    // Stop scheduling once the hot-swap to the audio element is complete.
+    if (bgActiveMode === 'audio') return;
     // The whole body is guarded so a transient error in one tick can't
     // permanently stop the loop — the reschedule below always runs.
     try {
@@ -1053,6 +1056,7 @@ const graph = {
   let wakeLock = null;
   async function requestWakeLock() {
     if (!('wakeLock' in navigator)) return;
+    if (!wakeLockUserEnabled) return;
     try {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
@@ -1065,11 +1069,20 @@ const graph = {
     try { await wakeLock.release(); } catch (_) {}
     wakeLock = null;
   }
-  // The OS releases the wake lock when the tab is hidden; re-request it when
-  // we come back so the screen stays awake for a long practice session.
+  // The OS releases the wake lock when the tab is hidden; re-request on
+  // return. In background mode also re-sync the visual loop from the
+  // audio element's currentTime, which advanced while the tab was hidden.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && state.isPlaying && !wakeLock) {
-      requestWakeLock();
+    if (document.visibilityState === 'visible' && state.isPlaying) {
+      if (!wakeLock) requestWakeLock();
+      if (bgActiveMode === 'audio') {
+        // If the audio element was paused by an interruption (phone call),
+        // resume it; then restart the visual polling loop.
+        if (bgAudioEl && bgAudioEl.paused) {
+          bgAudioEl.play().catch(() => {});
+        }
+        requestAnimationFrame(bgVisualLoop);
+      }
     }
   });
 
@@ -1088,17 +1101,40 @@ const graph = {
     // selection" pass the bar to start on.
     advFormIdx    = (typeof fromFormIdx === 'number' && fromFormIdx >= 0) ? fromFormIdx : 0;
     nextNoteTime  = ctx.currentTime + 0.05;
+    bgPatternStartAudioCtxTime = nextNoteTime; // record pattern origin for seek calc
     pendingVisuals.length = 0;
+    bgActiveMode = 'realtime';
     scheduler();
     requestAnimationFrame(visualLoop);
     updatePlayButton();
     requestWakeLock();
+
+    if (bgModeEnabled) {
+      // Arm the background audio element synchronously inside this user
+      // gesture so iOS will allow async play() calls after the render.
+      const el = ensureBgAudioEl();
+      el.src = getSilentWavUrl();
+      el.play().catch(() => {});
+      // Kick off the offline render; it will hot-swap when ready.
+      startBgRender();
+      updateMediaSession();
+    }
   }
 
   function stopMetronome() {
     state.isPlaying = false;
     const hadLoop = !!loopRange;
     loopRange = null;  // any range-loop ends when playback stops
+
+    // Stop background audio element if it was driving playback.
+    if (bgActiveMode === 'audio' && bgAudioEl) {
+      bgAudioEl.pause();
+      bgAudioEl.currentTime = 0;
+    }
+    bgActiveMode = 'realtime';
+    bgRenderGeneration++; // cancel any in-flight render
+    clearTimeout(bgRerenderTimer);
+
     clearTimeout(schedulerTimer);
     pendingVisuals.length = 0;
     state.currentBeat = -1;
@@ -1123,6 +1159,8 @@ const graph = {
   // ─── Visual Loop ─────────────────────────────────────────────────────────────
   function visualLoop() {
     if (!state.isPlaying) return;
+    // In background mode the audio element drives visuals via bgVisualLoop.
+    if (bgActiveMode === 'audio') return;
     const ctx = getAudioCtx();
     const now = ctx.currentTime;
 
@@ -2441,6 +2479,7 @@ const graph = {
   let urlUpdateTimer = null;
   function persistState() {
     saveLocalStorage();
+    triggerBgRerender(); // re-render background buffer when settings change
     clearTimeout(urlUpdateTimer);
     urlUpdateTimer = setTimeout(() => {
       const qs = encodeURLState();
@@ -2480,6 +2519,7 @@ const graph = {
     // the custom form, which the shareable URL doesn't encode. URL params,
     // when present, then override the shareable subset on top.
     loadLocalStorage();
+    loadBgPrefs();
     const usedURL = applyURLState(window.location.search);
 
     // Share-link path: if the URL carries ?f=..., decompress it and load it
@@ -2556,6 +2596,19 @@ const graph = {
     // Forms tab OR the URL is a share link (?open=1 / ?f=), land on Forms.
     syncFormEditorOnLoad();
     if (restoreEditorOpen) Carousel.setScreen(2);
+
+    // Reflect background-mode preferences in the new Device card.
+    const bgToggleEl = document.getElementById('bg-play-toggle');
+    if (bgToggleEl) bgToggleEl.checked = bgModeEnabled;
+    const wlToggleEl = document.getElementById('wake-lock-toggle');
+    if (wlToggleEl) {
+      if (!('wakeLock' in navigator)) {
+        const row = document.getElementById('wake-lock-row');
+        if (row) row.hidden = true;
+      } else {
+        wlToggleEl.checked = wakeLockUserEnabled;
+      }
+    }
   }
 
   // ─── Custom Form Editor ───────────────────────────────────────────────────────
@@ -3605,6 +3658,477 @@ const graph = {
     if (!bi) return;
     bi.addEventListener('focus', () => setTimeout(() => bi.select(), 0));
   })();
+
+  // ─── Background Mode: implementation ─────────────────────────────────────────
+  //
+  // Offline render pipeline + MediaSession + visual resync.
+  // Context-agnostic synthesizers (accept any AudioContext) live here so the
+  // same code drives both the realtime scheduler and the OfflineAudioContext.
+
+  // ── GCD / LCM helpers ─────────────────────────────────────────────────────────
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+  function lcmOf(a, b) { return Math.round((a / gcdOf(a, b)) * b); }
+
+  // ── Silent-WAV helper ─────────────────────────────────────────────────────────
+  // Creates a tiny silent WAV blob URL used to arm <audio> elements for later
+  // async play() calls without a user gesture. Created once and reused.
+  let _silentWavUrl = null;
+  function getSilentWavUrl() {
+    if (_silentWavUrl) return _silentWavUrl;
+    const sr = 8000, frames = sr / 2, ds = frames * 2;
+    const buf = new ArrayBuffer(44 + ds);
+    const dv = new DataView(buf);
+    const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    ws(0,'RIFF'); dv.setUint32(4, 36+ds, true); ws(8,'WAVE'); ws(12,'fmt ');
+    dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+    dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true);
+    dv.setUint16(32,2,true); dv.setUint16(34,16,true);
+    ws(36,'data'); dv.setUint32(40,ds,true);
+    _silentWavUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    return _silentWavUrl;
+  }
+
+  // ── Background <audio> element ────────────────────────────────────────────────
+  function ensureBgAudioEl() {
+    if (bgAudioEl) return bgAudioEl;
+    bgAudioEl = document.createElement('audio');
+    bgAudioEl.loop = true;
+    bgAudioEl.playsInline = true;
+    bgAudioEl.setAttribute('playsinline', '');
+    bgAudioEl.style.display = 'none';
+    document.body.appendChild(bgAudioEl);
+    // Track audio interruptions (phone calls, etc.) and reflect in UI.
+    bgAudioEl.addEventListener('pause', () => {
+      if (bgActiveMode === 'audio' && state.isPlaying) updatePlayButton();
+    });
+    bgAudioEl.addEventListener('play', () => {
+      if (bgActiveMode === 'audio' && state.isPlaying) updatePlayButton();
+    });
+    // 'ended' fires only when loop=false (custom forms reaching end).
+    bgAudioEl.addEventListener('ended', () => {
+      if (bgActiveMode === 'audio' && state.isPlaying) stopMetronome();
+    });
+    return bgAudioEl;
+  }
+
+  // ── Context-agnostic synthesizers ─────────────────────────────────────────────
+  // Accept any AudioContext so the identical synthesis drives both realtime
+  // (scheduleElectronic/scheduleClave delegate here) and OfflineAudioContext.
+
+  function scheduleElectronicCtx(ctx, time, type) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    filter.type = 'bandpass';
+    if (type === 'accent') {
+      osc.frequency.value = 1050; filter.frequency.value = 1050; filter.Q.value = 0.6;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(1.0, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+    } else if (type === 'beat') {
+      osc.frequency.value = 800; filter.frequency.value = 800; filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.75, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+    } else if (type === 'soft') {
+      osc.frequency.value = 600; filter.frequency.value = 600; filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.32, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+    } else {
+      // 'sub' and any unrecognised type → high-frequency sweep click.
+      osc.frequency.value = 1600; filter.frequency.value = 1600; filter.Q.value = 1.2;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.3, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+    }
+    osc.start(time); osc.stop(time + 0.2);
+  }
+
+  function scheduleClaveCtx(ctx, time, type) {
+    const freq  = type === 'accent' ? 2700  : type === 'sub' ? 3300  : type === 'soft' ? 1900 : 2450;
+    const vol   = type === 'accent' ? 0.85  : type === 'beat' ? 0.55 : type === 'soft' ? 0.25 : 0.2;
+    const decay = type === 'sub'    ? 0.025 : type === 'accent' ? 0.08 : type === 'soft' ? 0.04 : 0.06;
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.00001, time);
+    og.gain.exponentialRampToValueAtTime(vol, time + 0.0005);
+    og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
+    osc.connect(og); og.connect(ctx.destination);
+    osc.start(time); osc.stop(time + decay + 0.01);
+  }
+
+  function scheduleClickCtx(ctx, time, type, mode) {
+    if (type === 'mute') return;
+    if (mode === 'clave') { scheduleClaveCtx(ctx, time, type); return; }
+    scheduleElectronicCtx(ctx, time, type);
+  }
+
+  // ── Settings snapshot ─────────────────────────────────────────────────────────
+  function snapshotBgSettings() {
+    return {
+      bpm: state.bpm,
+      beatsPerMeasure: state.beatsPerMeasure,
+      beatUnit: state.beatUnit,
+      beats: state.beats.slice(),
+      subdivision: state.subdivision,
+      subCustom: state.subCustom,
+      subPattern: state.subPattern.slice(),
+      subFollowMute: state.subFollowMute,
+      swingPct: state.swingPct,
+      soundMode,
+      gapEnabled: adv.gapEnabled,
+      gapPlay: adv.gapPlay,
+      gapSilent: adv.gapSilent,
+      gapUnit: adv.gapUnit,
+      randomMuteEnabled: adv.randomMuteEnabled,
+      randomMutePct: adv.randomMutePct,
+      randomMuteSubPct: adv.randomMuteSubPct,
+      formEnabled: adv.formEnabled,
+      form: adv.form.map(e => ({ beats: e.beats, unit: e.unit, states: e.states.slice() })),
+    };
+  }
+
+  // ── Buffer duration calculation ────────────────────────────────────────────────
+  function bgBufferDuration(cfg) {
+    // Custom form: render exactly the full form once; loop = false.
+    if (cfg.formEnabled && cfg.form && cfg.form.length > 0) {
+      const dur = cfg.form.reduce((sum, bar) => {
+        return sum + (60 / cfg.bpm) * (4 / bar.unit) * bar.beats;
+      }, 0);
+      return Math.max(1, dur);
+    }
+
+    const beatDur  = (60 / cfg.bpm) * (4 / cfg.beatUnit);
+    const measDur  = beatDur * cfg.beatsPerMeasure;
+    // Random mute: ~3 minutes so repetition is imperceptible.
+    const targetSecs = cfg.randomMuteEnabled ? 180 : 30;
+
+    if (cfg.gapEnabled) {
+      // Buffer must end on a gap-cycle boundary to avoid loop-seam state mismatch.
+      let cycleDur;
+      if (cfg.gapUnit === 'beat') {
+        // Align to LCM(gap-cycle beats, beats-per-measure) for whole-measure loops.
+        const cycleBeats = cfg.gapPlay + cfg.gapSilent;
+        const alignBeats = lcmOf(cycleBeats, cfg.beatsPerMeasure);
+        cycleDur = beatDur * alignBeats;
+      } else {
+        cycleDur = measDur * (cfg.gapPlay + cfg.gapSilent);
+      }
+      const n = Math.max(1, Math.ceil(targetSecs / cycleDur));
+      return cycleDur * n;
+    }
+
+    // Plain pattern: whole measures totalling ≥ targetSecs.
+    const n = Math.max(1, Math.ceil(targetSecs / measDur));
+    return measDur * n;
+  }
+
+  // ── Event timeline builder ─────────────────────────────────────────────────────
+  // Mirrors the realtime scheduler logic exactly; feeds both the OfflineAudioContext
+  // render and the bgVisualLoop's beat-indicator lookup table.
+  function buildBgTimeline(cfg, durationSecs) {
+    const events = [];
+    let t = 0;
+    let beat = 0, sub = 0;
+    let curSub = cfg.subdivision, curSubCustom = cfg.subCustom;
+    let curSubPattern = cfg.subPattern.slice();
+    let gapPhase = 'play', gapCount = 0;
+    let formIdx = 0;
+
+    function cfgForForm() {
+      if (cfg.formEnabled && cfg.form && cfg.form.length > 0) {
+        const e = cfg.form[Math.min(formIdx, cfg.form.length - 1)];
+        return { beatsPerMeasure: e.beats, beats: e.states, beatUnit: e.unit };
+      }
+      return { beatsPerMeasure: cfg.beatsPerMeasure, beats: cfg.beats, beatUnit: cfg.beatUnit };
+    }
+
+    const maxT = Math.min(durationSecs + 0.001, 301);
+    const maxEvents = 2_000_000;
+
+    while (t < maxT && events.length < maxEvents) {
+      const c = cfgForForm();
+      if (sub === 0) {
+        curSub = cfg.subdivision;
+        curSubCustom = cfg.subCustom;
+        curSubPattern = cfg.subPattern.slice();
+      }
+
+      let clickType;
+      if (sub === 0) {
+        const s = c.beats[beat] || 'normal';
+        clickType = s === 'mute' ? 'mute' : s === 'accent' ? 'accent' : s === 'soft' ? 'soft' : 'beat';
+      } else {
+        clickType = 'sub';
+        if (curSubCustom && curSubPattern[sub] === false) clickType = 'mute';
+      }
+      if (sub !== 0 && cfg.subFollowMute && (c.beats[beat] || 'normal') === 'mute') clickType = 'mute';
+      if (cfg.gapEnabled && gapPhase === 'silent') clickType = 'mute';
+      if (cfg.randomMuteEnabled && clickType !== 'mute') {
+        const p = sub === 0 ? cfg.randomMutePct : cfg.randomMuteSubPct;
+        if (p > 0 && Math.random() < p / 100) clickType = 'mute';
+      }
+
+      events.push({ time: t, beat, sub, clickType, formIdx });
+
+      const beatDur = (60.0 / cfg.bpm) * (4 / c.beatUnit);
+      let stepDur;
+      if (curSub === 2 && !curSubCustom && cfg.swingPct !== 50) {
+        const s = cfg.swingPct / 100;
+        stepDur = sub === 0 ? beatDur * s : beatDur * (1 - s);
+      } else {
+        stepDur = beatDur / curSub;
+      }
+      t += stepDur;
+
+      sub++;
+      if (sub >= curSub) {
+        sub = 0;
+        beat++;
+        if (cfg.gapEnabled && cfg.gapUnit === 'beat') {
+          gapCount++;
+          if (gapPhase === 'play'   && gapCount >= cfg.gapPlay)   { gapPhase = 'silent'; gapCount = 0; }
+          else if (gapPhase === 'silent' && gapCount >= cfg.gapSilent) { gapPhase = 'play';   gapCount = 0; }
+        }
+        if (beat >= c.beatsPerMeasure) {
+          beat = 0;
+          if (cfg.gapEnabled && cfg.gapUnit !== 'beat') {
+            gapCount++;
+            if (gapPhase === 'play'   && gapCount >= cfg.gapPlay)   { gapPhase = 'silent'; gapCount = 0; }
+            else if (gapPhase === 'silent' && gapCount >= cfg.gapSilent) { gapPhase = 'play';   gapCount = 0; }
+          }
+          if (cfg.formEnabled && cfg.form && cfg.form.length > 0) {
+            formIdx = (formIdx + 1) % cfg.form.length;
+          }
+        }
+      }
+    }
+    return events;
+  }
+
+  // ── Offline render ─────────────────────────────────────────────────────────────
+  async function renderBgBuffer(cfg, durationSecs) {
+    const SR = 44100;
+    const numFrames = Math.ceil(durationSecs * SR);
+    const offCtx = new OfflineAudioContext(1, numFrames, SR);
+    const timeline = buildBgTimeline(cfg, durationSecs);
+    for (const evt of timeline) {
+      scheduleClickCtx(offCtx, evt.time, evt.clickType, cfg.soundMode);
+    }
+    const audioBuffer = await offCtx.startRendering();
+    return { blob: encodeWAV(audioBuffer), timeline };
+  }
+
+  // Encode an AudioBuffer to a 16-bit mono WAV Blob (44100 Hz, 1 ch).
+  function encodeWAV(audioBuffer) {
+    const SR = audioBuffer.sampleRate;
+    let samples = audioBuffer.getChannelData(0);
+    if (audioBuffer.numberOfChannels > 1) {
+      const b = audioBuffer.getChannelData(1);
+      const mixed = new Float32Array(samples.length);
+      for (let i = 0; i < samples.length; i++) mixed[i] = (samples[i] + b[i]) * 0.5;
+      samples = mixed;
+    }
+    const n = samples.length;
+    const buf = new ArrayBuffer(44 + n * 2);
+    const dv = new DataView(buf);
+    const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    ws(0,'RIFF'); dv.setUint32(4, 36 + n*2, true); ws(8,'WAVE'); ws(12,'fmt ');
+    dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+    dv.setUint32(24,SR,true); dv.setUint32(28,SR*2,true);
+    dv.setUint16(32,2,true); dv.setUint16(34,16,true);
+    ws(36,'data'); dv.setUint32(40,n*2,true);
+    let off = 44;
+    for (let i = 0; i < n; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      dv.setInt16(off, Math.round(s * (s < 0 ? 32768 : 32767)), true);
+      off += 2;
+    }
+    return new Blob([buf], { type: 'audio/wav' });
+  }
+
+  // ── Render pipeline ────────────────────────────────────────────────────────────
+  function updateBgRenderStatus(active) {
+    const bar = document.getElementById('bg-render-status-bar');
+    if (bar) bar.hidden = !active;
+  }
+
+  async function startBgRender() {
+    const gen = ++bgRenderGeneration;
+    updateBgRenderStatus(true);
+    const audioCtxRef = getAudioCtx();
+
+    try {
+      const cfg = snapshotBgSettings();
+      bgPatternDur = bgBufferDuration(cfg);
+
+      const { blob, timeline } = await renderBgBuffer(cfg, bgPatternDur);
+
+      if (gen !== bgRenderGeneration || !state.isPlaying) {
+        updateBgRenderStatus(false);
+        return; // superseded by a newer render or user stopped
+      }
+
+      bgEventTimeline = timeline;
+
+      const url = URL.createObjectURL(blob);
+      if (bgBlobUrl) { URL.revokeObjectURL(bgBlobUrl); bgBlobUrl = null; }
+      bgBlobUrl = url;
+
+      const el = ensureBgAudioEl();
+      const isForm = cfg.formEnabled && cfg.form && cfg.form.length > 0;
+      el.loop = !isForm;
+      el.src = url;
+      el.load();
+
+      // Seek to match the realtime scheduler's current position so the
+      // hot-swap is seamless. elapsed = how far into the pattern we are.
+      const elapsed = audioCtxRef.currentTime - bgPatternStartAudioCtxTime;
+      const pos = isForm
+        ? Math.max(0, Math.min(elapsed, bgPatternDur - 0.01))
+        : Math.max(0, elapsed % bgPatternDur);
+      el.currentTime = pos;
+
+      try {
+        await el.play();
+      } catch (_) {
+        // play() rejected — stay on realtime mode.
+        updateBgRenderStatus(false);
+        return;
+      }
+
+      // Hot-swap: realtime scheduler winds down naturally; audio element takes over.
+      clearTimeout(schedulerTimer);
+      schedulerTimer = null;
+      bgActiveMode = 'audio';
+
+      updateMediaSession();
+      requestAnimationFrame(bgVisualLoop);
+
+    } catch (e) {
+      console.error('bg render failed:', e);
+    } finally {
+      updateBgRenderStatus(false);
+    }
+  }
+
+  // ── Background visual loop ─────────────────────────────────────────────────────
+  // Polls bgAudioEl.currentTime each frame, binary-searches the event timeline,
+  // and updates the beat/sub indicator. Runs instead of the realtime visualLoop
+  // after the hot-swap.
+  function bgVisualLoop() {
+    if (!state.isPlaying || bgActiveMode !== 'audio') return;
+    if (!bgAudioEl) { requestAnimationFrame(bgVisualLoop); return; }
+
+    const rawPos = bgAudioEl.currentTime;
+    const pos = bgPatternDur > 0 ? rawPos % bgPatternDur : rawPos;
+    const tl = bgEventTimeline;
+
+    if (tl.length > 0) {
+      let lo = 0, hi = tl.length - 1, idx = 0;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (tl[mid].time <= pos) { idx = mid; lo = mid + 1; }
+        else hi = mid - 1;
+      }
+      const evt = tl[idx];
+      if (evt && (evt.beat !== state.currentBeat || evt.sub !== state.currentSub)) {
+        state.currentBeat = evt.beat;
+        state.currentSub  = evt.sub;
+        applyBeatVisuals(evt.beat, evt.sub, evt.clickType, evt.formIdx);
+        if (evt.beat === 0 && evt.sub === 0) updateFormVisual(evt.formIdx);
+      }
+    }
+
+    requestAnimationFrame(bgVisualLoop);
+  }
+
+  // ── Settings-change re-render ──────────────────────────────────────────────────
+  // Debounced 300 ms to avoid re-rendering on every slider tick.
+  function triggerBgRerender() {
+    if (!state.isPlaying || !bgModeEnabled || bgActiveMode !== 'audio') return;
+    clearTimeout(bgRerenderTimer);
+    bgRerenderTimer = setTimeout(() => { startBgRender(); }, 300);
+  }
+
+  // ── MediaSession ───────────────────────────────────────────────────────────────
+  function updateMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      const sig = `${state.beatsPerMeasure}/${state.beatUnit}`;
+      const subStr = state.subdivision > 1
+        ? (state.subCustom
+            ? `, Custom ${state.subdivision}`
+            : `, ${subdivisionName(state.subdivision)}`)
+        : '';
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: `${formatBpm(state.bpm)} BPM — ${sig}${subStr}`,
+        artist: 'JVA Music Metronome',
+        album: '',
+        artwork: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+      });
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (bgActiveMode === 'audio' && bgAudioEl && bgAudioEl.paused) {
+          bgAudioEl.play().catch(() => {});
+          state.isPlaying = true;
+          requestWakeLock();
+          updatePlayButton();
+        } else if (!state.isPlaying) {
+          startMetronome();
+        }
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (state.isPlaying) stopMetronome();
+      });
+      navigator.mediaSession.setActionHandler('stop', () => {
+        if (state.isPlaying) stopMetronome();
+      });
+    } catch (_) {}
+  }
+
+  // ── Preferences persistence ────────────────────────────────────────────────────
+  const BG_PREFS_KEY = 'metronomeBgPrefs_v1';
+
+  function saveBgPrefs() {
+    try {
+      localStorage.setItem(BG_PREFS_KEY, JSON.stringify({ bgModeEnabled, wakeLockUserEnabled }));
+    } catch (_) {}
+  }
+
+  function loadBgPrefs() {
+    try {
+      const d = JSON.parse(localStorage.getItem(BG_PREFS_KEY) || '{}');
+      if (typeof d.bgModeEnabled === 'boolean')      bgModeEnabled      = d.bgModeEnabled;
+      if (typeof d.wakeLockUserEnabled === 'boolean') wakeLockUserEnabled = d.wakeLockUserEnabled;
+    } catch (_) {}
+  }
+
+  // ── Toggle event handlers ──────────────────────────────────────────────────────
+  document.getElementById('bg-play-toggle').addEventListener('change', e => {
+    bgModeEnabled = e.target.checked;
+    saveBgPrefs();
+  });
+
+  (() => {
+    const el = document.getElementById('wake-lock-toggle');
+    if (!el) return;
+    el.addEventListener('change', e => {
+      wakeLockUserEnabled = e.target.checked;
+      saveBgPrefs();
+      if (state.isPlaying) {
+        wakeLockUserEnabled ? requestWakeLock() : releaseWakeLock();
+      }
+    });
+  })();
+
+  // ─── End Background Mode ──────────────────────────────────────────────────────
 
   init().catch((e) => console.error('init failed', e));
 </script>

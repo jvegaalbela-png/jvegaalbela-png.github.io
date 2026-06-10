@@ -899,6 +899,37 @@
     .metronome-shell .adv-controls { transition: opacity 0.2s; }
     .metronome-shell .adv-controls.disabled { opacity: 0.3; pointer-events: none; }
 
+    /* ── Device card (Background play + Wake lock toggles) ───────────────── */
+    .metronome-shell .card-device .device-card-head { margin-bottom: 0.5rem; }
+    .metronome-shell .card-device .device-feature-row {
+      border-top: 1px solid rgba(91, 141, 232, 0.12);
+      padding-top: 0.65rem;
+      margin-bottom: 0;
+    }
+    .metronome-shell .device-feature-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cream);
+    }
+    .metronome-shell .bg-render-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      background: rgba(91, 141, 232, 0.12);
+    }
+    .metronome-shell .bg-render-status-text {
+      font-size: 0.72rem;
+      color: rgba(245, 243, 238, 0.7);
+      animation: bg-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes bg-pulse {
+      0%, 100% { opacity: 0.7; }
+      50%       { opacity: 1;   }
+    }
+
     .metronome-shell .adv-row {
       display: flex;
       align-items: center;
@@ -1349,7 +1380,8 @@
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         grid-template-areas:
           "gap     form"
-          "random  form";
+          "random  form"
+          "device  device";
         gap: 0.75rem;
         align-items: stretch;
       }
@@ -1358,6 +1390,7 @@
       .metronome-shell .adv-grid .card-gap    { grid-area: gap; }
       .metronome-shell .adv-grid .card-random { grid-area: random; }
       .metronome-shell .adv-grid .card-form   { grid-area: form; }
+      .metronome-shell .adv-grid .card-device { grid-area: device; }
 
       /* When the grid stretches the cards to align bottoms, distribute the
          slack inside each card. For Custom Form the form-list absorbs it
