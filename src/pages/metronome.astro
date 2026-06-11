@@ -2462,7 +2462,6 @@ const graph = {
           formEnabled: adv.formEnabled,
           form: adv.form,
         },
-        formEditorOpen: formEditorModal.getAttribute('aria-hidden') === 'false',
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) { /* private mode or quota — ignore */ }
@@ -2497,7 +2496,10 @@ const graph = {
         adv.formEnabled = !!d.adv.formEnabled;
         if (Array.isArray(d.adv.form) && d.adv.form.length > 0) adv.form = d.adv.form;
       }
-      restoreEditorOpen = !!d.formEditorOpen;
+      // Note: the Forms-tab position used to be persisted (formEditorOpen)
+      // and restored here, making returning visitors land on Forms instead
+      // of Pulse. The page now always opens on Pulse; only an explicit
+      // share link (?f=...&open=1) lands on Forms.
       return true;
     } catch (e) { return false; }
   }
@@ -2618,8 +2620,8 @@ const graph = {
     if (usedURL) saveLocalStorage();
 
     // The editor is now a tab in the carousel, not a popped-over modal.
-    // Sync its initial state once, then — if the page was last left on the
-    // Forms tab OR the URL is a share link (?open=1 / ?f=), land on Forms.
+    // Sync its initial state once. The page always opens on Pulse; only a
+    // share link (?f=...&open=1) lands on Forms.
     syncFormEditorOnLoad();
     if (restoreEditorOpen) Carousel.setScreen(2);
 
