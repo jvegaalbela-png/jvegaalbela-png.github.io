@@ -740,6 +740,11 @@ const graph = {
       </div>
     ))}
 
+    <h2 id="ios-background-note">A Note for iOS Users</h2>
+    <p>
+      A metronome webapp like this one that keeps playing audio in the background basically shouldn&rsquo;t be possible &mdash; but against all odds, we&rsquo;ve made it work. Due to the limitations we&rsquo;ve had to overcome, you may hear a brief stutter when you leave the app or lock your screen, and again when you come back. You may also hear a slight hiccup every 5&ndash;10 minutes while the metronome runs in the background.
+    </p>
+
     <h2 id="keep-going">Want to take your practice further?</h2>
     <ul>
       <li><a href="/drum-lessons/"><strong>Take a private drum lesson</strong></a> &mdash; Rochester studio or Zoom, first lesson half off. K&ndash;12 and adults, jazz / rock / funk / Latin.</li>
@@ -860,8 +865,8 @@ const graph = {
 
   const LOOKAHEAD_MS = 25;
   const SCHEDULE_AHEAD_S = 0.1;
-  const BG_TARGET_SECS = 120;          // min render length for looping patterns
-  const BG_TARGET_SECS_RANDOM = 180;   // longer for random mute so repeats are imperceptible
+  const BG_TARGET_SECS = 300;          // min render length: keeps handoffs ~5 min apart and
+                                       // makes random-mute repetition imperceptible
   const BG_MAX_RENDER_S = 600;         // hard cap; over-long forms play once and stop
   const BG_RERENDER_DEBOUNCE_MS = 400;
   const BG_WATCHDOG_MS = 1000;         // iOS throttles this to ~2 s in background — fine
@@ -3928,9 +3933,7 @@ const graph = {
 
     const beatDur  = (60 / cfg.bpm) * (4 / cfg.beatUnit);
     const measDur  = beatDur * cfg.beatsPerMeasure;
-    // Long renders keep handoffs infrequent. Random mute: even longer so the
-    // repetition is imperceptible.
-    const targetSecs = cfg.randomMuteEnabled ? BG_TARGET_SECS_RANDOM : BG_TARGET_SECS;
+    const targetSecs = BG_TARGET_SECS;
 
     if (cfg.gapEnabled) {
       // Buffer must end on a gap-cycle boundary to avoid loop-seam state mismatch.
