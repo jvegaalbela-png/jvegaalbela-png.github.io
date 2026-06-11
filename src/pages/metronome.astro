@@ -820,23 +820,29 @@ const graph = {
   const pendingVisuals = [];
 
   // ─── Background Mode state ────────────────────────────────────────────────────
-  let bgModeEnabled = false;           // user toggle: use OfflineAudioContext + <audio>
-  let wakeLockUserEnabled = true;      // user toggle: acquire screen wake lock
-  let bgAudioEls = [null, null];       // [elA, elB] for gapless loop handoff
-  let bgCurrentElIdx = 0;              // index of currently playing element
-  let bgBlobUrl = null;                // current object URL for the rendered WAV
+  let bgModeEnabled = false;           // user toggle
+  let wakeLockUserEnabled = true;      // user toggle
+  // Plan A (default): silent <audio loop> keeps iOS audio session alive so the
+  // AudioContext is not suspended on screen lock; AudioBufferSourceNode(loop=true)
+  // plays the clicks with sample-accurate, natively gapless looping.
+  // Plan B (?bgmode=B): realtime scheduler with a 5-second lookahead so iOS
+  // background-timer throttling cannot starve playback; simpler but less precise.
+  const _bgImplMode = new URLSearchParams(location.search).get('bgmode') || 'A';
+  let bgSilentEl = null;               // <audio loop> keep-alive (Plan A)
+  let bgSourceNode = null;             // AudioBufferSourceNode for click playback (Plan A)
+  let bgAudioBuffer = null;            // most recently rendered AudioBuffer (Plan A)
+  let bgSourceStartTime = 0;           // AudioContext time when bgSourceNode.start() was called
   let bgPatternDur = 0;                // rendered pattern length (seconds)
-  let bgPatternStartAudioCtxTime = 0;  // AudioContext.currentTime matching pattern position 0
   let bgEventTimeline = [];            // [{time,beat,sub,clickType,formIdx}] for visual sync
   let bgRerenderTimer = null;          // debounce timer for settings-change re-render
   let bgRenderGeneration = 0;          // incremented each render; stale renders self-cancel
   let bgActiveMode = 'realtime';       // 'realtime' | 'audio'
   let bgPendingSwap = false;           // swap ready; waiting for next bar-0 visual event
   let bgPendingSwapIsForm = false;     // cached isForm for pending swap
-  let bgPrewarming = false;            // true while standby element is being pre-warmed
 
   const LOOKAHEAD_MS = 25;
   const SCHEDULE_AHEAD_S = 0.1;
+  const _BG_PLAN_B_AHEAD_S = 5.0; // Plan B: survive iOS background-timer throttling
 
   function getAudioCtx() {
     if (!audioCtx) {
@@ -939,7 +945,8 @@ const graph = {
     try {
     const ctx = getAudioCtx();
 
-    while (nextNoteTime < ctx.currentTime + SCHEDULE_AHEAD_S) {
+    const _sched_ahead = (bgModeEnabled && _bgImplMode === 'B') ? _BG_PLAN_B_AHEAD_S : SCHEDULE_AHEAD_S;
+    while (nextNoteTime < ctx.currentTime + _sched_ahead) {
       const beat = schedulerBeat;
       const sub  = schedulerSub;
       const time = nextNoteTime;
@@ -1082,14 +1089,16 @@ const graph = {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && state.isPlaying) {
       if (!wakeLock) requestWakeLock();
-      if (bgActiveMode === 'audio') {
-        // If the audio element was paused by an interruption (phone call),
-        // resume it; then restart the visual polling loop.
-        const _curEl = bgAudioEls[bgCurrentElIdx];
-        if (_curEl && _curEl.paused) {
-          _curEl.play().catch(() => {});
+      if (bgModeEnabled) {
+        // Resume the AudioContext if iOS suspended it (screen lock / interruption).
+        // bgSilentEl holds the iOS audio session so the context should resume cleanly.
+        const _ctx = getAudioCtx();
+        if (_ctx.state === 'suspended' || _ctx.state === 'interrupted') {
+          _ctx.resume();
         }
-        requestAnimationFrame(bgVisualLoop);
+        // Resume the keep-alive element if a phone call paused it.
+        if (bgSilentEl && bgSilentEl.paused) bgSilentEl.play().catch(() => {});
+        if (bgActiveMode === 'audio') requestAnimationFrame(bgVisualLoop);
       }
     }
   });
@@ -1109,7 +1118,6 @@ const graph = {
     // selection" pass the bar to start on.
     advFormIdx    = (typeof fromFormIdx === 'number' && fromFormIdx >= 0) ? fromFormIdx : 0;
     nextNoteTime  = ctx.currentTime + 0.05;
-    bgPatternStartAudioCtxTime = nextNoteTime; // record pattern origin for seek calc
     pendingVisuals.length = 0;
     bgActiveMode = 'realtime';
     scheduler();
@@ -1118,17 +1126,13 @@ const graph = {
     requestWakeLock();
 
     if (bgModeEnabled) {
-      // Arm both audio elements synchronously inside this user gesture so iOS
-      // will allow async play() calls after the offline render completes.
-      const silentUrl = getSilentWavUrl();
-      for (let _bi = 0; _bi < 2; _bi++) {
-        const _el = ensureBgAudioEl(_bi);
-        _el.src = silentUrl;
-        _el.play().catch(() => {});
+      // Arm the silent keep-alive element in this user gesture so iOS grants
+      // the page an active audio session for all future async audio calls.
+      ensureBgSilentEl().play().catch(() => {});
+      if (_bgImplMode !== 'B') {
+        // Plan A: kick off offline render; hot-swap to AudioBufferSourceNode at bar boundary.
+        startBgRender();
       }
-      bgCurrentElIdx = 0;
-      // Kick off the offline render; it will hot-swap at the next bar boundary.
-      startBgRender();
       updateMediaSession();
     }
   }
@@ -1138,10 +1142,10 @@ const graph = {
     const hadLoop = !!loopRange;
     loopRange = null;  // any range-loop ends when playback stops
 
-    // Stop all background audio elements.
-    bgAudioEls.forEach(el => { if (el) { el.pause(); el.currentTime = 0; el.volume = 1; } });
+    // Stop the AudioBufferSourceNode (Plan A) and the silent keep-alive element.
+    if (bgSourceNode) { try { bgSourceNode.stop(); } catch (_) {} bgSourceNode = null; }
+    if (bgSilentEl) bgSilentEl.pause();
     bgPendingSwap = false;
-    bgPrewarming = false;
     updateBgRenderStatus(false);
     bgActiveMode = 'realtime';
     bgRenderGeneration++; // cancel any in-flight render
@@ -1191,36 +1195,13 @@ const graph = {
         updateGapVisual(v.gapPhase, v.gapCount);
         updateFormVisual(v.formIdx);
         if (bgPendingSwap) {
-          // Perform the hot-swap at this clean musical bar boundary.
-          // Starting the audio element from position 0 here avoids any seek
-          // latency that caused the startup hitch with the mid-pattern seek.
           bgPendingSwap = false;
-          updateBgRenderStatus(false); // audio is ready — dismiss the status bar
-          const _swapGen = bgRenderGeneration;
-          const _swapIsForm = bgPendingSwapIsForm;
-          clearTimeout(schedulerTimer);
-          schedulerTimer = null;
-          bgActiveMode = 'audio';
-          bgCurrentElIdx = 0;
-          const _el0 = bgAudioEls[0];
-          const _el1 = bgAudioEls[1];
-          if (_el1 && !_swapIsForm) _el1.currentTime = 0;
-          requestAnimationFrame(bgVisualLoop);
-          if (_el0) {
-            _el0.currentTime = 0;
-            _el0.play()
-              .then(() => {
-                if (bgRenderGeneration !== _swapGen) return;
-                if (!_swapIsForm) {
-                  setupGaplessHandoff(0, 1, _swapGen);
-                } else {
-                  _el0.addEventListener('ended', () => {
-                    if (state.isPlaying && bgActiveMode === 'audio') stopMetronome();
-                  }, { once: true });
-                }
-                updateMediaSession();
-              })
-              .catch(() => { bgActiveMode = 'realtime'; scheduler(); });
+          updateBgRenderStatus(false);
+          // Plan A: swap to AudioBufferSourceNode at this clean bar boundary.
+          if (bgAudioBuffer) {
+            clearTimeout(schedulerTimer);
+            schedulerTimer = null;
+            bgStartSourceNode(bgPendingSwapIsForm, bgRenderGeneration);
           }
           return;
         }
@@ -3734,44 +3715,63 @@ const graph = {
     return _silentWavUrl;
   }
 
-  // ── Background <audio> elements ───────────────────────────────────────────────
-  // Two elements (idx 0 and 1) alternate for gapless looping via setupGaplessHandoff.
-  function ensureBgAudioEl(idx) {
-    if (bgAudioEls[idx]) return bgAudioEls[idx];
-    const el = document.createElement('audio');
-    el.loop = false; // looping handled by setupGaplessHandoff, not the built-in loop
-    el.playsInline = true;
-    el.setAttribute('playsinline', '');
-    el.style.display = 'none';
-    document.body.appendChild(el);
-    el.addEventListener('pause', () => {
-      if (bgActiveMode === 'audio' && state.isPlaying) updatePlayButton();
+  // ── Silent keep-alive element (Plan A) ───────────────────────────────────────
+  // A looping silent <audio> acquires AVAudioSessionCategoryPlayback on iOS,
+  // keeping the audio session active so the AudioContext is not suspended when
+  // the screen locks. The actual clicks play through AudioBufferSourceNode.
+  function ensureBgSilentEl() {
+    if (bgSilentEl) return bgSilentEl;
+    bgSilentEl = document.createElement('audio');
+    bgSilentEl.loop = true;
+    bgSilentEl.playsInline = true;
+    bgSilentEl.setAttribute('playsinline', '');
+    bgSilentEl.style.display = 'none';
+    bgSilentEl.src = getSilentWavUrl();
+    document.body.appendChild(bgSilentEl);
+    bgSilentEl.addEventListener('pause', () => {
+      if (bgModeEnabled && state.isPlaying) updatePlayButton();
     });
-    el.addEventListener('play', () => {
-      if (bgActiveMode === 'audio' && state.isPlaying) updatePlayButton();
+    bgSilentEl.addEventListener('play', () => {
+      if (bgModeEnabled && state.isPlaying) updatePlayButton();
     });
-    bgAudioEls[idx] = el;
-    return el;
+    return bgSilentEl;
   }
 
-  // Chain two <audio> elements for gapless looping: when fromEl ends, toEl starts
-  // from position 0. Alternates A→B→A→B indefinitely for the given render gen.
-  // bgVisualLoop pre-warms toEl ~2s before the seam so the iOS audio pipeline
-  // is already hot when play() is called, reducing the handoff gap to <5ms.
-  function setupGaplessHandoff(fromIdx, toIdx, gen) {
-    const fromEl = bgAudioEls[fromIdx];
-    if (!fromEl) return;
-    fromEl.addEventListener('ended', () => {
-      if (bgRenderGeneration !== gen || !state.isPlaying || bgActiveMode !== 'audio') return;
-      const toEl = bgAudioEls[toIdx];
-      if (!toEl) return;
-      toEl.volume = 1;
-      toEl.currentTime = 0;
-      toEl.play().catch(() => {});
-      bgCurrentElIdx = toIdx;
-      bgPrewarming = false; // allow the new standby to be pre-warmed on next cycle
-      setupGaplessHandoff(toIdx, fromIdx, gen);
-    }, { once: true });
+  // ── AudioBufferSourceNode management (Plan A) ─────────────────────────────────
+  // Creates and starts a new source node from the pre-rendered bgAudioBuffer.
+  // AudioBufferSourceNode.loop is sample-accurate and natively gapless —
+  // no JS timer involved at the loop point.
+  function bgStartSourceNode(isForm, gen) {
+    if (!bgAudioBuffer) return;
+    const ctx = getAudioCtx();
+
+    // Tear down any running source node before replacing it.
+    if (bgSourceNode) { try { bgSourceNode.stop(); } catch (_) {} bgSourceNode = null; }
+
+    const src = ctx.createBufferSource();
+    src.buffer = bgAudioBuffer;
+    if (!isForm) {
+      src.loop = true;
+      src.loopStart = 0;
+      src.loopEnd = bgPatternDur;
+    } else {
+      src.loop = false;
+      src.onended = () => {
+        if (bgRenderGeneration === gen && state.isPlaying && bgActiveMode === 'audio') {
+          stopMetronome();
+        }
+      };
+    }
+    src.connect(ctx.destination);
+
+    const startAt = ctx.currentTime + 0.005;
+    src.start(startAt);
+    bgSourceStartTime = startAt;
+    bgSourceNode = src;
+    bgActiveMode = 'audio';
+
+    updateMediaSession();
+    requestAnimationFrame(bgVisualLoop);
   }
 
   // ── Context-agnostic synthesizers ─────────────────────────────────────────────
@@ -3974,6 +3974,9 @@ const graph = {
   }
 
   // ── Offline render ─────────────────────────────────────────────────────────────
+  // Returns the raw AudioBuffer — no WAV encoding needed since the buffer is fed
+  // directly into AudioBufferSourceNode, which is sample-accurate and avoids any
+  // codec padding that WAV/MP3 round-trips could introduce.
   async function renderBgBuffer(cfg, durationSecs) {
     const SR = 44100;
     const numFrames = Math.ceil(durationSecs * SR);
@@ -3983,35 +3986,7 @@ const graph = {
       scheduleClickCtx(offCtx, evt.time, evt.clickType, cfg.soundMode);
     }
     const audioBuffer = await offCtx.startRendering();
-    return { blob: encodeWAV(audioBuffer), timeline };
-  }
-
-  // Encode an AudioBuffer to a 16-bit mono WAV Blob (44100 Hz, 1 ch).
-  function encodeWAV(audioBuffer) {
-    const SR = audioBuffer.sampleRate;
-    let samples = audioBuffer.getChannelData(0);
-    if (audioBuffer.numberOfChannels > 1) {
-      const b = audioBuffer.getChannelData(1);
-      const mixed = new Float32Array(samples.length);
-      for (let i = 0; i < samples.length; i++) mixed[i] = (samples[i] + b[i]) * 0.5;
-      samples = mixed;
-    }
-    const n = samples.length;
-    const buf = new ArrayBuffer(44 + n * 2);
-    const dv = new DataView(buf);
-    const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
-    ws(0,'RIFF'); dv.setUint32(4, 36 + n*2, true); ws(8,'WAVE'); ws(12,'fmt ');
-    dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
-    dv.setUint32(24,SR,true); dv.setUint32(28,SR*2,true);
-    dv.setUint16(32,2,true); dv.setUint16(34,16,true);
-    ws(36,'data'); dv.setUint32(40,n*2,true);
-    let off = 44;
-    for (let i = 0; i < n; i++) {
-      const s = Math.max(-1, Math.min(1, samples[i]));
-      dv.setInt16(off, Math.round(s * (s < 0 ? 32768 : 32767)), true);
-      off += 2;
-    }
-    return new Blob([buf], { type: 'audio/wav' });
+    return { audioBuffer, timeline };
   }
 
   // ── Render pipeline ────────────────────────────────────────────────────────────
@@ -4028,7 +4003,7 @@ const graph = {
       const cfg = snapshotBgSettings();
       bgPatternDur = bgBufferDuration(cfg);
 
-      const { blob, timeline } = await renderBgBuffer(cfg, bgPatternDur);
+      const { audioBuffer, timeline } = await renderBgBuffer(cfg, bgPatternDur);
 
       if (gen !== bgRenderGeneration || !state.isPlaying) {
         updateBgRenderStatus(false);
@@ -4036,71 +4011,37 @@ const graph = {
       }
 
       bgEventTimeline = timeline;
-
-      const url = URL.createObjectURL(blob);
-      if (bgBlobUrl) { URL.revokeObjectURL(bgBlobUrl); bgBlobUrl = null; }
-      bgBlobUrl = url;
+      bgAudioBuffer = audioBuffer; // stored for bgStartSourceNode
 
       const isForm = cfg.formEnabled && cfg.form && cfg.form.length > 0;
 
       if (bgActiveMode === 'audio') {
-        // Re-render while already in audio mode (e.g. settings changed).
-        // Swap immediately: reset both elements to the new buffer from position 0.
-        const _el0 = ensureBgAudioEl(0);
-        const _el1 = ensureBgAudioEl(1);
-        _el0.src = url; _el0.load(); _el0.currentTime = 0;
-        if (!isForm) { _el1.src = url; _el1.load(); _el1.currentTime = 0; }
-        bgCurrentElIdx = 0;
-        try {
-          await _el0.play();
-        } catch (_) { return; }
-        if (gen !== bgRenderGeneration) return;
-        if (!isForm) {
-          setupGaplessHandoff(0, 1, gen);
-        } else {
-          _el0.addEventListener('ended', () => {
-            if (state.isPlaying && bgActiveMode === 'audio') stopMetronome();
-          }, { once: true });
-        }
-        updateMediaSession();
-        requestAnimationFrame(bgVisualLoop);
+        // Re-render while already in audio mode (settings changed).
+        // Replace the running source node immediately from position 0.
+        bgStartSourceNode(isForm, gen);
       } else {
-        // Initial render: preload both elements with the new blob, then signal
-        // the visualLoop to perform the hot-swap at the next bar-0 boundary.
-        // Starting from position 0 at a bar boundary avoids any seek latency.
-        const _el0 = ensureBgAudioEl(0);
-        _el0.src = url;
-        _el0.load();
-        if (!isForm) {
-          const _el1 = ensureBgAudioEl(1);
-          _el1.src = url;
-          _el1.load();
-        }
+        // Initial render: signal visualLoop to swap at the next bar-0 boundary.
         bgPendingSwapIsForm = isForm;
-        bgPendingSwap = true; // visualLoop completes the swap at the next beat=0
+        bgPendingSwap = true;
       }
 
     } catch (e) {
       console.error('bg render failed:', e);
     } finally {
-      // For the initial render the bar stays visible until the bar-boundary
-      // hot-swap fires in visualLoop (bgPendingSwap → false). For re-renders
-      // and errors the bar is hidden here immediately.
       if (!bgPendingSwap) updateBgRenderStatus(false);
     }
   }
 
   // ── Background visual loop ─────────────────────────────────────────────────────
-  // Polls bgAudioEl.currentTime each frame, binary-searches the event timeline,
-  // and updates the beat/sub indicator. Runs instead of the realtime visualLoop
-  // after the hot-swap.
+  // Derives playback position from AudioContext.currentTime − bgSourceStartTime.
+  // AudioContext time pauses when the context is suspended (screen lock) and
+  // resumes cleanly — no drift or position-tracking needed.
   function bgVisualLoop() {
     if (!state.isPlaying || bgActiveMode !== 'audio') return;
-    const _bgEl = bgAudioEls[bgCurrentElIdx];
-    if (!_bgEl) { requestAnimationFrame(bgVisualLoop); return; }
 
-    const rawPos = _bgEl.currentTime;
-    const pos = bgPatternDur > 0 ? rawPos % bgPatternDur : rawPos;
+    const ctx = getAudioCtx();
+    const elapsed = Math.max(0, ctx.currentTime - bgSourceStartTime);
+    const pos = bgPatternDur > 0 ? elapsed % bgPatternDur : elapsed;
     const tl = bgEventTimeline;
 
     if (tl.length > 0) {
@@ -4116,32 +4057,6 @@ const graph = {
         state.currentSub  = evt.sub;
         applyBeatVisuals(evt.beat, evt.sub, evt.clickType, evt.formIdx);
         if (evt.beat === 0 && evt.sub === 0) updateFormVisual(evt.formIdx);
-      }
-    }
-
-    // Pre-warm the standby element ~2s before the active element ends so the
-    // iOS audio pipeline is already initialised when the 'ended' handoff fires.
-    // Without this, iOS needs ~30ms of cold-start time, creating an audible gap.
-    if (!bgPendingSwapIsForm && !bgPrewarming && _bgEl.duration > 0) {
-      const _remaining = _bgEl.duration - rawPos;
-      if (_remaining > 0 && _remaining < 2.0) {
-        bgPrewarming = true;
-        const _standbyIdx = 1 - bgCurrentElIdx;
-        const _standbyEl = bgAudioEls[_standbyIdx];
-        if (_standbyEl) {
-          _standbyEl.volume = 0;
-          _standbyEl.currentTime = 0;
-          _standbyEl.play()
-            .then(() => {
-              // Let it play silently for 300ms then park it back at position 0.
-              setTimeout(() => {
-                _standbyEl.pause();
-                _standbyEl.currentTime = 0;
-                _standbyEl.volume = 1;
-              }, 300);
-            })
-            .catch(() => { bgPrewarming = false; });
-        }
       }
     }
 
@@ -4176,13 +4091,15 @@ const graph = {
         ],
       });
       navigator.mediaSession.setActionHandler('play', () => {
-        const _msEl = bgAudioEls[bgCurrentElIdx];
-        if (bgActiveMode === 'audio' && _msEl && _msEl.paused) {
-          _msEl.play().catch(() => {});
-          state.isPlaying = true;
+        if (state.isPlaying) {
+          // Resume after an interruption (phone call, other audio).
+          const _ctx = getAudioCtx();
+          if (_ctx.state !== 'running') _ctx.resume();
+          if (bgSilentEl && bgSilentEl.paused) bgSilentEl.play().catch(() => {});
           requestWakeLock();
           updatePlayButton();
-        } else if (!state.isPlaying) {
+          if (bgActiveMode === 'audio') requestAnimationFrame(bgVisualLoop);
+        } else {
           startMetronome();
         }
       });
