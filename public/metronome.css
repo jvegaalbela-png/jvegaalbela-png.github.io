@@ -913,6 +913,11 @@
     }
     /* ── Background-render floating toast ───────────────────────────────── */
     /* Positioned outside the carousel so it's visible on any tab.          */
+    /* display:flex below would beat the UA's [hidden]{display:none}, so    */
+    /* the hidden attribute needs its own explicit rule.                    */
+    .bg-render-toast[hidden] {
+      display: none;
+    }
     .bg-render-toast {
       position: fixed;
       bottom: 5.5rem;      /* sit above the floating play pill */
