@@ -440,15 +440,13 @@ const graph = {
       <div class="device-card-head">
         <div class="section-label">Device</div>
       </div>
-      <div class="adv-feature-header device-feature-row" id="bg-play-row">
+      <!-- Informational only, shown on iOS (init unhides it). Background play
+           is automatic there; other platforms keep playing natively. -->
+      <div class="adv-feature-header device-feature-row" id="bg-play-row" style="display:none">
         <div>
           <div class="device-feature-label">Background play</div>
-          <div class="adv-feature-desc">Keeps playing with your screen off &mdash; great for practice. Uses pre-rendered audio that iOS treats as media playback.</div>
+          <div class="adv-feature-desc">Keeps playing with your screen off &mdash; automatic on this device. The click keeps going even when iOS pauses the page.</div>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="bg-play-toggle" aria-label="Background play" />
-          <span class="toggle-track"></span>
-        </label>
       </div>
       <div class="adv-feature-header device-feature-row" id="wake-lock-row">
         <div>
@@ -828,7 +826,13 @@ const graph = {
   // when the page hides, playback hot-swaps to a pre-rendered WAV in a looping
   // <audio> element, phase-matched to the realtime position; when the page is
   // visible again it swaps back.
-  let bgModeEnabled = false;           // user toggle
+  // iOS (including iPadOS, which reports as MacIntel with touch) is the only
+  // platform that suspends page audio while hidden; everywhere else the
+  // realtime scheduler keeps running with the screen off and none of this
+  // machinery is needed — so background mode is simply automatic on iOS.
+  const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const bgModeEnabled = IS_IOS;
   let wakeLockUserEnabled = true;      // user toggle
   let bgSilentEl = null;               // <audio loop> near-silence keep-alive (holds the
                                        // iOS audio session + gives ~2 s JS wakes while hidden)
@@ -894,9 +898,7 @@ const graph = {
   // handler) rather than from getAudioCtx (called by the scheduler).
   let iosSilentBypassEl = null;
   function ensureIOSSilentBypass() {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (!isIOS) return;
+    if (!IS_IOS) return;
 
     if (!iosSilentBypassEl) {
       // Construct a tiny silent WAV blob inline — 0.5 s of 16-bit mono
@@ -2639,14 +2641,18 @@ const graph = {
     syncFormEditorOnLoad();
     if (restoreEditorOpen) Carousel.setScreen(2);
 
-    // Reflect background-mode preferences in the new Device card.
-    const bgToggleEl = document.getElementById('bg-play-toggle');
-    if (bgToggleEl) bgToggleEl.checked = bgModeEnabled;
+    // Device card: the background-play note is informational and iOS-only —
+    // background mode is automatic there and unnecessary elsewhere.
+    // (style.display, not the hidden attribute: these rows are display:flex.)
+    if (IS_IOS) {
+      const bgRow = document.getElementById('bg-play-row');
+      if (bgRow) bgRow.style.display = '';
+    }
     const wlToggleEl = document.getElementById('wake-lock-toggle');
     if (wlToggleEl) {
       if (!('wakeLock' in navigator)) {
         const row = document.getElementById('wake-lock-row');
-        if (row) row.hidden = true;
+        if (row) row.style.display = 'none';
       } else {
         wlToggleEl.checked = wakeLockUserEnabled;
       }
@@ -4402,44 +4408,18 @@ const graph = {
 
   function saveBgPrefs() {
     try {
-      localStorage.setItem(BG_PREFS_KEY, JSON.stringify({ bgModeEnabled, wakeLockUserEnabled }));
+      localStorage.setItem(BG_PREFS_KEY, JSON.stringify({ wakeLockUserEnabled }));
     } catch (_) {}
   }
 
   function loadBgPrefs() {
     try {
       const d = JSON.parse(localStorage.getItem(BG_PREFS_KEY) || '{}');
-      if (typeof d.bgModeEnabled === 'boolean')      bgModeEnabled      = d.bgModeEnabled;
       if (typeof d.wakeLockUserEnabled === 'boolean') wakeLockUserEnabled = d.wakeLockUserEnabled;
     } catch (_) {}
   }
 
   // ── Toggle event handlers ──────────────────────────────────────────────────────
-  document.getElementById('bg-play-toggle').addEventListener('change', e => {
-    bgModeEnabled = e.target.checked;
-    saveBgPrefs();
-    // Toggled mid-play: this change event is a user gesture, so the elements
-    // can be armed right here, same as in startMetronome.
-    if (state.isPlaying) {
-      if (bgModeEnabled) {
-        armBgElements();
-        startBgRender();
-        startBgWatchdog();
-        updateMediaSession();
-      } else {
-        bgRenderGeneration++;
-        bgRenderReady = false;
-        bgWaitingForRender = false;
-        clearTimeout(bgRerenderTimer);
-        bgRerenderTimer = null;
-        stopBgWatchdog();
-        if (bgSilentEl) bgSilentEl.pause();
-        for (const el of bgClickEls) { if (el) el.pause(); }
-        updateBgRenderStatus(false);
-      }
-    }
-  });
-
   (() => {
     const el = document.getElementById('wake-lock-toggle');
     if (!el) return;
