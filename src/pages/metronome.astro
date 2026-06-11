@@ -874,9 +874,18 @@ const graph = {
   const BG_HANDOFF_WINDOW_S = 8;       // start pre-rolling when this close to the end;
                                        // must comfortably exceed the throttled wake gap
 
+  // Master gain for every realtime click. At the hand-off to background
+  // playback it ramps to silence in a few ms, so the ≤125 ms of already-
+  // scheduled clicks neither double up with the <audio> element nor get
+  // chopped mid-waveform when iOS suspends the context (an abrupt cut is
+  // audible as a crunch/crackle).
+  let rtMasterGain = null;
+
   function getAudioCtx() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      rtMasterGain = audioCtx.createGain();
+      rtMasterGain.connect(audioCtx.destination);
     }
     // iOS Safari can drop the context into 'interrupted' (a phone call,
     // the device locking, sometimes a rotation) as well as 'suspended';
@@ -945,11 +954,13 @@ const graph = {
   // context-agnostic versions defined further below so both the live
   // scheduler and the offline render use identical synthesis code.
   function scheduleElectronic(time, type) {
-    scheduleElectronicCtx(getAudioCtx(), time, type);
+    const ctx = getAudioCtx();
+    scheduleElectronicCtx(ctx, time, type, rtMasterGain);
   }
 
   function scheduleClave(time, type) {
-    scheduleClaveCtx(getAudioCtx(), time, type);
+    const ctx = getAudioCtx();
+    scheduleClaveCtx(ctx, time, type, rtMasterGain);
   }
 
   function getAdvConfig() {
@@ -1132,6 +1143,11 @@ const graph = {
 
   function startMetronome(fromFormIdx) {
     const ctx = getAudioCtx();
+    // A stop while hidden can leave the master gain faded out — reset it.
+    if (rtMasterGain) {
+      rtMasterGain.gain.cancelScheduledValues(ctx.currentTime);
+      rtMasterGain.gain.setValueAtTime(1, ctx.currentTime);
+    }
     ensureIOSSilentBypass();
     state.isPlaying = true;
     schedulerBeat = 0;
@@ -3829,11 +3845,11 @@ const graph = {
   // Accept any AudioContext so the identical synthesis drives both realtime
   // (scheduleElectronic/scheduleClave delegate here) and OfflineAudioContext.
 
-  function scheduleElectronicCtx(ctx, time, type) {
+  function scheduleElectronicCtx(ctx, time, type, dest) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
-    osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    osc.connect(filter); filter.connect(gain); gain.connect(dest || ctx.destination);
     filter.type = 'bandpass';
     if (type === 'accent') {
       osc.frequency.value = 1050; filter.frequency.value = 1050; filter.Q.value = 0.6;
@@ -3861,7 +3877,7 @@ const graph = {
     return osc;
   }
 
-  function scheduleClaveCtx(ctx, time, type) {
+  function scheduleClaveCtx(ctx, time, type, dest) {
     const freq  = type === 'accent' ? 2700  : type === 'sub' ? 3300  : type === 'soft' ? 1900 : 2450;
     const vol   = type === 'accent' ? 0.85  : type === 'beat' ? 0.55 : type === 'soft' ? 0.25 : 0.2;
     const decay = type === 'sub'    ? 0.025 : type === 'accent' ? 0.08 : type === 'soft' ? 0.04 : 0.06;
@@ -3872,7 +3888,7 @@ const graph = {
     og.gain.setValueAtTime(0.00001, time);
     og.gain.exponentialRampToValueAtTime(vol, time + 0.0005);
     og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
-    osc.connect(og); og.connect(ctx.destination);
+    osc.connect(og); og.connect(dest || ctx.destination);
     osc.start(time); osc.stop(time + decay + 0.01);
     return osc;
   }
@@ -4242,6 +4258,15 @@ const graph = {
   function enterBgPlayback() {
     if (bgActiveMode === 'element') return;
     const ctx = getAudioCtx();
+    // Fade the realtime engine out in a few ms: its ≤125 ms of already-
+    // scheduled clicks must neither double up with the element nor be
+    // chopped mid-waveform when iOS suspends the context.
+    if (rtMasterGain) {
+      const g = rtMasterGain.gain;
+      g.cancelScheduledValues(ctx.currentTime);
+      g.setValueAtTime(g.value, ctx.currentTime);
+      g.linearRampToValueAtTime(0, ctx.currentTime + 0.008);
+    }
     // A settings change is still waiting on its debounce — render it now so
     // the background audio reflects what the user last set.
     if (bgRerenderTimer) {
@@ -4297,6 +4322,12 @@ const graph = {
     const resumed = ctx.state === 'running' ? Promise.resolve() : ctx.resume();
     resumed.catch(() => {}).then(() => {
       if (!state.isPlaying || bgActiveMode !== 'realtime') return;
+      // Restore the realtime engine's master gain (faded out at enter).
+      // Nothing is scheduled through it yet, so an instant reset is silent.
+      if (rtMasterGain) {
+        rtMasterGain.gain.cancelScheduledValues(ctx.currentTime);
+        rtMasterGain.gain.setValueAtTime(1, ctx.currentTime);
+      }
       bufferPosToScheduler(pos, ctx);
       scheduler();
       requestAnimationFrame(visualLoop);
