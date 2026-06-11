@@ -822,31 +822,44 @@ const graph = {
   // ─── Background Mode state ────────────────────────────────────────────────────
   let bgModeEnabled = false;           // user toggle
   let wakeLockUserEnabled = true;      // user toggle
-  // Plan A (default): silent <audio loop> keeps iOS audio session alive so the
-  // AudioContext is not suspended on screen lock; AudioBufferSourceNode(loop=true)
-  // plays the clicks with sample-accurate, natively gapless looping.
-  // Plan B (?bgmode=B): realtime scheduler with a 5-second lookahead so iOS
-  // background-timer throttling cannot starve playback; simpler but less precise.
-  const _bgImplMode = new URLSearchParams(location.search).get('bgmode') || 'A';
-  let bgSilentEl = null;               // <audio loop> keep-alive (Plan A)
-  let bgSourceNode = null;             // AudioBufferSourceNode for click playback (Plan A)
-  let bgAudioBuffer = null;            // most recently rendered AudioBuffer (Plan A)
+  // Default: deep-buffer realtime scheduler — pre-schedules 30 s of Web Audio
+  // events so iOS background-timer throttling (1 wake/2-3 s) causes no audible gap.
+  // ?bgmode=buffer: AudioBufferSourceNode path (kept for debug/comparison only).
+  const _bgImplMode = new URLSearchParams(location.search).get('bgmode') || 'realtime';
+  let bgSilentEl = null;               // <audio loop> near-silence keep-alive
+  let bgSourceNode = null;             // AudioBufferSourceNode (buffer debug path)
+  let bgAudioBuffer = null;            // most recently rendered AudioBuffer (buffer path)
   let bgSourceStartTime = 0;           // AudioContext time when bgSourceNode.start() was called
   let bgPatternDur = 0;                // rendered pattern length (seconds)
   let bgEventTimeline = [];            // [{time,beat,sub,clickType,formIdx}] for visual sync
-  let bgRerenderTimer = null;          // debounce timer for settings-change re-render
+  let bgRerenderTimer = null;          // debounce timer for settings-change re-render/reschedule
   let bgRenderGeneration = 0;          // incremented each render; stale renders self-cancel
   let bgActiveMode = 'realtime';       // 'realtime' | 'audio'
   let bgPendingSwap = false;           // swap ready; waiting for next bar-0 visual event
   let bgPendingSwapIsForm = false;     // cached isForm for pending swap
+  let bgScheduledNodes = [];           // [{startTime, osc}] tracked for deep-buffer cancellation
+  let bgSchedInterval = null;          // setInterval handle for deep-buffer horizon top-up
 
   const LOOKAHEAD_MS = 25;
   const SCHEDULE_AHEAD_S = 0.1;
-  const _BG_PLAN_B_AHEAD_S = 5.0; // Plan B: survive iOS background-timer throttling
+  const BG_DEEP_AHEAD_S = 30.0;       // deep-buffer horizon: survives iOS throttled wake-ups
+  const BG_WARN_HORIZON_S = 10.0;     // log warning if scheduled horizon drops below this
+  const BG_SCHED_INTERVAL_MS = 1000;  // setInterval period for deep-buffer top-up
 
+  let _audioCtxStateListenerAdded = false;
   function getAudioCtx() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (!_audioCtxStateListenerAdded) {
+      _audioCtxStateListenerAdded = true;
+      audioCtx.addEventListener('statechange', () => {
+        if (audioCtx.state === 'running' && state.isPlaying && bgModeEnabled && _bgImplMode !== 'buffer') {
+          // Context just resumed (screen unlocked / interruption ended).
+          // Immediately top up the 30 s scheduled horizon.
+          scheduler();
+        }
+      });
     }
     // iOS Safari can drop the context into 'interrupted' (a phone call,
     // the device locking, sometimes a rotation) as well as 'suspended';
@@ -917,11 +930,13 @@ const graph = {
   // context-agnostic versions defined further below so both the live
   // scheduler and the offline render use identical synthesis code.
   function scheduleElectronic(time, type) {
-    scheduleElectronicCtx(getAudioCtx(), time, type);
+    const osc = scheduleElectronicCtx(getAudioCtx(), time, type);
+    if (bgModeEnabled && _bgImplMode !== 'buffer' && osc) bgScheduledNodes.push({ startTime: time, osc });
   }
 
   function scheduleClave(time, type) {
-    scheduleClaveCtx(getAudioCtx(), time, type);
+    const osc = scheduleClaveCtx(getAudioCtx(), time, type);
+    if (bgModeEnabled && _bgImplMode !== 'buffer' && osc) bgScheduledNodes.push({ startTime: time, osc });
   }
 
   function getAdvConfig() {
@@ -938,14 +953,19 @@ const graph = {
   }
 
   function scheduler() {
-    // Stop scheduling once the hot-swap to the audio element is complete.
+    // Stop scheduling once the hot-swap to the audio element is complete (buffer mode).
     if (bgActiveMode === 'audio') return;
+    // Prune past entries so bgScheduledNodes doesn't grow unbounded.
+    if (bgScheduledNodes.length > 0 && audioCtx) {
+      const pruneBefore = audioCtx.currentTime - 0.5;
+      bgScheduledNodes = bgScheduledNodes.filter(n => n.startTime > pruneBefore);
+    }
     // The whole body is guarded so a transient error in one tick can't
     // permanently stop the loop — the reschedule below always runs.
     try {
     const ctx = getAudioCtx();
 
-    const _sched_ahead = (bgModeEnabled && _bgImplMode === 'B') ? _BG_PLAN_B_AHEAD_S : SCHEDULE_AHEAD_S;
+    const _sched_ahead = (bgModeEnabled && _bgImplMode !== 'buffer') ? BG_DEEP_AHEAD_S : SCHEDULE_AHEAD_S;
     while (nextNoteTime < ctx.currentTime + _sched_ahead) {
       const beat = schedulerBeat;
       const sub  = schedulerSub;
@@ -1059,7 +1079,19 @@ const graph = {
       console.error('metronome scheduler error', e);
     }
 
-    schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
+    // Safety check: warn if the pre-scheduled horizon is dangerously low.
+    if (bgModeEnabled && _bgImplMode !== 'buffer' && audioCtx) {
+      const horizon = nextNoteTime - audioCtx.currentTime;
+      if (horizon < BG_WARN_HORIZON_S) {
+        console.warn('[metronome bg] scheduled horizon low:', horizon.toFixed(1) + 's');
+      }
+    }
+
+    // Deep-buffer bg mode: setInterval (started in startMetronome) owns the loop.
+    // Normal and buffer-debug modes use a self-rescheduling setTimeout.
+    if (!bgModeEnabled || _bgImplMode === 'buffer') {
+      schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
+    }
   }
 
   // Screen Wake Lock — keep the device awake while the metronome is running,
@@ -1094,12 +1126,27 @@ const graph = {
         // bgSilentEl holds the iOS audio session so the context should resume cleanly.
         const _ctx = getAudioCtx();
         if (_ctx.state === 'suspended' || _ctx.state === 'interrupted') {
-          _ctx.resume();
+          _ctx.resume().then(() => {
+            if (state.isPlaying && _bgImplMode !== 'buffer') scheduler();
+          }).catch(() => {});
         }
         // Resume the keep-alive element if a phone call paused it.
         if (bgSilentEl && bgSilentEl.paused) bgSilentEl.play().catch(() => {});
         if (bgActiveMode === 'audio') requestAnimationFrame(bgVisualLoop);
+        // Restart visual loop — rAF stops while screen is off.
+        else if (_bgImplMode !== 'buffer') requestAnimationFrame(visualLoop);
       }
+    }
+  });
+
+  // pageshow fires on iOS when returning from a cached page (back/forward cache).
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted && state.isPlaying && bgModeEnabled && _bgImplMode !== 'buffer') {
+      const _ctx = getAudioCtx();
+      _ctx.resume().then(() => {
+        if (state.isPlaying) scheduler();
+      }).catch(() => {});
+      if (bgSilentEl && bgSilentEl.paused) bgSilentEl.play().catch(() => {});
     }
   });
 
@@ -1120,18 +1167,22 @@ const graph = {
     nextNoteTime  = ctx.currentTime + 0.05;
     pendingVisuals.length = 0;
     bgActiveMode = 'realtime';
+    bgScheduledNodes = [];
     scheduler();
     requestAnimationFrame(visualLoop);
     updatePlayButton();
     requestWakeLock();
 
     if (bgModeEnabled) {
-      // Arm the silent keep-alive element in this user gesture so iOS grants
-      // the page an active audio session for all future async audio calls.
-      ensureBgSilentEl().play().catch(() => {});
-      if (_bgImplMode !== 'B') {
-        // Plan A: kick off offline render; hot-swap to AudioBufferSourceNode at bar boundary.
+      // Arm the keep-alive element in this user gesture so iOS grants an active
+      // audio session for all future async audio calls.
+      ensureBgSilentEl().play().catch(e => console.warn('[bg] keepalive play failed:', e));
+      if (_bgImplMode === 'buffer') {
+        // Debug path: offline render → AudioBufferSourceNode hot-swap at bar boundary.
         startBgRender();
+      } else {
+        // Deep-buffer realtime path: setInterval periodically tops up the 30 s horizon.
+        bgSchedInterval = setInterval(scheduler, BG_SCHED_INTERVAL_MS);
       }
       updateMediaSession();
     }
@@ -1142,7 +1193,7 @@ const graph = {
     const hadLoop = !!loopRange;
     loopRange = null;  // any range-loop ends when playback stops
 
-    // Stop the AudioBufferSourceNode (Plan A) and the silent keep-alive element.
+    // Stop the AudioBufferSourceNode (buffer debug path) and the keep-alive element.
     if (bgSourceNode) { try { bgSourceNode.stop(); } catch (_) {} bgSourceNode = null; }
     if (bgSilentEl) bgSilentEl.pause();
     bgPendingSwap = false;
@@ -1150,6 +1201,15 @@ const graph = {
     bgActiveMode = 'realtime';
     bgRenderGeneration++; // cancel any in-flight render
     clearTimeout(bgRerenderTimer);
+    // Cancel the deep-buffer setInterval and stop all future-scheduled oscillator nodes.
+    if (bgSchedInterval) { clearInterval(bgSchedInterval); bgSchedInterval = null; }
+    if (bgScheduledNodes.length > 0 && audioCtx) {
+      const now = audioCtx.currentTime;
+      for (const { startTime, osc } of bgScheduledNodes) {
+        if (startTime > now) { try { osc.stop(now); } catch (_) {} }
+      }
+    }
+    bgScheduledNodes = [];
 
     clearTimeout(schedulerTimer);
     pendingVisuals.length = 0;
@@ -3711,14 +3771,19 @@ const graph = {
     dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true);
     dv.setUint16(32,2,true); dv.setUint16(34,16,true);
     ws(36,'data'); dv.setUint32(40,ds,true);
+    // ~-60 dBFS noise (amplitude ≈ 33/32767) so iOS doesn't deprioritize what
+    // it perceives as a silent audio session.
+    for (let i = 0; i < frames; i++) {
+      dv.setInt16(44 + i * 2, Math.round((Math.random() * 2 - 1) * 33), true);
+    }
     _silentWavUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
     return _silentWavUrl;
   }
 
-  // ── Silent keep-alive element (Plan A) ───────────────────────────────────────
-  // A looping silent <audio> acquires AVAudioSessionCategoryPlayback on iOS,
-  // keeping the audio session active so the AudioContext is not suspended when
-  // the screen locks. The actual clicks play through AudioBufferSourceNode.
+  // ── Near-silence keep-alive element ──────────────────────────────────────────
+  // A looping near-silence <audio> (~-60 dBFS noise) acquires
+  // AVAudioSessionCategoryPlayback on iOS, keeping the audio session alive so
+  // the AudioContext is not suspended when the screen locks.
   function ensureBgSilentEl() {
     if (bgSilentEl) return bgSilentEl;
     bgSilentEl = document.createElement('audio');
@@ -3807,6 +3872,7 @@ const graph = {
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
     }
     osc.start(time); osc.stop(time + 0.2);
+    return osc;
   }
 
   function scheduleClaveCtx(ctx, time, type) {
@@ -3822,6 +3888,7 @@ const graph = {
     og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
     osc.connect(og); og.connect(ctx.destination);
     osc.start(time); osc.stop(time + decay + 0.01);
+    return osc;
   }
 
   function scheduleClickCtx(ctx, time, type, mode) {
@@ -4063,12 +4130,44 @@ const graph = {
     requestAnimationFrame(bgVisualLoop);
   }
 
-  // ── Settings-change re-render ──────────────────────────────────────────────────
-  // Debounced 300 ms to avoid re-rendering on every slider tick.
+  // ── Deep-buffer reschedule ─────────────────────────────────────────────────────
+  // Cancels all future-scheduled oscillator nodes and re-fills the 30 s horizon
+  // using current settings. Called when settings change mid-play in deep-buffer mode.
+  function bgReschedule() {
+    if (!state.isPlaying || !bgModeEnabled || _bgImplMode === 'buffer') return;
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    for (const { startTime, osc } of bgScheduledNodes) {
+      if (startTime > now) { try { osc.stop(now); } catch (_) {} }
+    }
+    bgScheduledNodes = [];
+    nextNoteTime = now + 0.05;
+    schedulerBeat = 0;
+    schedulerSub  = 0;
+    schedulerSubdivision = state.subdivision;
+    schedulerSubCustom   = state.subCustom;
+    schedulerSubPattern  = state.subPattern.slice();
+    advGapPhase = 'play';
+    advGapCount = 0;
+    if (adv.formEnabled && adv.form.length > 0) {
+      advFormIdx = Math.min(Math.max(0, advFormIdx), adv.form.length - 1);
+    } else {
+      advFormIdx = 0;
+    }
+    scheduler();
+  }
+
+  // ── Settings-change re-render / reschedule ─────────────────────────────────────
+  // Debounced 300 ms to avoid hammering on every slider tick.
   function triggerBgRerender() {
-    if (!state.isPlaying || !bgModeEnabled || bgActiveMode !== 'audio') return;
+    if (!state.isPlaying || !bgModeEnabled) return;
     clearTimeout(bgRerenderTimer);
-    bgRerenderTimer = setTimeout(() => { startBgRender(); }, 300);
+    if (_bgImplMode === 'buffer') {
+      if (bgActiveMode !== 'audio') return;
+      bgRerenderTimer = setTimeout(() => { startBgRender(); }, 300);
+    } else {
+      bgRerenderTimer = setTimeout(() => { bgReschedule(); }, 300);
+    }
   }
 
   // ── MediaSession ───────────────────────────────────────────────────────────────
@@ -4094,7 +4193,11 @@ const graph = {
         if (state.isPlaying) {
           // Resume after an interruption (phone call, other audio).
           const _ctx = getAudioCtx();
-          if (_ctx.state !== 'running') _ctx.resume();
+          if (_ctx.state !== 'running') {
+            _ctx.resume().then(() => {
+              if (state.isPlaying && _bgImplMode !== 'buffer') scheduler();
+            }).catch(() => {});
+          }
           if (bgSilentEl && bgSilentEl.paused) bgSilentEl.play().catch(() => {});
           requestWakeLock();
           updatePlayButton();
