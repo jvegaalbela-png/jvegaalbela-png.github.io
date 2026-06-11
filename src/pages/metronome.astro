@@ -460,9 +460,6 @@ const graph = {
           <span class="toggle-track"></span>
         </label>
       </div>
-      <div class="bg-render-status-bar" id="bg-render-status-bar" hidden>
-        <span class="bg-render-status-text">Preparing background audio&hellip;</span>
-      </div>
     </div>
 
     </div><!-- /.adv-grid -->
@@ -761,6 +758,12 @@ const graph = {
   <span class="metronome-play-pill-icon" aria-hidden="true">▶</span>
   <span class="metronome-play-pill-label">Start</span>
 </button>
+
+<!-- Floating toast: visible from any carousel tab while background audio is rendering -->
+<div class="bg-render-toast" id="bg-render-status-bar" hidden aria-live="polite">
+  <span class="bg-render-toast-dot"></span>
+  <span class="bg-render-toast-text">Preparing background audio&hellip;</span>
+</div>
 
 
 <script>
@@ -1139,6 +1142,7 @@ const graph = {
     bgAudioEls.forEach(el => { if (el) { el.pause(); el.currentTime = 0; el.volume = 1; } });
     bgPendingSwap = false;
     bgPrewarming = false;
+    updateBgRenderStatus(false);
     bgActiveMode = 'realtime';
     bgRenderGeneration++; // cancel any in-flight render
     clearTimeout(bgRerenderTimer);
@@ -1191,6 +1195,7 @@ const graph = {
           // Starting the audio element from position 0 here avoids any seek
           // latency that caused the startup hitch with the mid-pattern seek.
           bgPendingSwap = false;
+          updateBgRenderStatus(false); // audio is ready — dismiss the status bar
           const _swapGen = bgRenderGeneration;
           const _swapIsForm = bgPendingSwapIsForm;
           clearTimeout(schedulerTimer);
@@ -4078,7 +4083,10 @@ const graph = {
     } catch (e) {
       console.error('bg render failed:', e);
     } finally {
-      updateBgRenderStatus(false);
+      // For the initial render the bar stays visible until the bar-boundary
+      // hot-swap fires in visualLoop (bgPendingSwap → false). For re-renders
+      // and errors the bar is hidden here immediately.
+      if (!bgPendingSwap) updateBgRenderStatus(false);
     }
   }
 
