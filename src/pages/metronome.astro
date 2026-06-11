@@ -4039,13 +4039,25 @@ const graph = {
   }
 
   // ── Offline render ─────────────────────────────────────────────────────────────
+  // Building the node graph and encoding the WAV are the only heavy main-thread
+  // jobs in the pipeline; both are sliced with bgYield() so the realtime
+  // scheduler's 25 ms timer keeps firing and foreground playback never starves.
+  // While hidden there is no foreground audio to protect — and throttled timers
+  // would make yielding crawl — so the work runs straight through.
+  function bgYield() {
+    if (document.visibilityState === 'hidden') return null;
+    return new Promise(r => setTimeout(r, 0));
+  }
+
   async function renderBgBuffer(cfg, durationSecs) {
     const SR = 44100;
     const numFrames = Math.ceil(durationSecs * SR);
     const offCtx = new OfflineAudioContext(1, numFrames, SR);
     const timeline = buildBgTimeline(cfg, durationSecs);
+    let n = 0;
     for (const evt of timeline) {
       scheduleClickCtx(offCtx, evt.time, evt.clickType, cfg.soundMode);
+      if (++n % 250 === 0) await bgYield();
     }
     const audioBuffer = await offCtx.startRendering();
     return { audioBuffer, timeline };
@@ -4056,7 +4068,12 @@ const graph = {
   // priming/padding samples, so positions in the file are sample-exact).
   // The silent lead is the handoff pre-roll: the standby element starts
   // somewhere inside it, where seeks are inaudible.
-  function encodeWavBlob(audioBuffer, leadSeconds) {
+  //
+  // Async: a two-minute render is ~5 M samples, and quantizing them in one
+  // synchronous loop blocked the main thread long enough to starve the
+  // realtime scheduler (subdivisions dropped for a beat whenever a render
+  // finished). Sliced with bgYield() instead.
+  async function encodeWavBlob(audioBuffer, leadSeconds) {
     const data = audioBuffer.getChannelData(0);
     const sr = audioBuffer.sampleRate;
     const lead = Math.round((leadSeconds || 0) * sr);
@@ -4070,9 +4087,14 @@ const graph = {
     dv.setUint16(32,2,true); dv.setUint16(34,16,true);
     ws(36,'data'); dv.setUint32(40, n*2, true);
     // Lead samples are already zeros — that's the silence.
-    for (let i = 0; i < data.length; i++) {
-      const s = Math.max(-1, Math.min(1, data[i]));
-      dv.setInt16(44 + (lead + i) * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    const CHUNK = 262144; // ~ a few ms of work per slice
+    for (let start = 0; start < data.length; start += CHUNK) {
+      const end = Math.min(start + CHUNK, data.length);
+      for (let i = start; i < end; i++) {
+        const s = Math.max(-1, Math.min(1, data[i]));
+        dv.setInt16(44 + (lead + i) * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+      if (end < data.length) await bgYield();
     }
     return new Blob([buf], { type: 'audio/wav' });
   }
@@ -4103,7 +4125,7 @@ const graph = {
 
       const { audioBuffer, timeline } = await renderBgBuffer(cfg, dur);
       if (gen !== bgRenderGeneration) return;
-      const blob = encodeWavBlob(audioBuffer, lead);
+      const blob = await encodeWavBlob(audioBuffer, lead);
       if (gen !== bgRenderGeneration) return;
 
       const oldUrl = bgBlobUrl;
