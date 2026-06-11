@@ -830,6 +830,7 @@ const graph = {
   let bgActiveMode = 'realtime';       // 'realtime' | 'audio'
   let bgPendingSwap = false;           // swap ready; waiting for next bar-0 visual event
   let bgPendingSwapIsForm = false;     // cached isForm for pending swap
+  let bgPrewarming = false;            // true while standby element is being pre-warmed
 
   const LOOKAHEAD_MS = 25;
   const SCHEDULE_AHEAD_S = 0.1;
@@ -1135,8 +1136,9 @@ const graph = {
     loopRange = null;  // any range-loop ends when playback stops
 
     // Stop all background audio elements.
-    bgAudioEls.forEach(el => { if (el) { el.pause(); el.currentTime = 0; } });
+    bgAudioEls.forEach(el => { if (el) { el.pause(); el.currentTime = 0; el.volume = 1; } });
     bgPendingSwap = false;
+    bgPrewarming = false;
     bgActiveMode = 'realtime';
     bgRenderGeneration++; // cancel any in-flight render
     clearTimeout(bgRerenderTimer);
@@ -3749,6 +3751,8 @@ const graph = {
 
   // Chain two <audio> elements for gapless looping: when fromEl ends, toEl starts
   // from position 0. Alternates A→B→A→B indefinitely for the given render gen.
+  // bgVisualLoop pre-warms toEl ~2s before the seam so the iOS audio pipeline
+  // is already hot when play() is called, reducing the handoff gap to <5ms.
   function setupGaplessHandoff(fromIdx, toIdx, gen) {
     const fromEl = bgAudioEls[fromIdx];
     if (!fromEl) return;
@@ -3756,9 +3760,11 @@ const graph = {
       if (bgRenderGeneration !== gen || !state.isPlaying || bgActiveMode !== 'audio') return;
       const toEl = bgAudioEls[toIdx];
       if (!toEl) return;
+      toEl.volume = 1;
       toEl.currentTime = 0;
       toEl.play().catch(() => {});
       bgCurrentElIdx = toIdx;
+      bgPrewarming = false; // allow the new standby to be pre-warmed on next cycle
       setupGaplessHandoff(toIdx, fromIdx, gen);
     }, { once: true });
   }
@@ -4102,6 +4108,32 @@ const graph = {
         state.currentSub  = evt.sub;
         applyBeatVisuals(evt.beat, evt.sub, evt.clickType, evt.formIdx);
         if (evt.beat === 0 && evt.sub === 0) updateFormVisual(evt.formIdx);
+      }
+    }
+
+    // Pre-warm the standby element ~2s before the active element ends so the
+    // iOS audio pipeline is already initialised when the 'ended' handoff fires.
+    // Without this, iOS needs ~30ms of cold-start time, creating an audible gap.
+    if (!bgPendingSwapIsForm && !bgPrewarming && _bgEl.duration > 0) {
+      const _remaining = _bgEl.duration - rawPos;
+      if (_remaining > 0 && _remaining < 2.0) {
+        bgPrewarming = true;
+        const _standbyIdx = 1 - bgCurrentElIdx;
+        const _standbyEl = bgAudioEls[_standbyIdx];
+        if (_standbyEl) {
+          _standbyEl.volume = 0;
+          _standbyEl.currentTime = 0;
+          _standbyEl.play()
+            .then(() => {
+              // Let it play silently for 300ms then park it back at position 0.
+              setTimeout(() => {
+                _standbyEl.pause();
+                _standbyEl.currentTime = 0;
+                _standbyEl.volume = 1;
+              }, 300);
+            })
+            .catch(() => { bgPrewarming = false; });
+        }
       }
     }
 
