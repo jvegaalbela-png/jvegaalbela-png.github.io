@@ -859,6 +859,7 @@ const graph = {
   let bgRenderGeneration = 0;          // incremented each render; stale renders self-cancel
   let bgRenderInFlight = false;        // a render is currently running
   let bgRenderReady = false;           // the click elements' src matches the latest settings
+  let bgLastCfgKey = '';               // settings fingerprint of the last completed render
   let bgActiveMode = 'realtime';       // 'realtime' | 'element'
   let bgWaitingForRender = false;      // page hid before the render finished
   let bgWatchdogTimer = null;          // background self-heal interval
@@ -873,6 +874,9 @@ const graph = {
   const BG_LEAD_S = 10;                // silent lead on each render for handoff pre-roll
   const BG_HANDOFF_WINDOW_S = 8;       // start pre-rolling when this close to the end;
                                        // must comfortably exceed the throttled wake gap
+  const BG_RENDER_SR = 22050;          // render sample rate: highest click component is
+                                       // the 3.3 kHz clave ping, so half rate loses nothing
+                                       // audible and halves render/encode/blob size
 
   // Master gain for every realtime click. At the hand-off to background
   // playback it ramps to silence in a few ms, so the ≤125 ms of already-
@@ -3934,41 +3938,40 @@ const graph = {
     };
   }
 
-  // ── Buffer duration calculation ────────────────────────────────────────────────
-  function bgBufferDuration(cfg) {
-    // Custom form: render whole form cycles up to the target length — the
-    // realtime scheduler cycles the form indefinitely, and short cycles need
-    // the same headroom as plain patterns for the silence-pre-rolled handoff.
+  // ── Buffer plan ────────────────────────────────────────────────────────────────
+  // Returns { total, cycle }: the full pattern length, and the repeating unit
+  // that can be rendered once and tiled out byte-for-byte (a huge render/encode
+  // speedup — 2 rendered cycles instead of 5 synthesized minutes). Random mute
+  // is intentionally non-repeating, so its cycle is the whole render.
+  function bgBufferPlan(cfg) {
+    let cycle;
+    const beatDur = (60 / cfg.bpm) * (4 / cfg.beatUnit);
+    const measDur = beatDur * cfg.beatsPerMeasure;
+
     if (cfg.formEnabled && cfg.form && cfg.form.length > 0) {
-      const cycle = Math.max(1, cfg.form.reduce((sum, bar) => {
+      // The realtime scheduler cycles the form indefinitely; one cycle = one
+      // full pass of the form.
+      cycle = Math.max(1, cfg.form.reduce((sum, bar) => {
         return sum + (60 / cfg.bpm) * (4 / bar.unit) * bar.beats;
       }, 0));
-      if (cycle > BG_MAX_RENDER_S) return cycle; // → clamped to play-once by the caller
-      return cycle * Math.max(1, Math.ceil(BG_TARGET_SECS / cycle));
-    }
-
-    const beatDur  = (60 / cfg.bpm) * (4 / cfg.beatUnit);
-    const measDur  = beatDur * cfg.beatsPerMeasure;
-    const targetSecs = BG_TARGET_SECS;
-
-    if (cfg.gapEnabled) {
-      // Buffer must end on a gap-cycle boundary to avoid loop-seam state mismatch.
-      let cycleDur;
+      if (cycle > BG_MAX_RENDER_S) return { total: cycle, cycle }; // → play-once clamp
+    } else if (cfg.gapEnabled) {
+      // The cycle must end on a gap-cycle boundary to avoid seam state mismatch.
       if (cfg.gapUnit === 'beat') {
-        // Align to LCM(gap-cycle beats, beats-per-measure) for whole-measure loops.
+        // Align to LCM(gap-cycle beats, beats-per-measure) for whole-measure cycles.
         const cycleBeats = cfg.gapPlay + cfg.gapSilent;
-        const alignBeats = lcmOf(cycleBeats, cfg.beatsPerMeasure);
-        cycleDur = beatDur * alignBeats;
+        cycle = beatDur * lcmOf(cycleBeats, cfg.beatsPerMeasure);
       } else {
-        cycleDur = measDur * (cfg.gapPlay + cfg.gapSilent);
+        cycle = measDur * (cfg.gapPlay + cfg.gapSilent);
       }
-      const n = Math.max(1, Math.ceil(targetSecs / cycleDur));
-      return cycleDur * n;
+    } else {
+      // Plain pattern: every measure is identical.
+      cycle = measDur;
     }
 
-    // Plain pattern: whole measures totalling ≥ targetSecs.
-    const n = Math.max(1, Math.ceil(targetSecs / measDur));
-    return measDur * n;
+    const total = cycle * Math.max(1, Math.ceil(BG_TARGET_SECS / cycle));
+    if (cfg.randomMuteEnabled) return { total, cycle: total };
+    return { total, cycle };
   }
 
   // ── Event timeline builder ─────────────────────────────────────────────────────
@@ -4068,21 +4071,17 @@ const graph = {
     return new Promise(r => setTimeout(r, 0));
   }
 
-  async function renderBgBuffer(cfg, durationSecs) {
-    // 22.05 kHz: the highest click component is the 3.3 kHz clave ping, so
-    // half rate loses nothing audible while halving render time, encode
-    // time, and the WAV blob (~27 MB → ~14 MB for a 5-minute render).
-    const SR = 22050;
-    const numFrames = Math.ceil(durationSecs * SR);
-    const offCtx = new OfflineAudioContext(1, numFrames, SR);
-    const timeline = buildBgTimeline(cfg, durationSecs);
+  // Renders the first renderSecs of the timeline (the timeline itself may be
+  // longer when the result will be tiled).
+  async function renderBgAudio(cfg, timeline, renderSecs, numFrames) {
+    const offCtx = new OfflineAudioContext(1, numFrames, BG_RENDER_SR);
     let n = 0;
     for (const evt of timeline) {
+      if (evt.time >= renderSecs) break; // timeline is time-sorted
       scheduleClickCtx(offCtx, evt.time, evt.clickType, cfg.soundMode);
       if (++n % 250 === 0) await bgYield();
     }
-    const audioBuffer = await offCtx.startRendering();
-    return { audioBuffer, timeline };
+    return offCtx.startRendering();
   }
 
   // ── WAV encoder ────────────────────────────────────────────────────────────────
@@ -4091,15 +4090,21 @@ const graph = {
   // The silent lead is the handoff pre-roll: the standby element starts
   // somewhere inside it, where seeks are inaudible.
   //
-  // Async: a two-minute render is ~5 M samples, and quantizing them in one
-  // synchronous loop blocked the main thread long enough to starve the
-  // realtime scheduler (subdivisions dropped for a beat whenever a render
-  // finished). Sliced with bgYield() instead.
-  async function encodeWavBlob(audioBuffer, leadSeconds) {
+  // Tiling: when tiles > 1, audioBuffer holds two rendered cycles of
+  // cycleFrames each. Tile 0 is cycle 1 (a clean start); tiles 1..n-1 are
+  // cycle 2, which carries the ring-over tails from cycle 1 — i.e. the
+  // steady state — so consecutive copies butt together continuously. The
+  // copies are raw byte memcpys, orders of magnitude cheaper than
+  // synthesizing and quantizing the full five minutes.
+  //
+  // Async + chunked: quantizing millions of samples in one synchronous loop
+  // starved the realtime scheduler; bgYield() keeps it fed.
+  async function encodeWavBlob(audioBuffer, leadSeconds, tiles, cycleFrames) {
     const data = audioBuffer.getChannelData(0);
     const sr = audioBuffer.sampleRate;
     const lead = Math.round((leadSeconds || 0) * sr);
-    const n = lead + data.length;
+    const quantFrames = tiles > 1 ? Math.min(data.length, cycleFrames * 2) : data.length;
+    const n = lead + (tiles > 1 ? cycleFrames * tiles : data.length);
     const buf = new ArrayBuffer(44 + n * 2);
     const dv = new DataView(buf);
     const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
@@ -4110,13 +4115,22 @@ const graph = {
     ws(36,'data'); dv.setUint32(40, n*2, true);
     // Lead samples are already zeros — that's the silence.
     const CHUNK = 262144; // ~ a few ms of work per slice
-    for (let start = 0; start < data.length; start += CHUNK) {
-      const end = Math.min(start + CHUNK, data.length);
+    for (let start = 0; start < quantFrames; start += CHUNK) {
+      const end = Math.min(start + CHUNK, quantFrames);
       for (let i = start; i < end; i++) {
         const s = Math.max(-1, Math.min(1, data[i]));
         dv.setInt16(44 + (lead + i) * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
       }
-      if (end < data.length) await bgYield();
+      if (end < quantFrames) await bgYield();
+    }
+    if (tiles > 1) {
+      const bytes = new Uint8Array(buf);
+      const srcOff = 44 + (lead + cycleFrames) * 2; // cycle 2 = steady state
+      const len = cycleFrames * 2;
+      for (let k = 2; k < tiles; k++) {
+        bytes.set(bytes.subarray(srcOff, srcOff + len), 44 + (lead + k * cycleFrames) * 2);
+        if (k % 16 === 0) await bgYield();
+      }
     }
     return new Blob([buf], { type: 'audio/wav' });
   }
@@ -4127,53 +4141,79 @@ const graph = {
     if (bar) bar.hidden = !active;
   }
 
+  // The page hid before a render finished and one just became available —
+  // start background playback from the pattern top.
+  function bgStartIfWaiting() {
+    if (bgWaitingForRender && document.visibilityState === 'hidden' &&
+        state.isPlaying && bgClickEls[0]) {
+      bgWaitingForRender = false;
+      const act = bgClickEls[bgClickIdx];
+      try { act.currentTime = bgLeadDur; } catch (_) {}
+      act.play().catch(() => {});
+    }
+  }
+
   // Renders the current settings to a WAV and loads it (paused) into the
   // click elements.
   // Foreground sound is unaffected — the realtime scheduler keeps playing — so
   // this just keeps the background buffer warm for the next screen lock.
   async function startBgRender() {
     if (!bgModeEnabled) return;
+
+    const cfg = snapshotBgSettings();
+    const cfgKey = JSON.stringify(cfg);
+    // Settings unchanged since the last completed render (the common case on
+    // a plain stop/start): reuse the existing blob — no preparing delay at all.
+    if (cfgKey === bgLastCfgKey && bgBlobUrl && bgEventTimeline.length > 0) {
+      bgRenderGeneration++; // cancels any in-flight render of older settings
+      bgRenderInFlight = false;
+      bgRenderReady = true;
+      updateBgRenderStatus(false);
+      bgStartIfWaiting();
+      return;
+    }
+
     const gen = ++bgRenderGeneration;
     bgRenderInFlight = true;
     bgRenderReady = false;
     updateBgRenderStatus(state.isPlaying);
 
     try {
-      const cfg = snapshotBgSettings();
-      const rawDur = bgBufferDuration(cfg);
-      const playOnce = rawDur > BG_MAX_RENDER_S;
-      const dur = Math.min(rawDur, BG_MAX_RENDER_S);
+      const { total, cycle } = bgBufferPlan(cfg);
+      const playOnce = total > BG_MAX_RENDER_S;
+      const dur = Math.min(total, BG_MAX_RENDER_S);
       const lead = playOnce ? 0 : BG_LEAD_S;
+      const tiles = (!playOnce && cycle < dur) ? Math.round(dur / cycle) : 1;
+      const cycleFrames = Math.round(cycle * BG_RENDER_SR);
+      // Tiled: render two cycles (cycle 2 = steady state, see encodeWavBlob);
+      // the +2 frames absorb rounding so the encoder never reads short.
+      const renderFrames = tiles > 1 ? cycleFrames * 2 + 2 : Math.ceil(dur * BG_RENDER_SR);
+      const renderSecs = renderFrames / BG_RENDER_SR;
 
-      const { audioBuffer, timeline } = await renderBgBuffer(cfg, dur);
+      const timeline = buildBgTimeline(cfg, dur);
+      const audioBuffer = await renderBgAudio(cfg, timeline, renderSecs, renderFrames);
       if (gen !== bgRenderGeneration) return;
-      const blob = await encodeWavBlob(audioBuffer, lead);
+      const blob = await encodeWavBlob(audioBuffer, lead, tiles, cycleFrames);
       if (gen !== bgRenderGeneration) return;
 
       const oldUrl = bgBlobUrl;
       bgBlobUrl = URL.createObjectURL(blob);
-      bgPatternDur = dur;
+      // Exact pattern length as encoded — the handoff math keys off this.
+      bgPatternDur = (tiles > 1 ? cycleFrames * tiles : Math.ceil(dur * BG_RENDER_SR)) / BG_RENDER_SR;
       bgLeadDur = lead;
       bgPlayOnce = playOnce;
       bgEventTimeline = timeline;
       bgLoopBase = cfg.loopBase;
+      bgLastCfgKey = cfgKey;
 
       // Both elements load the same WAV; looping is the alternating handoff.
-      const els = ensureBgClickEls();
-      for (const el of els) {
+      for (const el of ensureBgClickEls()) {
         el.loop = false;
         el.src = bgBlobUrl;
       }
       if (oldUrl) URL.revokeObjectURL(oldUrl);
       bgRenderReady = true;
-
-      // The page hid before the render finished — start playback now.
-      if (bgWaitingForRender && document.visibilityState === 'hidden' && state.isPlaying) {
-        bgWaitingForRender = false;
-        const act = els[bgClickIdx];
-        try { act.currentTime = bgLeadDur; } catch (_) {}
-        act.play().catch(() => {});
-      }
+      bgStartIfWaiting();
     } catch (e) {
       console.error('bg render failed:', e);
     } finally {
