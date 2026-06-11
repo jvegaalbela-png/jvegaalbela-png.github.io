@@ -4053,7 +4053,10 @@ const graph = {
   }
 
   async function renderBgBuffer(cfg, durationSecs) {
-    const SR = 44100;
+    // 22.05 kHz: the highest click component is the 3.3 kHz clave ping, so
+    // half rate loses nothing audible while halving render time, encode
+    // time, and the WAV blob (~27 MB → ~14 MB for a 5-minute render).
+    const SR = 22050;
     const numFrames = Math.ceil(durationSecs * SR);
     const offCtx = new OfflineAudioContext(1, numFrames, SR);
     const timeline = buildBgTimeline(cfg, durationSecs);
