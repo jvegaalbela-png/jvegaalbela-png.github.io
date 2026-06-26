@@ -123,7 +123,7 @@ const graph = {
       '@id': `${pageUrl}#how-to-practice`,
       name: 'How to Practice With a Metronome',
       description:
-        'A step-by-step method for practicing music with a metronome — from learning a passage cleanly at slow tempo through gradually pushing the tempo up over time.',
+        'A step-by-step method for practicing music with a metronome, from learning a passage cleanly at slow tempo through gradually pushing the tempo up over time. Features gap click, random mute, custom forms, odd-meter presets, and programmable subdivisions for any practice level.',
       tool: { '@id': toolId },
       step: howToSteps.map((s, i) => ({
         '@type': 'HowToStep',
@@ -148,12 +148,21 @@ const graph = {
       url: pageUrl,
       name: 'Free Online Metronome with Subdivisions, Gap Click & Custom Time Signatures',
       mainEntity: { '@id': toolId },
+      about: { '@id': toolId },
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
           { '@type': 'ListItem', position: 2, name: 'Metronome', item: pageUrl },
         ],
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${pageUrl}?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
       },
     },
   ],
