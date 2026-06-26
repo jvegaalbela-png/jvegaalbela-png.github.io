@@ -434,6 +434,32 @@ const graph = {
       </div>
     </div>
 
+
+    <!-- Device / Background Play -->
+    <div class="card card-device" id="device-features">
+      <div class="device-card-head">
+        <div class="section-label">Device</div>
+      </div>
+      <!-- Informational only, shown on iOS (init unhides it). Background play
+           is automatic there; other platforms keep playing natively. -->
+      <div class="adv-feature-header device-feature-row" id="bg-play-row" style="display:none">
+        <div>
+          <div class="device-feature-label">Background play</div>
+          <div class="adv-feature-desc">Keeps playing with your screen off &mdash; automatic on this device. The click keeps going even when iOS pauses the page.</div>
+        </div>
+      </div>
+      <div class="adv-feature-header device-feature-row" id="wake-lock-row">
+        <div>
+          <div class="device-feature-label">Keep screen awake</div>
+          <div class="adv-feature-desc">Prevents auto-lock while the metronome is running</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="wake-lock-toggle" checked aria-label="Keep screen awake" />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
     </div><!-- /.adv-grid -->
       </section>
 
@@ -714,6 +740,11 @@ const graph = {
       </div>
     ))}
 
+    <h2 id="ios-background-note">A Note for iOS Users</h2>
+    <p>
+      A metronome webapp like this one that keeps playing audio in the background basically shouldn&rsquo;t be possible &mdash; but against all odds, we&rsquo;ve made it work. Due to the limitations we&rsquo;ve had to overcome, you may hear a brief stutter when you leave the app or lock your screen, and again when you come back. You may also hear a slight hiccup every 5&ndash;10 minutes while the metronome runs in the background.
+    </p>
+
     <h2 id="keep-going">Want to take your practice further?</h2>
     <ul>
       <li><a href="/drum-lessons/"><strong>Take a private drum lesson</strong></a> &mdash; Rochester studio or Zoom, first lesson half off. K&ndash;12 and adults, jazz / rock / funk / Latin.</li>
@@ -730,6 +761,12 @@ const graph = {
   <span class="metronome-play-pill-icon" aria-hidden="true">▶</span>
   <span class="metronome-play-pill-label">Start</span>
 </button>
+
+<!-- Floating toast: visible from any carousel tab while background audio is rendering -->
+<div class="bg-render-toast" id="bg-render-status-bar" hidden aria-live="polite">
+  <span class="bg-render-toast-dot"></span>
+  <span class="bg-render-toast-text">Preparing background audio&hellip;</span>
+</div>
 
 
 <script>
@@ -785,12 +822,74 @@ const graph = {
   let schedulerSubPattern = [];
   const pendingVisuals = [];
 
+  // ─── Background Mode state ────────────────────────────────────────────────────
+  //
+  // Hybrid playback. In the foreground the realtime Web Audio scheduler runs as
+  // always. iOS suspends Web Audio rendering whenever the page is hidden (screen
+  // lock, app switch) no matter how far ahead nodes are scheduled — the only
+  // audio pipeline it keeps alive is an <audio> element playing real media. So
+  // when the page hides, playback hot-swaps to a pre-rendered WAV in a looping
+  // <audio> element, phase-matched to the realtime position; when the page is
+  // visible again it swaps back.
+  // iOS (including iPadOS, which reports as MacIntel with touch) is the only
+  // platform that suspends page audio while hidden; everywhere else the
+  // realtime scheduler keeps running with the screen off and none of this
+  // machinery is needed — so background mode is simply automatic on iOS.
+  const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const bgModeEnabled = IS_IOS;
+  let wakeLockUserEnabled = true;      // user toggle
+  let bgSilentEl = null;               // <audio loop> near-silence keep-alive (holds the
+                                       // iOS audio session + gives ~2 s JS wakes while hidden)
+  // Two click elements alternate A→B→A… for gapless looping. Each plays the
+  // same WAV: BG_LEAD_S of silence, then the rendered pattern. While one
+  // plays the pattern's tail, the watchdog starts the other somewhere in its
+  // silent lead, then trims it into sample alignment by seeking during the
+  // silence — so the exact moment clicks resume is decided by the media
+  // clock, not by iOS's throttled JS timers.
+  let bgClickEls = [null, null];
+  let bgClickIdx = 0;                  // index of the active element
+  let bgBlobUrl = null;                // object URL of the current rendered WAV
+  let bgPatternDur = 0;                // rendered pattern length (seconds, excludes lead)
+  let bgLeadDur = 0;                   // silent lead baked into the current WAV
+  let bgPlayOnce = false;              // over-cap form: play once and stop, no handoff
+  let bgEventTimeline = [];            // [{time,beat,sub,clickType,formIdx,gapPhase,gapCount}]
+  let bgLoopBase = 0;                  // formIdx offset when rendering a loop-selection slice
+  let bgRerenderTimer = null;          // debounce timer for settings-change re-render
+  let bgRenderGeneration = 0;          // incremented each render; stale renders self-cancel
+  let bgRenderInFlight = false;        // a render is currently running
+  let bgRenderReady = false;           // the click elements' src matches the latest settings
+  let bgLastCfgKey = '';               // settings fingerprint of the last completed render
+  let bgActiveMode = 'realtime';       // 'realtime' | 'element'
+  let bgWaitingForRender = false;      // page hid before the render finished
+  let bgWatchdogTimer = null;          // background self-heal interval
+
   const LOOKAHEAD_MS = 25;
   const SCHEDULE_AHEAD_S = 0.1;
+  const BG_TARGET_SECS = 300;          // min render length: keeps handoffs ~5 min apart and
+                                       // makes random-mute repetition imperceptible
+  const BG_MAX_RENDER_S = 600;         // hard cap; over-long forms play once and stop
+  const BG_RERENDER_DEBOUNCE_MS = 400;
+  const BG_WATCHDOG_MS = 1000;         // iOS throttles this to ~2 s in background — fine
+  const BG_LEAD_S = 10;                // silent lead on each render for handoff pre-roll
+  const BG_HANDOFF_WINDOW_S = 8;       // start pre-rolling when this close to the end;
+                                       // must comfortably exceed the throttled wake gap
+  const BG_RENDER_SR = 22050;          // render sample rate: highest click component is
+                                       // the 3.3 kHz clave ping, so half rate loses nothing
+                                       // audible and halves render/encode/blob size
+
+  // Master gain for every realtime click. At the hand-off to background
+  // playback it ramps to silence in a few ms, so the ≤125 ms of already-
+  // scheduled clicks neither double up with the <audio> element nor get
+  // chopped mid-waveform when iOS suspends the context (an abrupt cut is
+  // audible as a crunch/crackle).
+  let rtMasterGain = null;
 
   function getAudioCtx() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      rtMasterGain = audioCtx.createGain();
+      rtMasterGain.connect(audioCtx.destination);
     }
     // iOS Safari can drop the context into 'interrupted' (a phone call,
     // the device locking, sometimes a rotation) as well as 'suspended';
@@ -817,9 +916,7 @@ const graph = {
   // handler) rather than from getAudioCtx (called by the scheduler).
   let iosSilentBypassEl = null;
   function ensureIOSSilentBypass() {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (!isIOS) return;
+    if (!IS_IOS) return;
 
     if (!iosSilentBypassEl) {
       // Construct a tiny silent WAV blob inline — 0.5 s of 16-bit mono
@@ -857,57 +954,17 @@ const graph = {
     scheduleElectronic(time, type);
   }
 
+  // Thin wrappers used by the realtime scheduler — delegate to the
+  // context-agnostic versions defined further below so both the live
+  // scheduler and the offline render use identical synthesis code.
   function scheduleElectronic(time, type) {
     const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-    filter.type = 'bandpass';
-    if (type === 'accent') {
-      osc.frequency.value = 1050; filter.frequency.value = 1050; filter.Q.value = 0.6;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(1.0, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-    } else if (type === 'beat') {
-      osc.frequency.value = 800; filter.frequency.value = 800; filter.Q.value = 0.5;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.75, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
-    } else if (type === 'soft') {
-      osc.frequency.value = 600; filter.frequency.value = 600; filter.Q.value = 0.5;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.32, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
-    } else {
-      osc.frequency.value = 1600; filter.frequency.value = 1600; filter.Q.value = 1.2;
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.3, time + 0.001);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-    }
-    osc.start(time); osc.stop(time + 0.2);
+    scheduleElectronicCtx(ctx, time, type, rtMasterGain);
   }
 
   function scheduleClave(time, type) {
-    // 808-style clave: a single sine oscillator tuned high (the
-    // common 808 clave sits at 2450 Hz, where it cuts through any
-    // mix) with a 0.5 ms exponential attack and a fast exponential
-    // decay. No noise body — that's what made the previous version
-    // sound wet.
     const ctx = getAudioCtx();
-    const freq  = type === 'accent' ? 2700  : type === 'sub' ? 3300  : type === 'soft' ? 1900 : 2450;
-    const vol   = type === 'accent' ? 0.85  : type === 'beat' ? 0.55 : type === 'soft' ? 0.25 : 0.2;
-    const decay = type === 'sub'    ? 0.025 : type === 'accent' ? 0.08 : type === 'soft' ? 0.04 : 0.06;
-
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    const og = ctx.createGain();
-    og.gain.setValueAtTime(0.00001, time);
-    og.gain.exponentialRampToValueAtTime(vol, time + 0.0005);
-    og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
-    osc.connect(og); og.connect(ctx.destination);
-    osc.start(time); osc.stop(time + decay + 0.01);
+    scheduleClaveCtx(ctx, time, type, rtMasterGain);
   }
 
   function getAdvConfig() {
@@ -924,6 +981,8 @@ const graph = {
   }
 
   function scheduler() {
+    // While hidden in background mode, the <audio> element owns playback.
+    if (bgActiveMode === 'element') return;
     // The whole body is guarded so a transient error in one tick can't
     // permanently stop the loop — the reschedule below always runs.
     try {
@@ -1053,6 +1112,7 @@ const graph = {
   let wakeLock = null;
   async function requestWakeLock() {
     if (!('wakeLock' in navigator)) return;
+    if (!wakeLockUserEnabled) return;
     try {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
@@ -1065,16 +1125,33 @@ const graph = {
     try { await wakeLock.release(); } catch (_) {}
     wakeLock = null;
   }
-  // The OS releases the wake lock when the tab is hidden; re-request it when
-  // we come back so the screen stays awake for a long practice session.
+  // Hide → hand playback to the pre-rendered <audio> element (the only audio
+  // pipeline iOS keeps alive with the screen off). Show → hand it back to the
+  // realtime Web Audio scheduler, phase-matched. Also re-request the wake lock,
+  // which the OS releases whenever the tab hides.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && state.isPlaying && !wakeLock) {
-      requestWakeLock();
+    if (document.visibilityState === 'hidden') {
+      if (state.isPlaying && bgModeEnabled) enterBgPlayback();
+    } else if (state.isPlaying) {
+      if (!wakeLock) requestWakeLock();
+      if (bgModeEnabled) exitBgPlayback();
+    }
+  });
+
+  // pageshow fires on iOS when returning from a cached page (back/forward cache).
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted && state.isPlaying && bgModeEnabled) {
+      exitBgPlayback();
     }
   });
 
   function startMetronome(fromFormIdx) {
     const ctx = getAudioCtx();
+    // A stop while hidden can leave the master gain faded out — reset it.
+    if (rtMasterGain) {
+      rtMasterGain.gain.cancelScheduledValues(ctx.currentTime);
+      rtMasterGain.gain.setValueAtTime(1, ctx.currentTime);
+    }
     ensureIOSSilentBypass();
     state.isPlaying = true;
     schedulerBeat = 0;
@@ -1089,16 +1166,41 @@ const graph = {
     advFormIdx    = (typeof fromFormIdx === 'number' && fromFormIdx >= 0) ? fromFormIdx : 0;
     nextNoteTime  = ctx.currentTime + 0.05;
     pendingVisuals.length = 0;
+    bgActiveMode = 'realtime';
     scheduler();
     requestAnimationFrame(visualLoop);
     updatePlayButton();
     requestWakeLock();
+
+    if (bgModeEnabled) {
+      // Arm both <audio> elements inside this user gesture so iOS allows the
+      // async play() calls that happen later without a gesture (screen lock,
+      // lock-screen controls, watchdog recovery).
+      armBgElements();
+      startBgRender();
+      startBgWatchdog();
+      updateMediaSession();
+    }
   }
 
   function stopMetronome() {
     state.isPlaying = false;
     const hadLoop = !!loopRange;
     loopRange = null;  // any range-loop ends when playback stops
+
+    // Stop the background elements and cancel any in-flight render.
+    for (const el of bgClickEls) {
+      if (el) { el.pause(); try { el.currentTime = 0; } catch (_) {} }
+    }
+    if (bgSilentEl) bgSilentEl.pause();
+    updateBgRenderStatus(false);
+    bgActiveMode = 'realtime';
+    bgRenderGeneration++;
+    bgRenderReady = false;     // settings can change while stopped; re-render on next start
+    bgWaitingForRender = false;
+    clearTimeout(bgRerenderTimer);
+    stopBgWatchdog();
+
     clearTimeout(schedulerTimer);
     pendingVisuals.length = 0;
     state.currentBeat = -1;
@@ -1123,6 +1225,9 @@ const graph = {
   // ─── Visual Loop ─────────────────────────────────────────────────────────────
   function visualLoop() {
     if (!state.isPlaying) return;
+    // While hidden in background mode the <audio> element owns playback;
+    // exitBgPlayback re-arms this loop when the page is visible again.
+    if (bgActiveMode === 'element') return;
     const ctx = getAudioCtx();
     const now = ctx.currentTime;
 
@@ -2398,7 +2503,6 @@ const graph = {
           formEnabled: adv.formEnabled,
           form: adv.form,
         },
-        formEditorOpen: formEditorModal.getAttribute('aria-hidden') === 'false',
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) { /* private mode or quota — ignore */ }
@@ -2433,7 +2537,10 @@ const graph = {
         adv.formEnabled = !!d.adv.formEnabled;
         if (Array.isArray(d.adv.form) && d.adv.form.length > 0) adv.form = d.adv.form;
       }
-      restoreEditorOpen = !!d.formEditorOpen;
+      // Note: the Forms-tab position used to be persisted (formEditorOpen)
+      // and restored here, making returning visitors land on Forms instead
+      // of Pulse. The page now always opens on Pulse; only an explicit
+      // share link (?f=...&open=1) lands on Forms.
       return true;
     } catch (e) { return false; }
   }
@@ -2441,6 +2548,7 @@ const graph = {
   let urlUpdateTimer = null;
   function persistState() {
     saveLocalStorage();
+    triggerBgRerender(); // re-render background buffer when settings change
     clearTimeout(urlUpdateTimer);
     urlUpdateTimer = setTimeout(() => {
       const qs = encodeURLState();
@@ -2480,6 +2588,7 @@ const graph = {
     // the custom form, which the shareable URL doesn't encode. URL params,
     // when present, then override the shareable subset on top.
     loadLocalStorage();
+    loadBgPrefs();
     const usedURL = applyURLState(window.location.search);
 
     // Share-link path: if the URL carries ?f=..., decompress it and load it
@@ -2552,10 +2661,27 @@ const graph = {
     if (usedURL) saveLocalStorage();
 
     // The editor is now a tab in the carousel, not a popped-over modal.
-    // Sync its initial state once, then — if the page was last left on the
-    // Forms tab OR the URL is a share link (?open=1 / ?f=), land on Forms.
+    // Sync its initial state once. The page always opens on Pulse; only a
+    // share link (?f=...&open=1) lands on Forms.
     syncFormEditorOnLoad();
     if (restoreEditorOpen) Carousel.setScreen(2);
+
+    // Device card: the background-play note is informational and iOS-only —
+    // background mode is automatic there and unnecessary elsewhere.
+    // (style.display, not the hidden attribute: these rows are display:flex.)
+    if (IS_IOS) {
+      const bgRow = document.getElementById('bg-play-row');
+      if (bgRow) bgRow.style.display = '';
+    }
+    const wlToggleEl = document.getElementById('wake-lock-toggle');
+    if (wlToggleEl) {
+      if (!('wakeLock' in navigator)) {
+        const row = document.getElementById('wake-lock-row');
+        if (row) row.style.display = 'none';
+      } else {
+        wlToggleEl.checked = wakeLockUserEnabled;
+      }
+    }
   }
 
   // ─── Custom Form Editor ───────────────────────────────────────────────────────
@@ -3605,6 +3731,807 @@ const graph = {
     if (!bi) return;
     bi.addEventListener('focus', () => setTimeout(() => bi.select(), 0));
   })();
+
+  // ─── Background Mode: implementation ─────────────────────────────────────────
+  //
+  // Offline render pipeline + MediaSession + visual resync.
+  // Context-agnostic synthesizers (accept any AudioContext) live here so the
+  // same code drives both the realtime scheduler and the OfflineAudioContext.
+
+  // ── GCD / LCM helpers ─────────────────────────────────────────────────────────
+  function gcdOf(a, b) { return b === 0 ? a : gcdOf(b, a % b); }
+  function lcmOf(a, b) { return Math.round((a / gcdOf(a, b)) * b); }
+
+  // ── Silent-WAV helper ─────────────────────────────────────────────────────────
+  // Creates a tiny silent WAV blob URL used to arm <audio> elements for later
+  // async play() calls without a user gesture. Created once and reused.
+  let _silentWavUrl = null;
+  function getSilentWavUrl() {
+    if (_silentWavUrl) return _silentWavUrl;
+    const sr = 8000, frames = sr / 2, ds = frames * 2;
+    const buf = new ArrayBuffer(44 + ds);
+    const dv = new DataView(buf);
+    const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    ws(0,'RIFF'); dv.setUint32(4, 36+ds, true); ws(8,'WAVE'); ws(12,'fmt ');
+    dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+    dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true);
+    dv.setUint16(32,2,true); dv.setUint16(34,16,true);
+    ws(36,'data'); dv.setUint32(40,ds,true);
+    // ±2 LSB noise (≈ -84 dBFS — dither level, genuinely inaudible) so the
+    // session carries a nonzero signal without any audible hiss. A previous
+    // -60 dBFS version was faintly audible as white noise in quiet rooms.
+    for (let i = 0; i < frames; i++) {
+      dv.setInt16(44 + i * 2, Math.round((Math.random() * 2 - 1) * 2), true);
+    }
+    _silentWavUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    return _silentWavUrl;
+  }
+
+  // ── Near-silence keep-alive element ──────────────────────────────────────────
+  // A looping near-silence <audio> (~-60 dBFS noise) keeps the page's iOS audio
+  // session alive while hidden. It does NOT keep the AudioContext rendering —
+  // iOS suspends Web Audio regardless — but it prevents the page from being
+  // fully frozen, granting the ~2 s JS wakes the background watchdog relies on,
+  // and it smooths the audio-session handoff at the moment the screen locks.
+  function ensureBgSilentEl() {
+    if (bgSilentEl) return bgSilentEl;
+    bgSilentEl = document.createElement('audio');
+    bgSilentEl.loop = true;
+    bgSilentEl.playsInline = true;
+    bgSilentEl.setAttribute('playsinline', '');
+    bgSilentEl.style.display = 'none';
+    bgSilentEl.src = getSilentWavUrl();
+    document.body.appendChild(bgSilentEl);
+    bgSilentEl.addEventListener('pause', () => {
+      if (bgModeEnabled && state.isPlaying) updatePlayButton();
+    });
+    bgSilentEl.addEventListener('play', () => {
+      if (bgModeEnabled && state.isPlaying) updatePlayButton();
+    });
+    return bgSilentEl;
+  }
+
+  // ── Background click elements ─────────────────────────────────────────────────
+  // The pair of <audio> elements that play the rendered WAV while the page is
+  // hidden. HTMLMediaElement playback is the only audio pipeline iOS keeps
+  // running with the screen off. Native loop=true turned out to seek at the
+  // wrap point (~30 ms stutter), so looping is done by alternating the two
+  // elements with a silence-pre-rolled handoff instead (see the watchdog).
+  function ensureBgClickEls() {
+    if (bgClickEls[0]) return bgClickEls;
+    for (let i = 0; i < 2; i++) {
+      const el = document.createElement('audio');
+      el.playsInline = true;
+      el.setAttribute('playsinline', '');
+      el.preload = 'auto';
+      el.style.display = 'none';
+      document.body.appendChild(el);
+      el.addEventListener('ended', () => {
+        if (!state.isPlaying || bgActiveMode !== 'element') return;
+        if (bgPlayOnce) { stopMetronome(); return; }
+        // The active element finished its pattern: the pre-rolled standby is
+        // (ideally already) carrying the clicks — promote it. If the standby
+        // was never primed (every wake in the window was missed), start it at
+        // the pattern top; a small gap, but playback survives.
+        if (bgClickEls[bgClickIdx] === el) {
+          bgClickIdx = 1 - bgClickIdx;
+          const next = bgClickEls[bgClickIdx];
+          if (next.paused) {
+            try { next.currentTime = bgLeadDur; } catch (_) {}
+            next.play().catch(() => {});
+          }
+        }
+      });
+      bgClickEls[i] = el;
+    }
+    return bgClickEls;
+  }
+
+  // Called inside a user gesture (Start button / toggle tap). Playing each
+  // element once marks it user-activated, so every later programmatic play()
+  // — from visibilitychange, the watchdog, or lock-screen controls — is
+  // allowed without a fresh gesture.
+  function armBgElements() {
+    ensureBgSilentEl().play().catch(e => console.warn('[bg] keepalive play failed:', e));
+    for (const el of ensureBgClickEls()) {
+      if (!el.src) el.src = getSilentWavUrl();
+      el.muted = true;
+      const p = el.play();
+      if (p) p.then(() => {
+        // Keep playing only if the hand-off already made this the live element.
+        if (!(bgActiveMode === 'element' && el === bgClickEls[bgClickIdx])) el.pause();
+        el.muted = false;
+      }).catch(() => { el.muted = false; });
+    }
+  }
+
+  // ── Context-agnostic synthesizers ─────────────────────────────────────────────
+  // Accept any AudioContext so the identical synthesis drives both realtime
+  // (scheduleElectronic/scheduleClave delegate here) and OfflineAudioContext.
+
+  function scheduleElectronicCtx(ctx, time, type, dest) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    osc.connect(filter); filter.connect(gain); gain.connect(dest || ctx.destination);
+    filter.type = 'bandpass';
+    if (type === 'accent') {
+      osc.frequency.value = 1050; filter.frequency.value = 1050; filter.Q.value = 0.6;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(1.0, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+    } else if (type === 'beat') {
+      osc.frequency.value = 800; filter.frequency.value = 800; filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.75, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+    } else if (type === 'soft') {
+      osc.frequency.value = 600; filter.frequency.value = 600; filter.Q.value = 0.5;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.32, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+    } else {
+      // 'sub' and any unrecognised type → high-frequency sweep click.
+      osc.frequency.value = 1600; filter.frequency.value = 1600; filter.Q.value = 1.2;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.3, time + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+    }
+    osc.start(time); osc.stop(time + 0.2);
+    return osc;
+  }
+
+  function scheduleClaveCtx(ctx, time, type, dest) {
+    const freq  = type === 'accent' ? 2700  : type === 'sub' ? 3300  : type === 'soft' ? 1900 : 2450;
+    const vol   = type === 'accent' ? 0.85  : type === 'beat' ? 0.55 : type === 'soft' ? 0.25 : 0.2;
+    const decay = type === 'sub'    ? 0.025 : type === 'accent' ? 0.08 : type === 'soft' ? 0.04 : 0.06;
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.00001, time);
+    og.gain.exponentialRampToValueAtTime(vol, time + 0.0005);
+    og.gain.exponentialRampToValueAtTime(0.00001, time + decay);
+    osc.connect(og); og.connect(dest || ctx.destination);
+    osc.start(time); osc.stop(time + decay + 0.01);
+    return osc;
+  }
+
+  function scheduleClickCtx(ctx, time, type, mode) {
+    if (type === 'mute') return;
+    if (mode === 'clave') { scheduleClaveCtx(ctx, time, type); return; }
+    scheduleElectronicCtx(ctx, time, type);
+  }
+
+  // ── Settings snapshot ─────────────────────────────────────────────────────────
+  function snapshotBgSettings() {
+    let form = adv.form.map(e => ({ beats: e.beats, unit: e.unit, states: e.states.slice() }));
+    let loopBase = 0;
+    // Loop-selection: render just the looped bar range; loopBase maps the
+    // timeline's slice-relative formIdx back to the absolute form index.
+    if (adv.formEnabled && loopRange &&
+        loopRange.lo <= loopRange.hi && loopRange.hi < form.length) {
+      form = form.slice(loopRange.lo, loopRange.hi + 1);
+      loopBase = loopRange.lo;
+    }
+    return {
+      loopBase,
+      bpm: state.bpm,
+      beatsPerMeasure: state.beatsPerMeasure,
+      beatUnit: state.beatUnit,
+      beats: state.beats.slice(),
+      subdivision: state.subdivision,
+      subCustom: state.subCustom,
+      subPattern: state.subPattern.slice(),
+      subFollowMute: state.subFollowMute,
+      swingPct: state.swingPct,
+      soundMode,
+      gapEnabled: adv.gapEnabled,
+      gapPlay: adv.gapPlay,
+      gapSilent: adv.gapSilent,
+      gapUnit: adv.gapUnit,
+      randomMuteEnabled: adv.randomMuteEnabled,
+      randomMutePct: adv.randomMutePct,
+      randomMuteSubPct: adv.randomMuteSubPct,
+      formEnabled: adv.formEnabled,
+      form,
+    };
+  }
+
+  // ── Buffer plan ────────────────────────────────────────────────────────────────
+  // Returns { total, cycle }: the full pattern length, and the repeating unit
+  // that can be rendered once and tiled out byte-for-byte (a huge render/encode
+  // speedup — 2 rendered cycles instead of 5 synthesized minutes). Random mute
+  // is intentionally non-repeating, so its cycle is the whole render.
+  function bgBufferPlan(cfg) {
+    let cycle;
+    const beatDur = (60 / cfg.bpm) * (4 / cfg.beatUnit);
+    const measDur = beatDur * cfg.beatsPerMeasure;
+
+    if (cfg.formEnabled && cfg.form && cfg.form.length > 0) {
+      // The realtime scheduler cycles the form indefinitely; one cycle = one
+      // full pass of the form.
+      cycle = Math.max(1, cfg.form.reduce((sum, bar) => {
+        return sum + (60 / cfg.bpm) * (4 / bar.unit) * bar.beats;
+      }, 0));
+      if (cycle > BG_MAX_RENDER_S) return { total: cycle, cycle }; // → play-once clamp
+    } else if (cfg.gapEnabled) {
+      // The cycle must end on a gap-cycle boundary to avoid seam state mismatch.
+      if (cfg.gapUnit === 'beat') {
+        // Align to LCM(gap-cycle beats, beats-per-measure) for whole-measure cycles.
+        const cycleBeats = cfg.gapPlay + cfg.gapSilent;
+        cycle = beatDur * lcmOf(cycleBeats, cfg.beatsPerMeasure);
+      } else {
+        cycle = measDur * (cfg.gapPlay + cfg.gapSilent);
+      }
+    } else {
+      // Plain pattern: every measure is identical.
+      cycle = measDur;
+    }
+
+    const total = cycle * Math.max(1, Math.ceil(BG_TARGET_SECS / cycle));
+    if (cfg.randomMuteEnabled) return { total, cycle: total };
+    return { total, cycle };
+  }
+
+  // ── Event timeline builder ─────────────────────────────────────────────────────
+  // Mirrors the realtime scheduler logic exactly; feeds the OfflineAudioContext
+  // render and the phase-mapping that hands playback between the realtime
+  // scheduler and the <audio> element. Events carry the same per-event state
+  // (beat, sub, formIdx, gapPhase, gapCount) the realtime scheduler tracks so a
+  // position in one clock maps unambiguously onto the other.
+  function buildBgTimeline(cfg, durationSecs) {
+    const events = [];
+    let t = 0;
+    let beat = 0, sub = 0;
+    let curSub = cfg.subdivision, curSubCustom = cfg.subCustom;
+    let curSubPattern = cfg.subPattern.slice();
+    let gapPhase = 'play', gapCount = 0;
+    let formIdx = 0;
+
+    function cfgForForm() {
+      if (cfg.formEnabled && cfg.form && cfg.form.length > 0) {
+        const e = cfg.form[Math.min(formIdx, cfg.form.length - 1)];
+        return { beatsPerMeasure: e.beats, beats: e.states, beatUnit: e.unit };
+      }
+      return { beatsPerMeasure: cfg.beatsPerMeasure, beats: cfg.beats, beatUnit: cfg.beatUnit };
+    }
+
+    const maxT = Math.min(durationSecs + 0.001, BG_MAX_RENDER_S + 1);
+    const maxEvents = 2_000_000;
+
+    while (t < maxT && events.length < maxEvents) {
+      const c = cfgForForm();
+      if (sub === 0) {
+        curSub = cfg.subdivision;
+        curSubCustom = cfg.subCustom;
+        curSubPattern = cfg.subPattern.slice();
+      }
+
+      let clickType;
+      if (sub === 0) {
+        const s = c.beats[beat] || 'normal';
+        clickType = s === 'mute' ? 'mute' : s === 'accent' ? 'accent' : s === 'soft' ? 'soft' : 'beat';
+      } else {
+        clickType = 'sub';
+        if (curSubCustom && curSubPattern[sub] === false) clickType = 'mute';
+      }
+      if (sub !== 0 && cfg.subFollowMute && (c.beats[beat] || 'normal') === 'mute') clickType = 'mute';
+      if (cfg.gapEnabled && gapPhase === 'silent') clickType = 'mute';
+      if (cfg.randomMuteEnabled && clickType !== 'mute') {
+        const p = sub === 0 ? cfg.randomMutePct : cfg.randomMuteSubPct;
+        if (p > 0 && Math.random() < p / 100) clickType = 'mute';
+      }
+
+      events.push({ time: t, beat, sub, clickType, formIdx, gapPhase, gapCount });
+
+      const beatDur = (60.0 / cfg.bpm) * (4 / c.beatUnit);
+      let stepDur;
+      if (curSub === 2 && !curSubCustom && cfg.swingPct !== 50) {
+        const s = cfg.swingPct / 100;
+        stepDur = sub === 0 ? beatDur * s : beatDur * (1 - s);
+      } else {
+        stepDur = beatDur / curSub;
+      }
+      t += stepDur;
+
+      sub++;
+      if (sub >= curSub) {
+        sub = 0;
+        beat++;
+        if (cfg.gapEnabled && cfg.gapUnit === 'beat') {
+          gapCount++;
+          if (gapPhase === 'play'   && gapCount >= cfg.gapPlay)   { gapPhase = 'silent'; gapCount = 0; }
+          else if (gapPhase === 'silent' && gapCount >= cfg.gapSilent) { gapPhase = 'play';   gapCount = 0; }
+        }
+        if (beat >= c.beatsPerMeasure) {
+          beat = 0;
+          if (cfg.gapEnabled && cfg.gapUnit !== 'beat') {
+            gapCount++;
+            if (gapPhase === 'play'   && gapCount >= cfg.gapPlay)   { gapPhase = 'silent'; gapCount = 0; }
+            else if (gapPhase === 'silent' && gapCount >= cfg.gapSilent) { gapPhase = 'play';   gapCount = 0; }
+          }
+          if (cfg.formEnabled && cfg.form && cfg.form.length > 0) {
+            formIdx = (formIdx + 1) % cfg.form.length;
+          }
+        }
+      }
+    }
+    return events;
+  }
+
+  // ── Offline render ─────────────────────────────────────────────────────────────
+  // Building the node graph and encoding the WAV are the only heavy main-thread
+  // jobs in the pipeline; both are sliced with bgYield() so the realtime
+  // scheduler's 25 ms timer keeps firing and foreground playback never starves.
+  // While hidden there is no foreground audio to protect — and throttled timers
+  // would make yielding crawl — so the work runs straight through.
+  function bgYield() {
+    if (document.visibilityState === 'hidden') return null;
+    return new Promise(r => setTimeout(r, 0));
+  }
+
+  // Renders the first renderSecs of the timeline (the timeline itself may be
+  // longer when the result will be tiled).
+  async function renderBgAudio(cfg, timeline, renderSecs, numFrames) {
+    const offCtx = new OfflineAudioContext(1, numFrames, BG_RENDER_SR);
+    let n = 0;
+    for (const evt of timeline) {
+      if (evt.time >= renderSecs) break; // timeline is time-sorted
+      scheduleClickCtx(offCtx, evt.time, evt.clickType, cfg.soundMode);
+      if (++n % 250 === 0) await bgYield();
+    }
+    return offCtx.startRendering();
+  }
+
+  // ── WAV encoder ────────────────────────────────────────────────────────────────
+  // 16-bit PCM mono, with leadSeconds of silence prepended (no codec
+  // priming/padding samples, so positions in the file are sample-exact).
+  // The silent lead is the handoff pre-roll: the standby element starts
+  // somewhere inside it, where seeks are inaudible.
+  //
+  // Tiling: when tiles > 1, audioBuffer holds two rendered cycles of
+  // cycleFrames each. Tile 0 is cycle 1 (a clean start); tiles 1..n-1 are
+  // cycle 2, which carries the ring-over tails from cycle 1 — i.e. the
+  // steady state — so consecutive copies butt together continuously. The
+  // copies are raw byte memcpys, orders of magnitude cheaper than
+  // synthesizing and quantizing the full five minutes.
+  //
+  // Async + chunked: quantizing millions of samples in one synchronous loop
+  // starved the realtime scheduler; bgYield() keeps it fed.
+  async function encodeWavBlob(audioBuffer, leadSeconds, tiles, cycleFrames) {
+    const data = audioBuffer.getChannelData(0);
+    const sr = audioBuffer.sampleRate;
+    const lead = Math.round((leadSeconds || 0) * sr);
+    const quantFrames = tiles > 1 ? Math.min(data.length, cycleFrames * 2) : data.length;
+    const n = lead + (tiles > 1 ? cycleFrames * tiles : data.length);
+    const buf = new ArrayBuffer(44 + n * 2);
+    const dv = new DataView(buf);
+    const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    ws(0,'RIFF'); dv.setUint32(4, 36 + n*2, true); ws(8,'WAVE'); ws(12,'fmt ');
+    dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true);
+    dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true);
+    dv.setUint16(32,2,true); dv.setUint16(34,16,true);
+    ws(36,'data'); dv.setUint32(40, n*2, true);
+    // Lead samples are already zeros — that's the silence.
+    const CHUNK = 262144; // ~ a few ms of work per slice
+    for (let start = 0; start < quantFrames; start += CHUNK) {
+      const end = Math.min(start + CHUNK, quantFrames);
+      for (let i = start; i < end; i++) {
+        const s = Math.max(-1, Math.min(1, data[i]));
+        dv.setInt16(44 + (lead + i) * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+      if (end < quantFrames) await bgYield();
+    }
+    if (tiles > 1) {
+      const bytes = new Uint8Array(buf);
+      const srcOff = 44 + (lead + cycleFrames) * 2; // cycle 2 = steady state
+      const len = cycleFrames * 2;
+      for (let k = 2; k < tiles; k++) {
+        bytes.set(bytes.subarray(srcOff, srcOff + len), 44 + (lead + k * cycleFrames) * 2);
+        if (k % 16 === 0) await bgYield();
+      }
+    }
+    return new Blob([buf], { type: 'audio/wav' });
+  }
+
+  // ── Render pipeline ────────────────────────────────────────────────────────────
+  function updateBgRenderStatus(active) {
+    const bar = document.getElementById('bg-render-status-bar');
+    if (bar) bar.hidden = !active;
+  }
+
+  // The page hid before a render finished and one just became available —
+  // start background playback from the pattern top.
+  function bgStartIfWaiting() {
+    if (bgWaitingForRender && document.visibilityState === 'hidden' &&
+        state.isPlaying && bgClickEls[0]) {
+      bgWaitingForRender = false;
+      const act = bgClickEls[bgClickIdx];
+      try { act.currentTime = bgLeadDur; } catch (_) {}
+      act.play().catch(() => {});
+    }
+  }
+
+  // Renders the current settings to a WAV and loads it (paused) into the
+  // click elements.
+  // Foreground sound is unaffected — the realtime scheduler keeps playing — so
+  // this just keeps the background buffer warm for the next screen lock.
+  async function startBgRender() {
+    if (!bgModeEnabled) return;
+
+    const cfg = snapshotBgSettings();
+    const cfgKey = JSON.stringify(cfg);
+    // Settings unchanged since the last completed render (the common case on
+    // a plain stop/start): reuse the existing blob — no preparing delay at all.
+    if (cfgKey === bgLastCfgKey && bgBlobUrl && bgEventTimeline.length > 0) {
+      bgRenderGeneration++; // cancels any in-flight render of older settings
+      bgRenderInFlight = false;
+      bgRenderReady = true;
+      updateBgRenderStatus(false);
+      bgStartIfWaiting();
+      return;
+    }
+
+    const gen = ++bgRenderGeneration;
+    bgRenderInFlight = true;
+    bgRenderReady = false;
+    updateBgRenderStatus(state.isPlaying);
+
+    try {
+      const { total, cycle } = bgBufferPlan(cfg);
+      const playOnce = total > BG_MAX_RENDER_S;
+      const dur = Math.min(total, BG_MAX_RENDER_S);
+      const lead = playOnce ? 0 : BG_LEAD_S;
+      const tiles = (!playOnce && cycle < dur) ? Math.round(dur / cycle) : 1;
+      const cycleFrames = Math.round(cycle * BG_RENDER_SR);
+      // Tiled: render two cycles (cycle 2 = steady state, see encodeWavBlob);
+      // the +2 frames absorb rounding so the encoder never reads short.
+      const renderFrames = tiles > 1 ? cycleFrames * 2 + 2 : Math.ceil(dur * BG_RENDER_SR);
+      const renderSecs = renderFrames / BG_RENDER_SR;
+
+      const timeline = buildBgTimeline(cfg, dur);
+      const audioBuffer = await renderBgAudio(cfg, timeline, renderSecs, renderFrames);
+      if (gen !== bgRenderGeneration) return;
+      const blob = await encodeWavBlob(audioBuffer, lead, tiles, cycleFrames);
+      if (gen !== bgRenderGeneration) return;
+
+      const oldUrl = bgBlobUrl;
+      bgBlobUrl = URL.createObjectURL(blob);
+      // Exact pattern length as encoded — the handoff math keys off this.
+      bgPatternDur = (tiles > 1 ? cycleFrames * tiles : Math.ceil(dur * BG_RENDER_SR)) / BG_RENDER_SR;
+      bgLeadDur = lead;
+      bgPlayOnce = playOnce;
+      bgEventTimeline = timeline;
+      bgLoopBase = cfg.loopBase;
+      bgLastCfgKey = cfgKey;
+
+      // Both elements load the same WAV; looping is the alternating handoff.
+      for (const el of ensureBgClickEls()) {
+        el.loop = false;
+        el.src = bgBlobUrl;
+      }
+      if (oldUrl) URL.revokeObjectURL(oldUrl);
+      bgRenderReady = true;
+      bgStartIfWaiting();
+    } catch (e) {
+      console.error('bg render failed:', e);
+    } finally {
+      if (gen === bgRenderGeneration) {
+        bgRenderInFlight = false;
+        updateBgRenderStatus(false);
+      }
+    }
+  }
+
+  // ── Settings-change re-render ──────────────────────────────────────────────────
+  // Debounced so slider drags don't hammer the offline renderer.
+  function triggerBgRerender() {
+    if (!state.isPlaying || !bgModeEnabled) return;
+    clearTimeout(bgRerenderTimer);
+    bgRerenderTimer = setTimeout(() => {
+      bgRerenderTimer = null;
+      startBgRender();
+      updateMediaSession();
+    }, BG_RERENDER_DEBOUNCE_MS);
+  }
+
+  // ── Realtime ⇄ element hand-off ────────────────────────────────────────────────
+  // Maps the realtime scheduler's position onto the rendered buffer's clock.
+  // The scheduler runs ≤ ~125 ms ahead of the audible click; its state
+  // (schedulerBeat/Sub, gap phase/count, form index) describes the event due at
+  // nextNoteTime, so find that event in the timeline and back off the lookahead.
+  function realtimeToBufferPos(ctx) {
+    const tl = bgEventTimeline;
+    if (!tl.length || !bgPatternDur) return 0;
+    const isForm = adv.formEnabled && adv.form.length > 0;
+    const targetForm = isForm ? advFormIdx - bgLoopBase : -1;
+    let evt = null;
+    for (const e of tl) {
+      if (e.beat !== schedulerBeat || e.sub !== schedulerSub) continue;
+      if (isForm && e.formIdx !== targetForm) continue;
+      if (adv.gapEnabled && (e.gapPhase !== advGapPhase || e.gapCount !== advGapCount)) continue;
+      evt = e;
+      break;
+    }
+    if (!evt) return 0;
+    let pos = evt.time - Math.max(0, nextNoteTime - ctx.currentTime);
+    if (pos < 0) pos += bgPatternDur;
+    return Math.max(0, Math.min(pos, bgPatternDur - 0.01));
+  }
+
+  // Inverse mapping: resume the realtime scheduler from a buffer position.
+  function bufferPosToScheduler(pos, ctx) {
+    const tl = bgEventTimeline;
+    schedulerSubdivision = state.subdivision;
+    schedulerSubCustom   = state.subCustom;
+    schedulerSubPattern  = state.subPattern.slice();
+    if (!tl.length || !bgPatternDur) {
+      schedulerBeat = 0; schedulerSub = 0;
+      advGapPhase = 'play'; advGapCount = 0;
+      nextNoteTime = ctx.currentTime + 0.05;
+      return;
+    }
+    // Last event at or before pos; the scheduler resumes from the one after it.
+    let lo = 0, hi = tl.length - 1, idx = 0;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (tl[mid].time <= pos) { idx = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    const nIdx = (idx + 1) % tl.length;
+    const nev = tl[nIdx];
+    let delta = (nIdx === 0 ? bgPatternDur + tl[0].time : nev.time) - pos;
+    if (!(delta > 0.01)) delta = 0.01;
+    schedulerBeat = nev.beat;
+    schedulerSub  = nev.sub;
+    advGapPhase   = nev.gapPhase;
+    advGapCount   = nev.gapCount;
+    const isForm = adv.formEnabled && adv.form.length > 0;
+    advFormIdx = isForm ? Math.min(bgLoopBase + nev.formIdx, adv.form.length - 1) : 0;
+    nextNoteTime = ctx.currentTime + delta;
+  }
+
+  // Page hidden: the realtime scheduler stops and the pre-rendered <audio>
+  // element takes over, phase-matched. iOS will suspend the AudioContext
+  // moments later; the element (plus the near-silence keep-alive) plays on.
+  function enterBgPlayback() {
+    if (bgActiveMode === 'element') return;
+    const ctx = getAudioCtx();
+    // Fade the realtime engine out in a few ms: its ≤125 ms of already-
+    // scheduled clicks must neither double up with the element nor be
+    // chopped mid-waveform when iOS suspends the context.
+    if (rtMasterGain) {
+      const g = rtMasterGain.gain;
+      g.cancelScheduledValues(ctx.currentTime);
+      g.setValueAtTime(g.value, ctx.currentTime);
+      g.linearRampToValueAtTime(0, ctx.currentTime + 0.008);
+    }
+    // A settings change is still waiting on its debounce — render it now so
+    // the background audio reflects what the user last set.
+    if (bgRerenderTimer) {
+      clearTimeout(bgRerenderTimer);
+      bgRerenderTimer = null;
+      startBgRender();
+    }
+    let pos = bgRenderReady ? realtimeToBufferPos(ctx) : 0;
+    clearTimeout(schedulerTimer);
+    schedulerTimer = null;
+    pendingVisuals.length = 0;
+    bgActiveMode = 'element';
+    if (bgRenderReady && bgClickEls[0]) {
+      // Play-once renders (over-cap forms) must not start in the final
+      // moments of the buffer, where 'ended' would fire immediately.
+      if (bgPlayOnce && bgPatternDur - pos < 0.25) pos = 0;
+      const act = bgClickEls[bgClickIdx];
+      const stb = bgClickEls[1 - bgClickIdx];
+      if (stb && !stb.paused) stb.pause(); // park the standby; the watchdog re-primes it
+      try { act.currentTime = bgLeadDur + pos; } catch (_) {}
+      act.play().catch(() => {});
+    } else {
+      bgWaitingForRender = true; // startBgRender will begin playback when done
+    }
+  }
+
+  // Page visible: pause the element and resume the realtime scheduler from the
+  // element's position. The context resume is async on iOS; map the position
+  // after it settles so nextNoteTime lands on a live clock.
+  function exitBgPlayback() {
+    bgWaitingForRender = false;
+    if (bgSilentEl && bgSilentEl.paused && state.isPlaying) bgSilentEl.play().catch(() => {});
+    if (bgActiveMode !== 'element') return;
+    let pos = 0;
+    if (bgClickEls[0]) {
+      // Mid-handoff the active element may already have ended; read the
+      // position from whichever element is carrying (or about to carry) the
+      // clicks. A standby still inside its silent lead maps to the pattern
+      // tail (the lead pre-rolls the *next* cycle).
+      const act = bgClickEls[bgClickIdx];
+      const stb = bgClickEls[1 - bgClickIdx];
+      const src = ((act.ended || act.paused) && !stb.paused) ? stb : act;
+      if (bgPatternDur > 0) {
+        pos = src.currentTime - bgLeadDur;
+        if (pos < 0) pos += bgPatternDur;
+        pos = Math.max(0, pos % bgPatternDur);
+      }
+      act.pause();
+      stb.pause();
+    }
+    bgActiveMode = 'realtime';
+    const ctx = getAudioCtx();
+    const resumed = ctx.state === 'running' ? Promise.resolve() : ctx.resume();
+    resumed.catch(() => {}).then(() => {
+      if (!state.isPlaying || bgActiveMode !== 'realtime') return;
+      // Restore the realtime engine's master gain (faded out at enter).
+      // Nothing is scheduled through it yet, so an instant reset is silent.
+      if (rtMasterGain) {
+        rtMasterGain.gain.cancelScheduledValues(ctx.currentTime);
+        rtMasterGain.gain.setValueAtTime(1, ctx.currentTime);
+      }
+      bufferPosToScheduler(pos, ctx);
+      scheduler();
+      requestAnimationFrame(visualLoop);
+    });
+  }
+
+  // ── Background watchdog ────────────────────────────────────────────────────────
+  // The keep-alive element grants ~2 s JS wakes while hidden; use them to
+  // self-heal (catch a missed visibilitychange, restart elements that an
+  // interruption paused, kick a stalled render) and — the core of gapless
+  // looping — to run the element handoff:
+  //
+  //   1. When the active element is within BG_HANDOFF_WINDOW_S of its end,
+  //      start the standby inside its silent lead at target = active − pattern,
+  //      so both media clocks will meet exactly when the clicks wrap.
+  //   2. On later wakes, measure the clock offset between the two playing
+  //      elements and trim the standby by seeking it — still in silence, so
+  //      the correction is inaudible. The handoff instant itself is then
+  //      decided by the media pipeline, not by throttled JS timing.
+  //   3. When the active element ends, the 'ended' handler promotes the
+  //      standby and this cycle repeats with roles swapped.
+  function startBgWatchdog() {
+    if (bgWatchdogTimer) return;
+    bgWatchdogTimer = setInterval(() => {
+      if (!state.isPlaying || !bgModeEnabled) return;
+      if (document.visibilityState !== 'hidden') return;
+      if (bgActiveMode === 'realtime') {
+        enterBgPlayback();
+        return;
+      }
+      if (bgSilentEl && bgSilentEl.paused) bgSilentEl.play().catch(() => {});
+      if (bgWaitingForRender && !bgRenderInFlight) {
+        // The render this hand-off was waiting on died (e.g. it errored, or
+        // iOS froze the page mid-render) — kick off a fresh one.
+        startBgRender();
+        return;
+      }
+      if (!bgRenderReady || bgWaitingForRender || !bgClickEls[0]) return;
+
+      let act = bgClickEls[bgClickIdx];
+      const stb = bgClickEls[1 - bgClickIdx];
+
+      // 'ended' can be delayed while throttled — detect a completed handoff
+      // here too and swap roles.
+      if (act.ended && !bgPlayOnce) {
+        bgClickIdx = 1 - bgClickIdx;
+        act = stb;
+      }
+
+      // Interruption recovery (phone call, Siri): resume the active element.
+      // ended-elements are excluded — for play-once that's the natural stop,
+      // and post-handoff the other element already took over.
+      if (act.paused && !act.ended) {
+        if (act.currentTime < bgLeadDur) {
+          try { act.currentTime = bgLeadDur; } catch (_) {}
+        }
+        act.play().catch(() => {});
+        return;
+      }
+
+      // Handoff pre-roll + trim.
+      if (!bgPlayOnce && !act.paused && bgPatternDur > 0) {
+        const remaining = (bgLeadDur + bgPatternDur) - act.currentTime;
+        if (remaining <= BG_HANDOFF_WINDOW_S) {
+          const target = act.currentTime - bgPatternDur; // inside the silent lead
+          if (stb.paused) {
+            try { stb.currentTime = Math.max(0, target); } catch (_) {}
+            stb.play().catch(() => {});
+          } else if (!stb.seeking && stb.currentTime < bgLeadDur) {
+            const err = stb.currentTime - (act.currentTime - bgPatternDur);
+            if (Math.abs(err) > 0.005) {
+              try { stb.currentTime = stb.currentTime - err; } catch (_) {}
+            }
+          }
+        } else if (!stb.paused) {
+          // Out of the window with the standby somehow running — park it.
+          stb.pause();
+        }
+      }
+    }, BG_WATCHDOG_MS);
+  }
+
+  function stopBgWatchdog() {
+    if (bgWatchdogTimer) { clearInterval(bgWatchdogTimer); bgWatchdogTimer = null; }
+  }
+
+  // ── MediaSession ───────────────────────────────────────────────────────────────
+  function updateMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    try {
+      const sig = `${state.beatsPerMeasure}/${state.beatUnit}`;
+      const subStr = state.subdivision > 1
+        ? (state.subCustom
+            ? `, Custom ${state.subdivision}`
+            : `, ${subdivisionName(state.subdivision)}`)
+        : '';
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: `${formatBpm(state.bpm)} BPM — ${sig}${subStr}`,
+        artist: 'JVA Music Metronome',
+        album: '',
+        artwork: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+      });
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (state.isPlaying) {
+          // Resume after an interruption (phone call, other audio).
+          if (bgSilentEl && bgSilentEl.paused) bgSilentEl.play().catch(() => {});
+          if (bgActiveMode === 'element') {
+            const _act = bgClickEls[bgClickIdx];
+            if (_act && _act.paused && !_act.ended) _act.play().catch(() => {});
+          } else {
+            const _ctx = getAudioCtx();
+            if (_ctx.state !== 'running') _ctx.resume().catch(() => {});
+          }
+          requestWakeLock();
+          updatePlayButton();
+        } else {
+          // Restart from the lock screen / control center. The elements were
+          // armed in the original Start gesture, so play() is allowed here.
+          startMetronome();
+          if (document.visibilityState === 'hidden') enterBgPlayback();
+        }
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (state.isPlaying) stopMetronome();
+      });
+      navigator.mediaSession.setActionHandler('stop', () => {
+        if (state.isPlaying) stopMetronome();
+      });
+    } catch (_) {}
+  }
+
+  // ── Preferences persistence ────────────────────────────────────────────────────
+  const BG_PREFS_KEY = 'metronomeBgPrefs_v1';
+
+  function saveBgPrefs() {
+    try {
+      localStorage.setItem(BG_PREFS_KEY, JSON.stringify({ wakeLockUserEnabled }));
+    } catch (_) {}
+  }
+
+  function loadBgPrefs() {
+    try {
+      const d = JSON.parse(localStorage.getItem(BG_PREFS_KEY) || '{}');
+      if (typeof d.wakeLockUserEnabled === 'boolean') wakeLockUserEnabled = d.wakeLockUserEnabled;
+    } catch (_) {}
+  }
+
+  // ── Toggle event handlers ──────────────────────────────────────────────────────
+  (() => {
+    const el = document.getElementById('wake-lock-toggle');
+    if (!el) return;
+    el.addEventListener('change', e => {
+      wakeLockUserEnabled = e.target.checked;
+      saveBgPrefs();
+      if (state.isPlaying) {
+        wakeLockUserEnabled ? requestWakeLock() : releaseWakeLock();
+      }
+    });
+  })();
+
+  // ─── End Background Mode ──────────────────────────────────────────────────────
 
   init().catch((e) => console.error('init failed', e));
 </script>
