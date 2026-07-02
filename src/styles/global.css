@@ -213,7 +213,7 @@
       padding: 15px 56px;
       display: flex;
       flex-wrap: nowrap;
-      gap: 24px;
+      gap: 16px;
       align-items: center;
       font-size: 11px;
       font-weight: 400;
@@ -235,6 +235,55 @@
 
     .contact-strip a:hover { color: #fff; border-color: rgba(245,243,238,0.7); }
     .contact-strip .sep { opacity: 0.3; }
+
+    /* Contact strip is full-viewport-width but the explore-cta links
+       added below need room to sit on the same line without the
+       whole strip going into horizontal-scroll. At laptop widths,
+       drop Apple Music/Spotify/Instagram first — Linktree (hero) and
+       the footer still cover them — before the 860px breakpoint
+       restacks the hero and hides them anyway. */
+    @media (max-width: 1400px) {
+      .contact-strip .cs-desktop { display: none; }
+    }
+
+    /* ── EXPLORE CTA ──────────────────────────────────
+       Cross-links to the site's other high-intent pages (lessons,
+       metronome, PDFs) so authority/traffic flows between them
+       instead of dead-ending on the homepage. Lives inside the
+       contact strip, pushed flush right via margin-left:auto so
+       everything stays on one line on desktop; on narrow viewports
+       the strip's existing overflow-x:auto scroll takes over. */
+    .explore-inline {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-left: auto;
+      padding-left: 20px;
+      border-left: 1px solid rgba(245,243,238,0.25);
+    }
+
+    .explore-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--cream);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(245,243,238,0.25);
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .explore-link:hover { color: #fff; border-color: rgba(245,243,238,0.7); }
+
+    .explore-link-arrow {
+      color: var(--orange-lt);
+      transition: transform 0.2s;
+    }
+
+    .explore-link:hover .explore-link-arrow { transform: translateX(3px); }
 
     /* ── MAIN LAYOUT ─────────────────────────────────── */
     .wrapper {

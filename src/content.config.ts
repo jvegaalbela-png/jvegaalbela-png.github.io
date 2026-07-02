@@ -23,4 +23,11 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { blog };
+const metronomeGuide = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/metronome-guide' }),
+  schema: z.object({
+    title: z.string().optional(),
+  }),
+});
+
+export const collections = { blog, 'metronome-guide': metronomeGuide };

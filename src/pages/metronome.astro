@@ -1,8 +1,12 @@
 ---
+import { getEntry, render } from 'astro:content';
 import '../styles/global.css';
 import Layout from '../layouts/Layout.astro';
 import JsonLd from '../components/JsonLd.astro';
 import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION, ORGANIZATION_ID } from '../data/schema';
+
+const guideEntry = await getEntry('metronome-guide', 'practice-guide');
+const { Content: GuideContent } = await render(guideEntry);
 
 const pageUrl = `${SITE_URL}/metronome`;
 const toolId = `${pageUrl}#tool`;
@@ -583,183 +587,16 @@ const graph = {
 </div>
 </main>
 
-<!-- ══════════════════════════════════════════ PRACTICE GUIDE -->
+<!-- ══════════════════════════════════════════ PRACTICE GUIDE
+     Body content is CMS-editable via Sveltia (src/content/metronome-guide/
+     practice-guide.mdx) — edit the article's copy there, not here. Section
+     headings keep their explicit ids as raw HTML in that file (Astro's
+     markdown pipeline doesn't auto-slug headings), since the FAQ/HowTo
+     JSON-LD above and in-page links (e.g. #odd-meters) depend on them. -->
 <article class="metronome-prose" aria-labelledby="guide-intro">
   <div class="metronome-prose-inner">
     <p class="prose-eyebrow" id="guide-intro">Practice guide</p>
-    <p class="prose-intro">
-      Welcome to the JVA Music free online metronome &mdash; a flexible practice tool for musicians of every level, from absolute beginners to working professionals. If you&rsquo;re looking for <a href="/drum-lessons/">private drum lessons in Rochester, NY, or anywhere in the world</a>, I also teach in-person and online. Below the metronome you&rsquo;ll find a complete guide to using it well, including step-by-step practice methods, advanced techniques, and answers to the most common questions about metronome practice.
-    </p>
-
-    <h2 id="how-to-use">How To Use This Free Online Metronome</h2>
-    <p>
-      I designed this tool to have something for everyone. The slider lets you make big tempo adjustments, and you can fine-tune with the &minus;1/+1 and &minus;5/+5 buttons. You can also click on the BPM and type in any number from 1&ndash;500 if you have an exact tempo in mind. The subtitle shows the corresponding Italian tempo marking (frequently used in classical music).
-    </p>
-    <p>
-      You can pick from a number of common <a href="#time-signature">time signatures</a>, or use the custom menu for longer meters that aren&rsquo;t listed. Each beat of the measure can then be <a href="#subdivisions">subdivided</a> into groups of two, three, four, or six, or a custom count of up to 32, with each inner note switchable on or off so you can bake a rhythmic pattern into the beat. Two <a href="#sound">sound selections</a> are available: a tonal electronic sound, and a percussive clave sound. The <a href="#beats"><strong>beats menu</strong></a> lets you control the sound of each beat individually across four levels: <strong>accent</strong> (loud), <strong>normal</strong>, <strong>soft</strong> (a ghost-note voice for inner pulses), or <strong>mute</strong>.
-    </p>
-    <p>
-      These features are enough for most users, but advanced musicians may benefit from a few additional options. <a href="#gap-click"><strong>Gap click</strong></a> plays the metronome for a set number of measures, then mutes it for a set number of measures. <a href="#random-mute"><strong>Random mute</strong></a> unpredictably silences beats, keeping you on edge and making you more responsible for the time. <a href="#custom-form"><strong>Custom forms</strong></a> let you program a song structure with changing time signatures.
-    </p>
-
-    <h2 id="what-is-bpm">What Is a Metronome, and What Does BPM Mean?</h2>
-    <p>
-      Put simply, a metronome is a clock you can hear. It&rsquo;s a steady, external reference against which you can assess your own internal sense of time. &ldquo;BPM&rdquo; is short for <strong>beats per minute</strong>. The higher the BPM, the faster the metronome clicks. A single BPM is often called a &ldquo;click,&rdquo; so when you bump the metronome from 120 to 125 BPM, you could say it&rsquo;s five clicks faster.
-    </p>
-    <p>
-      A particular BPM is called a <strong>tempo</strong> (the Italian word for &ldquo;time&rdquo;). When you tackle a piece of music, the goal tempo is usually listed near the upper-left of the first page, sometimes as a number in BPM, sometimes as an Italian term like <em>Andante</em> or <em>Presto</em>. Each Italian term corresponds to a <em>range</em> of tempos, which gives you flexibility as an interpreter. Presto, for example, can be played anywhere from roughly 168 to 200 BPM. You can consult <a href="https://mosaicmusicinstruction.com/wp-content/uploads/2018/07/basic-tempo-markings.pdf" target="_blank" rel="noopener">this convenient table</a> for a full list.
-    </p>
-    <p>
-      This metronome also includes a <strong>tap tempo</strong> feature. If you hear a song and can tap your foot or bob your head along with it, click the &ldquo;<a href="#tempo">tap tempo</a>&rdquo; button at the speed of that pulse, and the tool will calculate the BPM for you.
-    </p>
-
-    <h2 id="beats-measures-meters">How a Metronome with Subdivisions Works: Beats, Measures, and Time Signatures</h2>
-    <p>
-      The pulse is the heartbeat of a piece of music. When you bob your head or tap your foot to a song, you&rsquo;re feeling the pulse. A <strong>beat</strong> is the basic unit of the pulse, and a <strong>measure</strong> is a larger unit of musical time that contains a certain number of beats.
-    </p>
-    <p>
-      A <strong>time signature</strong> (or meter) tells you two things: the top number tells you how many beats are in a measure, and the bottom number tells you what type of note gets the beat. The most common time signature in Western music is 4/4, which is why this tool defaults to it. The &ldquo;4&rdquo; on top means four beats per measure, and the &ldquo;4&rdquo; on the bottom means the quarter note gets the beat. You can find the time signature for any piece by looking at the first measure of the first page. The <a href="#time-signature">time signature selector</a> lets you pick from a buffet of common meters, or input an unusual one with the custom tool.
-    </p>
-    <p>
-      An <strong>accent</strong> makes a note louder than the notes around it. In the <a href="#beats">beats menu</a>, you can click any note to cycle through four levels: orange circles are accented, filled blue circles are unaccented, hollow blue circles are softer (think ghost notes), and grey circles are muted. Beat 1 is accented by default to help you track the length of each measure. For 5/8, 6/8, 7/8, 9/8, and 12/8, the metronome pre-loads the standard clave or compound-meter pulse so you hear beat 1 as the strongest accent, the dotted-quarter or grouping pulse as a normal click, and the inner eighths as soft &mdash; see the <a href="#odd-meters">odd meters</a> section below.
-    </p>
-    <p>
-      <strong>Subdivision</strong> is the splitting of a beat into equal parts. <strong>Duple</strong> subdivision splits the beat into two (eighth notes in 4/4), useful for locking in straight grooves. <strong>Triple</strong> subdivision splits it into three (eighth-note triplets), essential for swing, shuffle, and any triplet feel (think 6/8, 9/8, 12/8). <strong>Quadruple</strong> subdivision splits the beat into four (sixteenth notes), common in fast technical passages, funk, and hip-hop. <strong>Sextuplet</strong> subdivision splits the beat into six, the natural grid for fast shuffles and triplet-based sixteenth-note playing. When you need something else, the <strong>custom</strong> option covers any count from two up to 32, and you can switch each inner note on or off to program a specific rhythm into every beat. A follow-beat-mute toggle silences those subdivisions on any beat you have muted. The more granular the subdivision you can hear and understand, the tighter your time will be.
-    </p>
-
-    <h2 id="why-practice-with-metronome">Why Practice With a Metronome at All?</h2>
-    <p>
-      Working with a metronome helps you develop the ability to play and adjust to an external source of time. This is a necessary fundamental skill that all musicians use when playing music with other people. Metronome work also helps you validate your own intuitions about time in order to build a strong <strong>internal clock</strong>, an attribute that will make you a desirable musical collaborator.
-    </p>
-    <p>
-      A huge amount of modern professional session and gig work (at least the really high-profile stuff) is going to require you to play with a click track. So if you hope to break into music professionally, or even just to put together a good-sounding demo of your band&rsquo;s originals at a local studio, it&rsquo;s worth tightening up your playing with some metronome work.
-    </p>
-    <p>
-      At the end of the day, practicing with a metronome gives you a huge amount of information that you really can&rsquo;t get any other way. Playing with a click helps you learn about yourself as a musician: what your tendencies are, what certain tempos feel like in your body and in your spirit, and what weak areas you might target as you try to develop a deep, flexible feel that will work at any pace, in any style.
-    </p>
-    <p>
-      Working with the metronome also puts you in touch with <strong>objective reality</strong>. You can either play a passage at a certain tempo, or you can&rsquo;t. The metronome is one of the single most valuable tools for developing speed and control, and the little milestones and PRs that you can set by gradually working up tempos on your music are incredibly motivating and satisfying.
-    </p>
-    <p>
-      If you want a coach to help you build this &mdash; set tempo goals, diagnose your tendencies, track your PRs over weeks and months &mdash; I <a href="/drum-lessons/">teach private drum lessons in Rochester or over Zoom</a>, all levels.
-    </p>
-
-    <h2 id="how-to-practice">How to Practice With a Metronome (A Step-by-Step Method)</h2>
-    <ol>
-      <li>
-        <p><strong>Start without the metronome.</strong> Get the notes under your fingers or into your hands, work through the passage according to your own sense of time, and build familiarity with the material. Find a slow speed at which you can execute the passage in a relaxed way, with high attention to detail. Before you&rsquo;ve done this, the metronome won&rsquo;t help you.</p>
-      </li>
-      <li>
-        <p><strong>Find your tempo.</strong> Use the <a href="#tempo">tap tempo feature</a> to figure out the BPM you worked the passage up to in step 1.</p>
-      </li>
-      <li>
-        <p><strong>Let the click play, and just listen.</strong> This is where you internalize and memorize the tempo, and it&rsquo;s perhaps the most important step. When you play with a metronome, you want to be <strong>proactive, not reactive</strong>, playing according to your <em>memory</em> of the tempo, not trying to react to each click. The goal isn&rsquo;t note-perfect alignment; there&rsquo;s always natural human variance. You only need to react to the metronome when you notice your internal sense of time is leading you astray.</p>
-      </li>
-      <li>
-        <p><strong>Join in and play the passage.</strong> Direct as much of your attention to the metronome as you can.</p>
-      </li>
-      <li>
-        <p><strong>Diagnose: are you rushing or dragging?</strong> If you start to drift, learning to tell <em>which way</em> you drifted is the key skill. The beat-1 accent helps a lot here. If beat 1 comes up as a surprise, or it feels like the metronome is giving you beat 1 <em>early</em>, you&rsquo;re <strong>dragging</strong>. If you feel like you&rsquo;re jumping into a gap, or beat 1 feels <em>late</em>, you&rsquo;re <strong>rushing</strong>.</p>
-        <p>If you&rsquo;re a beginner, this is hard to feel in real time. Start by just noticing when you get off, then stopping. Think back on what happened and try to figure out which direction you drifted. Over time you&rsquo;ll identify your tendency. You may find that certain passages, or even whole pieces, want to go one way. Between repetitions, remind yourself of your tendency and try to counteract it on the next pass.</p>
-      </li>
-      <li>
-        <p><strong>Work the tempo up gradually.</strong> If you&rsquo;re trying to get a passage faster, the metronome is the single best tool for the job. A 1 BPM bump is so subtle you probably won&rsquo;t notice, and that&rsquo;s the point. Tiny incremental increases let you raise the pace over time without strain. Remember the <strong>law of diminishing returns</strong>. In the beginning you may be able to jump 10, 15, even 30 clicks quickly. Further down the road, gains shrink to 1&ndash;5 clicks at a time. Log your practice, track your tempo PRs, and be patient.</p>
-      </li>
-    </ol>
-    <p>
-      Want structured material to work this way on? My <a href="/pdfs/">free teaching PDFs library</a> has rudimental routines, coordination studies, and transcriptions &mdash; all built to practice against the metronome.
-    </p>
-
-    <h2 id="internal-clock">How to Develop a Stronger Internal Clock</h2>
-    <p>
-      Intermediate and advanced musicians can start exploring two different domains of time: <strong>macro</strong> and <strong>micro</strong>.
-    </p>
-    <p>
-      <strong>Micro-time</strong> is your ability to subdivide precisely. A metronome with subdivision enabled is the most direct tool for this: each inner pulse gives you an additional reference point that reveals exactly where each note falls relative to the grid. Work on it with the <a href="#subdivisions">subdivision feature</a>, trying to line up everything you play with the metronome&rsquo;s smaller pulses. This kind of granular work increases accuracy and can reveal small inconsistencies in your technique you didn&rsquo;t know were there. Pair it with rudimental work &mdash; run my <a href="/pdfs/single-surface/tech-routine-1/">Tech Routine 1</a> slowly against the subdivision feature and watch how clean each motion stays.
-    </p>
-    <p>
-      <strong>Macro-time</strong> is your ability to keep a consistent tempo over the length of an entire piece, with no rushing or dragging across minutes of music. The <a href="#gap-click"><strong>gap click</strong></a> feature (under the advanced toggle) is built for this. Set the click to play for, say, 2 measures and mute for 2; then escalate to 1-on/1-off, 1-on/3-off, 1-on/7-off. The more measures you mute in a row, the longer you&rsquo;re on your own, and the more your own internal clock has to carry the time.
-    </p>
-    <p>
-      The general rule: the more responsible you make yourself for the time, the stronger your internal clock gets. If you have years of experience under your belt, a metronome that gives you every single beat may be spoon-feeding you. <a href="#random-mute">Random mute</a> and <a href="#gap-click">gap click</a> are how you keep the work honest and keep growing, even after the basics feel automatic.
-    </p>
-
-    <h2 id="click-on-2-and-4">Putting the Click on 2 &amp; 4 (and Other Displacements)</h2>
-    <p>
-      Mental exercises where you &ldquo;flip your ears around&rdquo; to hear the metronome in different ways are fantastic for the internal clock, and they bridge the gap between micro and macro time.
-    </p>
-    <p>
-      The classic version: many jazz musicians set the metronome to half the true tempo and hear those clicks as <strong>beats 2 &amp; 4</strong>, the backbeat. Suddenly <em>you</em> are responsible for generating beats 1 and 3 internally, and the click becomes a reference instead of a crutch. You can do the same hearing the click as beats 1 and 3.
-    </p>
-    <p>A few more exercises to try, roughly in order of difficulty:</p>
-    <ul>
-      <li>Set the metronome at <strong>one quarter</strong> of the true tempo and hear it as beat 1. Then try hearing it as beat 2, beat 3, or beat 4.</li>
-      <li>Set the metronome to the true tempo and hear it as the <strong>upbeat</strong> (the &ldquo;and&rdquo; of each beat).</li>
-      <li>Set the metronome to the true tempo and hear it as the <strong>swung upbeat</strong>.</li>
-      <li>Set the metronome to the true tempo and hear it as the <strong>middle of a triplet</strong>.</li>
-      <li>Set the metronome to the true tempo and hear it as the <strong>fourth sixteenth note</strong>.</li>
-      <li>Set the metronome to the true tempo and hear it as the <strong>second sixteenth note</strong>.</li>
-      <li>Now run any of the above with <a href="#random-mute">random mute</a> turned on.</li>
-      <li>Now run any of the above with the metronome at half or quarter the true tempo, so you&rsquo;re only being fed one partial of one beat per measure (e.g., metronome only on the swung upbeat of beat 4).</li>
-    </ul>
-
-    <h2 id="common-mistakes">Common Metronome Mistakes (and How to Fix Them)</h2>
-    <p>
-      <strong class="lead">Being reactive instead of proactive.</strong> Always play to your <em>memory</em> of the tempo, not in response to each individual click. Reactive playing means you&rsquo;re always slightly late.
-    </p>
-    <p>
-      <strong class="lead">Watching the metronome instead of listening.</strong> You&rsquo;re trying to train your ears, not your eyes. Playing to a visual metronome won&rsquo;t develop the fundamental skills you build by playing to a click you <em>hear</em>. Close your eyes or look somewhere else if you catch yourself doing it.
-    </p>
-    <p>
-      <strong class="lead">Not tracking progress.</strong> Logging incremental progress and creeping tempos up over time is one of the biggest benefits of metronome practice. Tracking your tempo PRs is also satisfying and motivational, and it keeps the fire of inspiration lit on harder days.
-    </p>
-    <p>
-      <strong class="lead">Practicing with a metronome all the time.</strong> You don&rsquo;t want to become metronome-dependent. Spend real time playing only with your own internal clock so you&rsquo;re comfortable on gigs where you&rsquo;re fully responsible for the time.
-    </p>
-    <p>
-      <strong class="lead">Getting stuck in a rut.</strong> If you&rsquo;re an advanced player, build experimental metronome practice into your schedule &mdash; placements that genuinely challenge your ears and your internal clock. Don&rsquo;t settle for stale placements that feel easy.
-    </p>
-
-    <h2 id="click-track-vs-metronome">Click Track vs. Metronome: What&rsquo;s the Difference?</h2>
-    <p>
-      The terms are often used interchangeably, and for good reason: a click track and a metronome both make a steady clicking sound at a fixed BPM. The practical difference is <em>context</em>. A <strong>metronome</strong> is a practice tool. A <strong>click track</strong> is what you play to in a recording studio (routed through headphones), or sometimes on stage, to keep the band locked to a fixed tempo.
-    </p>
-    <p>
-      The good news for anyone who&rsquo;s done the work in this guide: practicing with a metronome <em>is</em> practicing with a click track. The skill transfers directly. If you can play comfortably and proactively to this metronome, you&rsquo;re prepared for a session.
-    </p>
-
-    <h2 id="odd-meters">Odd Meters: 5/4, 7/8, 12/8, and Custom Claves</h2>
-    <p>
-      Odd meters like 5/8, 7/8, and 9/8 don&rsquo;t divide into even halves the way 4/4 does, which is why they often feel hard to count. The trick most working musicians use is to learn the meter as a <strong>clave</strong> &mdash; a short repeating accent pattern that defines the feel of the meter. In jazz, <strong>3+2</strong> is common for 5/8 (one long, one short), and <strong>2+2+3</strong> is common for 7/8. Once you can hear the meter as a clave, the math fades away and the groove takes over.
-    </p>
-    <p>
-      For drumset players, these meters get really fun once you start layering them. My <a href="/pdfs/drumset/independence-exercise-pamphlet/">Independence Exercise Pamphlet</a> is a free PDF of coordination exercises in 5/4, 7/4, and 9/4 that pair well with the metronome&rsquo;s odd-meter claves, and the <a href="/pdfs/drumset/chorale-preliminary-exercises/">Chorale Preliminary Exercises</a> PDF works through 5/8 and 7/8 polymeter routines that build a 35-eighth-note cycle.
-    </p>
-    <p>
-      Picking 5/4, 5/8, 6/8, 7/4, 7/8, 9/8, or 12/8 from the <a href="#time-signature">time-signature</a> presets pre-loads the common clave or compound-meter pulse for you: beat 1 is accented (loudest), the start of each subsequent grouping is normal, and the inner beats are soft. The result is a click track where you simultaneously hear the downbeat, the grouping pulse, and the inner-beat feel underneath. You can still <a href="#beats">customize</a> any beat &mdash; click to cycle through accent, normal, soft, or mute &mdash; or program your own claves for meters that aren&rsquo;t pre-loaded.
-    </p>
-    <p>
-      If a piece shifts between meters (a lot of contemporary classical, prog, and modern jazz does), use the <a href="#custom-form"><strong>custom forms menu</strong></a> to program the entire structure ahead of time so you can focus on playing instead of counting changes.
-    </p>
-
-    <h2 id="faq">Metronome Practice FAQ</h2>
-    {faqs.map((f) => (
-      <div class="faq-item">
-        <p><strong class="lead">{f.q}</strong> {f.a}</p>
-      </div>
-    ))}
-
-    <h2 id="ios-background-note">A Note for iOS Users</h2>
-    <p>
-      A metronome webapp like this one that keeps playing audio in the background basically shouldn&rsquo;t be possible &mdash; but against all odds, we&rsquo;ve made it work. Due to the limitations we&rsquo;ve had to overcome, you may hear a brief stutter when you leave the app or lock your screen, and again when you come back. You may also hear a slight hiccup every 5&ndash;10 minutes while the metronome runs in the background.
-    </p>
-
-    <h2 id="keep-going">Want to take your practice further?</h2>
-    <ul>
-      <li><a href="/drum-lessons/"><strong>Take a private drum lesson</strong></a> &mdash; Rochester studio or Zoom, first lesson half off. K&ndash;12 and adults, jazz / rock / funk / Latin.</li>
-      <li><a href="/group-classes/"><strong>Drumset Jumpstart 1 (DJ1)</strong></a> &mdash; a 10-week online group class for complete beginners. 90-minute Zoom sessions with a small cohort.</li>
-      <li><a href="/pdfs/"><strong>Free teaching PDFs</strong></a> &mdash; exercises, transcriptions, and routines built to practice against this metronome.</li>
-    </ul>
+    <GuideContent />
   </div>
 </article>
 
