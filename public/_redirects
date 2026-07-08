@@ -1,0 +1,10 @@
+# 301 redirect: no-trailing-slash URLs → trailing-slash equivalents
+# Cloudflare Pages _redirects format: <source> <destination> <status>
+#
+# The `*` splat matches all characters greedily, and `:splat` captures it
+# into the destination URL. This catches /drum-lessons → /drum-lessons/
+# and /blog/some-post → /blog/some-post/ in a single rule.
+# Root `/` is a static file served by Astro and won't match `/*`.
+# See https://developers.cloudflare.com/pages/configuration/redirects/
+
+/*  /:splat/  301
