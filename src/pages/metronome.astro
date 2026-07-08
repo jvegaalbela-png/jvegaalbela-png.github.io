@@ -272,10 +272,10 @@ const graph = {
       <button class="btn btn-sig" data-beats="7" data-unit="16">7/16</button>
     </div>
     <div class="custom-sig">
-      <span class="custom-sig-label">Custom:</span>
-      <input type="number" id="beats-input" min="1" max="32" value="4" inputmode="numeric" />
+      <button class="btn btn-sig" id="time-sig-custom-btn" type="button" aria-label="Use a custom time signature">Custom</button>
+      <input type="number" id="beats-input" min="1" max="32" value="4" inputmode="numeric" aria-label="Custom beats per measure" />
       <span class="custom-sig-slash">/</span>
-      <select id="unit-select"></select>
+      <select id="unit-select" aria-label="Custom beat unit"></select>
     </div>
   </div>
 
@@ -1373,10 +1373,21 @@ const graph = {
       btn.classList.toggle('active',
         +btn.dataset.beats === beats && +btn.dataset.unit === unit);
     });
+    syncCustomSigButton(beats, unit);
 
     renderBeatGrid();
     renderSubDots();
     persistState();
+  }
+
+  // The Custom button (and its fields) light up whenever the current
+  // signature doesn't match any preset, so it's always clear which mode
+  // is engaged — preset or custom.
+  function syncCustomSigButton(beats, unit) {
+    const isPreset = [...document.querySelectorAll('#time-sig-presets .btn-sig')]
+      .some(btn => +btn.dataset.beats === beats && +btn.dataset.unit === unit);
+    document.getElementById('time-sig-custom-btn').classList.toggle('active', !isPreset);
+    document.querySelector('.custom-sig').classList.toggle('custom-active', !isPreset);
   }
 
   document.querySelectorAll('#time-sig-presets .btn-sig').forEach(btn => {
@@ -1388,6 +1399,14 @@ const graph = {
   });
   document.getElementById('unit-select').addEventListener('change', e => {
     setTimeSig(state.beatsPerMeasure, +e.target.value);
+  });
+  // Clicking Custom applies whatever the fields hold and drops focus into
+  // the beats input (which select-alls itself) so the user can type the
+  // meter straight away.
+  document.getElementById('time-sig-custom-btn').addEventListener('click', () => {
+    const bi = document.getElementById('beats-input');
+    setTimeSig(+bi.value, +document.getElementById('unit-select').value);
+    bi.focus();
   });
 
   // ─── Subdivision ──────────────────────────────────────────────────────────────
@@ -2477,6 +2496,7 @@ const graph = {
       btn.classList.toggle('active',
         +btn.dataset.beats === state.beatsPerMeasure && +btn.dataset.unit === state.beatUnit);
     });
+    syncCustomSigButton(state.beatsPerMeasure, state.beatUnit);
     document.getElementById('gap-toggle').checked = adv.gapEnabled;
     document.getElementById('gap-controls').classList.toggle('disabled', !adv.gapEnabled);
     document.getElementById('gap-play-slider').value = adv.gapPlay;

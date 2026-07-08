@@ -392,9 +392,13 @@
       gap: 0.5rem;
     }
 
-    .metronome-shell .custom-sig-label {
-      font-size: 0.75rem;
-      color: rgba(245, 243, 238, 0.45);
+    /* When the active signature doesn't match any preset, the Custom
+       button carries the usual .btn.active state and its fields pick up
+       the same accent so the whole row reads as the engaged control. */
+    .metronome-shell .custom-sig.custom-active input,
+    .metronome-shell .custom-sig.custom-active select {
+      border-color: var(--blue-lt);
+      background: rgba(91, 141, 232, 0.22);
     }
 
     .metronome-shell .custom-sig input,
