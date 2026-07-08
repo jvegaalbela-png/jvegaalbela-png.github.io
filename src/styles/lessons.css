@@ -63,8 +63,10 @@ main > section:not(.hero){
      clears the fixed translucent nav. The previous clamp resolved
      to as little as 40px on 601-1066px viewports, leaving the
      eyebrow tucked behind the 64px header — fix matches the
-     header-aware padding pattern used on every other hero. */
-  padding:calc(var(--header-h) + clamp(1rem,3vw,2rem)) 0 clamp(2rem,5vw,3.5rem);
+     header-aware padding pattern used on every other hero.
+     Top padding stays lean: on short desktop viewports every vertical
+     pixel here pushes the form's CTA under the fold. */
+  padding:calc(var(--header-h) + clamp(.75rem,1.5vw,1rem)) 0 clamp(2rem,5vw,3.5rem);
   position:relative;overflow:hidden;border-top:0;
   contain:layout;
 }
@@ -79,15 +81,30 @@ main > section:not(.hero){
 .hero-text{grid-area:text;display:flex;flex-direction:column}
 .hero-img{grid-area:image}
 .hero-tel{margin-top:1rem;padding-left:0;padding-right:0}
-.hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-lt);margin-bottom:.75rem}
+.hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-lt);margin-bottom:.5rem}
 
-/* Inline 5-star Google review chip; lives between hero-sub and the
-   form so social proof reads above the fold without crowding the
-   credential chips. */
+/* Teacher chip — small round portrait + name + the 5-star Google
+   rating link. Lives between hero-sub and the promo so there's a
+   human face and social proof above the fold on every device. */
+.hero-teacher{display:flex;align-items:center;gap:.75rem;margin:0 0 .625rem}
+.hero-teacher-photo{
+  width:48px;height:48px;border-radius:50%;overflow:hidden;flex:none;
+  border:2px solid rgba(245,243,238,.35);background:var(--cobalt);
+  display:block;
+}
+/* The source photo is a wide drum-kit shot — zoom the crop in on the
+   face (which sits at ~50% / 16% of the frame) so the 48px circle
+   reads as a portrait, not a drum set. */
+.hero-teacher-photo img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transform:scale(2.35);transform-origin:50% 16%;
+}
+.hero-teacher-meta{display:flex;flex-direction:column;gap:2px}
+.hero-teacher-name{font-size:.8125rem;font-weight:600;letter-spacing:.02em;color:var(--cream)}
 .hero-rating{
   display:inline-flex;align-items:center;gap:.5rem;
   align-self:flex-start;
-  margin:0 0 .875rem;padding:.25rem 0;
+  margin:0;padding:0;
   color:rgba(245,243,238,.92);text-decoration:none;
   font-size:.8125rem;letter-spacing:.01em;
   border-bottom:1px solid transparent;transition:border-color .15s,color .15s;
@@ -104,7 +121,7 @@ main > section:not(.hero){
   border-left:3px solid var(--orange-lt);
   padding:.55rem .75rem;border-radius:2px;
   font-size:.875rem;line-height:1.4;color:rgba(245,243,238,.95);
-  margin:0 0 .875rem;
+  margin:0 0 .625rem;
 }
 .hero-promo-tag{
   font-size:.625rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
@@ -112,23 +129,21 @@ main > section:not(.hero){
 }
 .hero-promo-text strong{color:#fff;font-weight:700}
 
-.hero-price{
-  font-size:.875rem;line-height:1.4;color:rgba(245,243,238,.78);
-  margin:0 0 .875rem;letter-spacing:.01em;
-}
-.hero-price strong{color:var(--cream);font-weight:600;font-size:1rem}
-.hero-price-unit{color:rgba(245,243,238,.6)}
 .hero h1{
   font-family:var(--serif);font-weight:300;line-height:1.05;letter-spacing:-.01em;
-  font-size:clamp(2rem,5.5vw,3.5rem);margin-bottom:1rem;
+  font-size:clamp(2rem,4.6vw,2.875rem);margin-bottom:.625rem;
 }
 .hero h1 em{font-style:italic;color:var(--blue-lt)}
 /* max-width in em (relative to font-size) instead of ch (relative
    to "0"-glyph width) so the paragraph's wrap point stays stable
    through the Inter font swap — ch values can differ by ~10% between
    Inter and the fallback Arial, which was causing CLS. */
-.hero-sub{font-size:clamp(1rem,1.6vw,1.125rem);line-height:1.55;color:rgba(245,243,238,.82);max-width:28em;margin-bottom:1rem}
-.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.hero-sub{font-size:clamp(1rem,1.6vw,1.125rem);line-height:1.55;color:rgba(245,243,238,.82);max-width:28em;margin-bottom:.75rem}
+.hero-sub strong{color:var(--cream);font-weight:600}
+/* Credential chips sit BELOW the form on every viewport (flex order on
+   .hero-text) — the form CTA is what has to clear the fold, and the
+   Eastman credential now leads in the subheadline anyway. */
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;order:1;margin:.75rem 0 0}
 .chip{
   display:inline-flex;align-items:center;gap:.5rem;
   background:rgba(245,243,238,.06);border:1px solid rgba(245,243,238,.18);
@@ -154,6 +169,11 @@ main > section:not(.hero){
 .trust-line{
   margin-top:1rem;font-size:.8125rem;letter-spacing:.01em;line-height:1.45;
   color:rgba(245,243,238,.78);
+}
+/* Anxiety-reducer directly under the form's submit button. */
+.form-reassure{
+  margin-top:.625rem;font-size:.8125rem;line-height:1.5;
+  color:rgba(245,243,238,.7);max-width:480px;
 }
 @media (min-width:780px){
   .hero .wrap{grid-template-columns:1.15fr .85fr;gap:0.75rem 3rem;align-items:stretch;grid-template-areas:"text image"}
@@ -380,17 +400,16 @@ footer{
 
   .hero{padding-top:calc(var(--header-h) + 16px);padding-bottom:2rem}
   .hero h1{font-size:2rem;margin-bottom:.75rem}
-  .hero-sub{font-size:1rem;margin-bottom:1rem}
-  /* Push credential chips below the form on mobile so the form CTA
-     sits closer to the fold. flex order on .hero-text. */
-  .chips{order:1;margin-top:.625rem;margin-bottom:0;gap:.4rem}
+  .hero-sub{font-size:1rem;margin-bottom:.875rem}
+  /* Chips already sit below the form at every width (base rule). */
+  .chips{margin-top:.625rem;gap:.4rem}
   .chip{font-size:.6875rem;padding:.4rem .65rem}
   .hero-tel{margin-top:.625rem;font-size:.8125rem}
   .trust-line{margin-top:.625rem;font-size:.75rem}
   .hero-img{margin-top:1rem}
-  .hero-rating{font-size:.8125rem;margin-bottom:.75rem}
+  .hero-teacher{margin-bottom:.75rem}
+  .hero-rating{font-size:.8125rem}
   .hero-promo{font-size:.875rem;padding:.5rem .65rem;margin-bottom:.875rem}
-  .hero-price{margin-bottom:.875rem}
 
   .promo-banner{flex-direction:column;align-items:flex-start;gap:.4rem;padding:.875rem 1rem;font-size:.9375rem;text-align:left}
   .pcard{padding:1.25rem}

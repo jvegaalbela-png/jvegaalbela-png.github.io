@@ -4,10 +4,30 @@
 // pop up above the pill. Auto-hides while the hero / page's final
 // cta-band / footer is on screen so it never competes with a more
 // contextual CTA.
+//
+// Pages with a live offer (drum lessons, group classes) can pass
+// `offer` — the pill label then advertises the offer instead of the
+// generic "Contact", and the expanded menu leads with an orange link
+// to the offer's booking page (email + call/text demote to neutral).
+
+interface Props {
+  offer?: { label: string; href: string; event?: string; location?: string };
+}
+
+const { offer } = Astro.props;
+const offerClick = offer?.event
+  ? `gtag('event', '${offer.event}', { location: '${offer.location ?? 'sticky_cta'}' })`
+  : undefined;
 ---
 
-<aside class="sticky-cta" id="stickyCta" aria-label="Contact Jacobo">
+<aside class="sticky-cta" id="stickyCta" aria-label="Contact Jacobo" data-has-offer={offer ? 'true' : undefined}>
   <div class="sticky-cta-menu" id="stickyCtaMenu" aria-hidden="true">
+    {offer && (
+      <a class="sticky-cta-btn sticky-cta-offer" data-cta href={offer.href} onclick={offerClick}>
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M11 2 4 11h5l-1 7 8-10h-5.5L11 2Z"/></svg>
+        <span>{offer.label}</span>
+      </a>
+    )}
     <a
       class="sticky-cta-btn sticky-cta-email"
       href="mailto:jacobovamusic@gmail.com"
@@ -32,10 +52,10 @@
     id="stickyCtaTrigger"
     aria-expanded="false"
     aria-controls="stickyCtaMenu"
-    aria-label="Open contact options"
+    aria-label={offer ? `${offer.label} — open contact options` : 'Open contact options'}
   >
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8l-3 3v-3H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/></svg>
-    <span>Contact</span>
+    <span>{offer ? offer.label : 'Contact'}</span>
   </button>
 </aside>
 
@@ -136,6 +156,37 @@
   }
   .sticky-cta-call:hover,
   .sticky-cta-call:focus-visible {
+    background: var(--orange-lt);
+    border-color: var(--orange-lt);
+  }
+  /* With an offer present, the offer link is the loud orange action and
+     call/text steps back to the neutral style. */
+  .sticky-cta-offer {
+    background: var(--orange);
+    color: var(--navy);
+    border: 1px solid var(--orange);
+  }
+  .sticky-cta-offer:hover,
+  .sticky-cta-offer:focus-visible {
+    background: var(--orange-lt);
+    border-color: var(--orange-lt);
+  }
+  .sticky-cta[data-has-offer] .sticky-cta-call {
+    background: rgba(245, 243, 238, 0.08);
+    color: var(--cream);
+    border-color: rgba(245, 243, 238, 0.28);
+  }
+  .sticky-cta[data-has-offer] .sticky-cta-call:hover,
+  .sticky-cta[data-has-offer] .sticky-cta-call:focus-visible {
+    background: rgba(245, 243, 238, 0.14);
+  }
+  .sticky-cta[data-has-offer] .sticky-cta-trigger {
+    background: var(--orange);
+    color: var(--navy);
+    border-color: var(--orange);
+  }
+  .sticky-cta[data-has-offer] .sticky-cta-trigger:hover,
+  .sticky-cta[data-has-offer] .sticky-cta-trigger:focus-visible {
     background: var(--orange-lt);
     border-color: var(--orange-lt);
   }

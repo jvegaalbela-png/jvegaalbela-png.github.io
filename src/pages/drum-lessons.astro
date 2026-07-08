@@ -7,6 +7,7 @@ import JsonLd from '../components/JsonLd.astro';
 import YouTubeFacade from '../components/YouTubeFacade.astro';
 import BandcampFacade from '../components/BandcampFacade.astro';
 import heroImg from '../assets/at-drums-serious.webp';
+import portraitImg from '../assets/at-drums-cheerful.webp';
 import albumArt from '../assets/album-art.jpg';
 import {
   SITE_URL,
@@ -41,7 +42,7 @@ const faqs = [
   },
   {
     q: 'Do you teach beginners?',
-    a: "Yes: K–12 and adults. Most of my students start as beginners, and there's nothing to catch up on before lesson one.",
+    a: "Yes: K-12 and adults. Most of my students start as beginners, and there's nothing to catch up on before lesson one.",
   },
   {
     q: 'Do you offer virtual lessons?',
@@ -49,11 +50,11 @@ const faqs = [
   },
   {
     q: 'What styles do you teach?',
-    a: 'Rock, jazz, funk, Latin, and popular music more broadly. I cover reading and ear training, rudiments, technique, sound on the kit, and time-feel work using my <a href="/metronome/">free online metronome with subdivisions</a>. We also dig into independence and groove studies — like the patterns in my <a href="/pdfs/drumset/independence-exercise-pamphlet/">Independence Exercise Pamphlet</a>. We\'ll shape the curriculum to your goals.',
+    a: 'Rock, jazz, funk, Latin, and popular music more broadly. I cover reading and ear training, rudiments, technique, sound on the kit, and time-feel work using my <a href="/metronome/">free online metronome with subdivisions</a>. We also dig into independence and groove studies, like the patterns in my <a href="/pdfs/drumset/independence-exercise-pamphlet/">Independence Exercise Pamphlet</a>. We\'ll shape the curriculum to your goals.',
   },
   {
     q: 'Where are you located?',
-    a: "My studio is in the South Wedge neighborhood of Rochester, NY (14620) — close to Park Ave, Highland Park, the East End, Mt. Hope, Swillburg, and a short drive from Pittsford and Brighton. The exact address is shared after booking. I also do house calls and virtual lessons over Zoom.",
+    a: "My studio is in the South Wedge neighborhood of Rochester, NY (14620), close to Park Ave, Highland Park, the East End, Mt. Hope, Swillburg, and a short drive from Pittsford and Brighton. The exact address is shared after booking. I also do house calls and virtual lessons over Zoom.",
   },
 ];
 
@@ -66,7 +67,7 @@ const testimonials = [
   {
     author: 'Annie',
     role: 'music school graduate',
-    body: 'I got into the conservatory in Brussels! Thank you so much for all your support — I learned a lot from you.',
+    body: 'I got into the conservatory in Brussels! Thank you so much for all your support. I learned a lot from you.',
   },
   {
     author: 'Joseph',
@@ -117,9 +118,9 @@ const reviews = testimonials.map((t, i) => ({
 const localBusiness = {
   '@type': ['LocalBusiness', 'MusicSchool'],
   '@id': LOCAL_BUSINESS_ID,
-  name: 'Jacobo Vega-Albela — Private Drum Lessons',
+  name: 'Private Drum Lessons with Jacobo Vega-Albela',
   description:
-    'Private drum lessons in Rochester, NY with Eastman-trained jazz drummer Jacobo Vega-Albela. Studio in the South Wedge — convenient to Park Ave, Highland Park, the East End, Mt. Hope, Swillburg, Pittsford, and Brighton. By appointment only. K–12 and adults, beginners through advanced, in jazz, rock, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
+    'Private drum lessons in Rochester, NY with Eastman-trained jazz drummer Jacobo Vega-Albela. Studio in the South Wedge, convenient to Park Ave, Highland Park, the East End, Mt. Hope, Swillburg, Pittsford, and Brighton. By appointment only. K-12 and adults, beginners through advanced, in jazz, rock, funk, Latin, and popular styles. In-person at the South Wedge studio, house calls, or virtual over Zoom.',
   url: pageUrl,
   image: heroSocialUrl,
   telephone: '+1-585-802-4247',
@@ -214,7 +215,7 @@ const graph = {
       '@type': 'WebPage',
       '@id': `${pageUrl}#webpage`,
       url: pageUrl,
-      name: 'Drum Lessons in Rochester, NY — Jacobo Vega-Albela',
+      name: 'Drum Lessons in Rochester, NY | Jacobo Vega-Albela',
       about: { '@id': LOCAL_BUSINESS_ID },
       primaryImageOfPage: heroSocialUrl,
       breadcrumb: {
@@ -241,6 +242,12 @@ const graph = {
     type: 'image/webp',
     alt: 'Jacobo Vega-Albela playing drums on a concert hall stage',
   }}
+  stickyOffer={{
+    label: '$25 first lesson',
+    href: '/book',
+    event: 'lesson_booking_cta_click',
+    location: 'sticky_cta',
+  }}
 >
   <JsonLd slot="head" data={graph} />
 <main>
@@ -250,27 +257,35 @@ const graph = {
     <div class="hero-text">
       <p class="hero-eyebrow">Private drum instruction</p>
       <h1 id="heroTitle">Drum Lessons in<br /><em>Rochester, NY</em></h1>
-      <p class="hero-sub">Personalized instruction for every age and skill level.</p>
-      <a class="hero-rating" href="#testimonialsTitle">
-        <span class="hero-rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-        <span class="hero-rating-text"><strong>5.0</strong> &middot; 6 Google reviews</span>
-      </a>
+      <p class="hero-sub">One-on-one lessons with an <strong>Eastman-trained</strong> jazz drummer. Kids and adults, beginners through advanced, in person or over Zoom.</p>
+      <div class="hero-teacher">
+        <span class="hero-teacher-photo">
+          <Image src={portraitImg} alt="Jacobo Vega-Albela smiling behind his drum kit" width={192} height={192} quality={80} loading="eager" />
+        </span>
+        <div class="hero-teacher-meta">
+          <span class="hero-teacher-name">Jacobo Vega-Albela</span>
+          <a class="hero-rating" href="#testimonialsTitle">
+            <span class="hero-rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            <span class="hero-rating-text"><strong>5.0</strong> &middot; 6 Google reviews</span>
+          </a>
+        </div>
+      </div>
       <p class="hero-promo">
         <span class="hero-promo-tag">New students</span>
-        <span class="hero-promo-text">First lesson <strong>50% off</strong> &mdash; just $25 for an hour.</span>
+        <span class="hero-promo-text">First lesson <strong>50% off</strong>: $25 for an hour. Then $50 / 60&nbsp;min &middot; $30 / 30&nbsp;min.</span>
       </p>
       <ul class="chips" aria-label="Credentials">
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Master's, Eastman School of Music</li>
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>10+ years teaching</li>
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>All ages &amp; levels</li>
       </ul>
-      <p class="hero-price"><strong>$50</strong> <span class="hero-price-unit">/ 60 min</span> &nbsp;&middot;&nbsp; <strong>$30</strong> <span class="hero-price-unit">/ 30 min</span></p>
       <LessonForm
         formId="xjglgjjj"
         formIdSlug="hero-lesson-form"
         submitEvent="lesson_inquiry_submit"
         submitEventParams={{ form_location: 'lessons_hero', value: 25, currency: 'USD' }}
       />
+      <p class="form-reassure">No commitment. I read every message and usually reply the same day.</p>
       <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'lessons_hero' })">Text or call (585) 802-4247</a>
       <p class="trust-line">Google-screened &middot; Background-checked</p>
     </div>
@@ -301,9 +316,13 @@ const graph = {
       {testimonials.map((t) => (
         <figure class="tcard">
           <blockquote>{t.excerpt ?? t.body}</blockquote>
-          <figcaption>&mdash; <strong>{t.author}</strong>, {t.role}</figcaption>
+          <figcaption><strong>{t.author}</strong>, {t.role}</figcaption>
         </figure>
       ))}
+    </div>
+    <div class="mid-cta">
+      <p><strong>Six five-star reviews and counting.</strong> Try a half-price first lesson and see if we click.</p>
+      <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'testimonials' })">Request My Half-Price Lesson</a>
     </div>
   </div>
 </section>
@@ -316,14 +335,14 @@ const graph = {
       <h2 id="pricingTitle">Transparent pricing, no surprises.</h2>
       <span class="section-rule" aria-hidden="true"></span>
     </div>
-    <p class="pricing-note"><span class="pricing-note-dot" aria-hidden="true">●</span> New students get 50% off the first lesson &mdash; rates below are the standard ones.</p>
+    <p class="pricing-note"><span class="pricing-note-dot" aria-hidden="true">●</span> New students get 50% off the first lesson. Rates below are the standard ones.</p>
     <div class="pricing-grid">
       <div class="pcard featured">
         <span class="pcard-tag">Most popular</span>
         <h3>Standard rate</h3>
         <p class="price">$50 <small>/ 60 min</small></p>
         <p class="price">$30 <small>/ 30 min</small></p>
-        <p>At my home studio in Rochester, or virtual over Zoom &mdash; same rate either way.</p>
+        <p>At my home studio in Rochester, or virtual over Zoom. Same rate either way.</p>
       </div>
       <div class="pcard">
         <span class="pcard-tag">4-lesson pack</span>
@@ -336,11 +355,11 @@ const graph = {
         <span class="pcard-tag">House calls</span>
         <h3>I come to you</h3>
         <p class="price-sub">Standard rate <small>+ $0.75/min round-trip travel</small></p>
-        <p>Travel billed transparently &mdash; ideal for younger students who can't easily get to the studio.</p>
+        <p>Travel billed transparently. Ideal for younger students who can't easily get to the studio.</p>
       </div>
     </div>
     <details class="pricing-more">
-      <summary>More options &mdash; student, K&ndash;12, and referral discounts</summary>
+      <summary>More options: student, K-12, and referral discounts</summary>
       <ul class="pricing-rows">
         <li class="pricing-row">
           <span class="pricing-row-tag">Collegiate</span>
@@ -349,10 +368,10 @@ const graph = {
           <span class="pricing-row-body">Book three at full price, the 4th is half off. Proof of enrollment.</span>
         </li>
         <li class="pricing-row">
-          <span class="pricing-row-tag">K&ndash;12 special</span>
+          <span class="pricing-row-tag">K-12 special</span>
           <span class="pricing-row-title">Back-to-school</span>
           <span class="pricing-row-price">Buy 5, get 1 free</span>
-          <span class="pricing-row-body">Runs Jul&ndash;Sep and Jan&ndash;Mar. Great for habit-building.</span>
+          <span class="pricing-row-body">Runs Jul-Sep and Jan-Mar. Great for habit-building.</span>
         </li>
         <li class="pricing-row">
           <span class="pricing-row-tag">Referral bonus</span>
@@ -364,7 +383,7 @@ const graph = {
     </details>
     <p class="pricing-fineprint">Bulk packs are non-refundable but fully reschedulable with 24 hours notice. Illness exceptions always apply.</p>
     <div class="mid-cta">
-      <p><strong>Not sure which option fits?</strong> Try a half-price first lesson &mdash; drum with me, then decide.</p>
+      <p><strong>Not sure which option fits?</strong> Try a half-price first lesson: drum with me, then decide.</p>
       <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'pricing_mid' })">Request My Half-Price Lesson</a>
     </div>
   </div>
@@ -381,15 +400,15 @@ const graph = {
     <div class="about-grid">
       <div class="about-text">
         <h3>Clarity, honest feedback, steady wins.</h3>
-        <p>I help students find their voice with assignments tailored to their individual needs &mdash; and I get results. I teach K&ndash;12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and other popular styles.</p>
+        <p>I help students find their voice with assignments tailored to their individual needs, and I get results. I teach K-12 and adults, beginners through advanced, in rock, jazz, funk, Latin, and other popular styles.</p>
         <p>Whether you're picking up sticks for the first time or preparing for a conservatory audition, the path forward is the same: clarity about what to practice, honest feedback, and steady wins. We figure out where you want to go, then build the habits to get you there.</p>
-        <p>I'm a working drummer first and a teacher second. Everything I assign comes from a practical base of knowledge &mdash; the same things I'm using on stage and in the studio.</p>
+        <p>I'm a working drummer first and a teacher second. Everything I assign comes from a practical base of knowledge: the same things I'm using on stage and in the studio.</p>
       </div>
       <div class="about-bg">
         <h3>Background</h3>
         <ul class="bg-list">
-          <li><strong>Education</strong>MM, Jazz Studies &amp; Contemporary Media &mdash; Eastman School of Music (2022, Schirmer Prize in Jazz Performance) &middot; BM, Classical Percussion Performance &mdash; New Mexico State University (2019, Crimson Scholar) &middot; Betty Carter's Jazz Ahead alumnus (2023)</li>
-          <li><strong>Teaching</strong>Private instructor 2015&ndash;present &middot; Lecture-style classes on drumset styles at Eastman &middot; All ages and levels</li>
+          <li><strong>Education</strong>MM, Jazz Studies &amp; Contemporary Media, Eastman School of Music (2022, Schirmer Prize in Jazz Performance) &middot; BM, Classical Percussion Performance, New Mexico State University (2019, Crimson Scholar) &middot; Betty Carter's Jazz Ahead alumnus (2023)</li>
+          <li><strong>Teaching</strong>Private instructor 2015-present &middot; Lecture-style classes on drumset styles at Eastman &middot; All ages and levels</li>
           <li><strong>Performance</strong>Western New York Big Band, Las Cruces Symphony Orchestra, The Swooners, Silver Arrow, Trio 55, Brendan Lanighan Octet &middot; Festivals: Rochester International Jazz Festival, Burlington Discover Jazz Festival, Las Cruces Juneteenth Jazz Festival</li>
         </ul>
         <p class="press-line"><strong>As featured in</strong>Rochester City Magazine &middot; Las Cruces Bulletin &middot; Bob Osborne's <em>Different Noises</em> &middot; WMSE, WFMU, KURU, KOWS-LP</p>
@@ -416,7 +435,7 @@ const graph = {
           fallbackHref="https://577records.bandcamp.com/album/un-belonging"
           fallbackText="Un-Belonging by Jacobo Vega-Albela"
         />
-        <figcaption><strong>Un-Belonging</strong> &mdash; my debut album on 577 Records (2025).</figcaption>
+        <figcaption><strong>Un-Belonging</strong>: my debut album on 577 Records (2025).</figcaption>
       </figure>
       <figure class="media">
         <div class="media-frame yt">
@@ -425,7 +444,7 @@ const graph = {
             title="Performance footage on YouTube"
           />
         </div>
-        <figcaption><strong>Performance footage</strong> &mdash; clips from recent shows and sessions.</figcaption>
+        <figcaption><strong>Performance footage</strong>: clips from recent shows and sessions.</figcaption>
       </figure>
     </div>
     <p class="epk-link">More about me at <a href="https://www.jva-music.com" target="_blank" rel="noopener">jva-music.com</a>.</p>
@@ -447,7 +466,7 @@ const graph = {
       </details>
       <details>
         <summary>Do you teach beginners?</summary>
-        <div class="faq-body">Yes: K&ndash;12 and adults. Most of my students start as beginners, and there's nothing to "catch up on" before lesson one.</div>
+        <div class="faq-body">Yes: K-12 and adults. Most of my students start as beginners, and there's nothing to "catch up on" before lesson one.</div>
       </details>
       <details>
         <summary>Do you offer virtual lessons?</summary>
@@ -455,11 +474,11 @@ const graph = {
       </details>
       <details>
         <summary>What styles do you teach?</summary>
-        <div class="faq-body">Rock, jazz, funk, Latin, and popular music more broadly. I cover reading and ear training, rudiments, technique, sound on the kit, and time-feel work using my <a href="/metronome/">free online metronome with subdivisions</a>. We also dig into independence and groove studies &mdash; like the patterns in my <a href="/pdfs/drumset/independence-exercise-pamphlet/">Independence Exercise Pamphlet</a>. We'll shape the curriculum to your goals.</div>
+        <div class="faq-body">Rock, jazz, funk, Latin, and popular music more broadly. I cover reading and ear training, rudiments, technique, sound on the kit, and time-feel work using my <a href="/metronome/">free online metronome with subdivisions</a>. We also dig into independence and groove studies, like the patterns in my <a href="/pdfs/drumset/independence-exercise-pamphlet/">Independence Exercise Pamphlet</a>. We'll shape the curriculum to your goals.</div>
       </details>
       <details>
         <summary>Where are you located?</summary>
-        <div class="faq-body">My studio is in the South Wedge neighborhood of Rochester, NY (14620) &mdash; close to Park Ave, Highland Park, the East End, Mt. Hope, and Swillburg, and a short drive from Pittsford and Brighton. The exact address is shared after booking. I also do house calls (see pricing) and virtual lessons over Zoom.</div>
+        <div class="faq-body">My studio is in the South Wedge neighborhood of Rochester, NY (14620), close to Park Ave, Highland Park, the East End, Mt. Hope, and Swillburg, and a short drive from Pittsford and Brighton. The exact address is shared after booking. I also do house calls (see pricing) and virtual lessons over Zoom.</div>
       </details>
     </div>
   </div>
@@ -470,7 +489,7 @@ const graph = {
 <section class="cta-band" aria-label="Request your half-price first lesson">
   <div class="cta-band-inner">
     <h2>Your first lesson, half off.</h2>
-    <p>Just $25 for an hour. Try a real lesson before committing &mdash; see if we click.</p>
+    <p>Just $25 for an hour. Try a real lesson before committing and see if we click.</p>
     <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'cta_band' })">Request My Half-Price Lesson</a>
   </div>
 </section>

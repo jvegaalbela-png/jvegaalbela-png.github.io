@@ -94,9 +94,12 @@ interface Props {
   noindex?: boolean;
   image?: OgImage;
   og?: { title?: string; description?: string; type?: string; image?: OgImage };
+  /** Page-specific offer for the sticky contact pill — the pill label
+   *  carries the offer and the expanded menu leads with it. */
+  stickyOffer?: { label: string; href: string; event?: string; location?: string };
 }
 
-const { title, description, themeColor, bodyClass, noindex, image, og } = Astro.props;
+const { title, description, themeColor, bodyClass, noindex, image, og, stickyOffer } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 
@@ -168,7 +171,7 @@ const ogType = og?.type ?? 'website';
   <Header />
   <slot />
   <Footer />
-  <StickyCTA />
+  <StickyCTA offer={stickyOffer} />
   <script is:inline>
     // One-time cleanup: an earlier release registered a service worker at
     // /sw.js with site-wide scope. That SW is no longer wanted (the new

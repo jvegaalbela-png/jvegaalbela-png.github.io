@@ -5,6 +5,7 @@ import Layout from '../layouts/Layout.astro';
 import LessonForm from '../components/LessonForm.astro';
 import JsonLd from '../components/JsonLd.astro';
 import heroImg from '../assets/blog/how-long-hero.webp';
+import portraitImg from '../assets/at-drums-cheerful.webp';
 import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION_ID } from '../data/schema';
 
 const pageUrl = `${SITE_URL}/group-classes`;
@@ -20,11 +21,11 @@ const heroSocialUrl = new URL(heroSocial.src, SITE_URL).toString();
 const faqs = [
   {
     q: 'Do I need a drumset?',
-    a: "Nope. You'll start with a practice pad, a pair of sticks, and Ted Reed's Syncopation — that's it. Many students stay on the pad for months and make great progress before investing in a kit.",
+    a: "Nope. You'll start with a practice pad, a pair of sticks, and Ted Reed's Syncopation. That's it. Many students stay on the pad for months and make great progress before investing in a kit.",
   },
   {
     q: 'Can I sign my kid up?',
-    a: "The pilot is for ages 15+. Younger students usually do better in private lessons where I can adapt to their pace and energy — reach out and we'll find a fit.",
+    a: "The pilot is for ages 15+. Younger students usually do better in private lessons where I can adapt to their pace and energy. Reach out and we'll find a fit.",
   },
   {
     q: 'What does "small group format" mean?',
@@ -46,7 +47,7 @@ const course = {
   name: 'Drumset Jumpstart 1 (DJ1)',
   alternateName: 'DJ1',
   description:
-    'A 10-week online group drum class for complete beginners. 90-minute Zoom sessions with a small cohort capped at 10 students. No drumset required to start — just a practice pad, sticks, and Ted Reed\'s Syncopation.',
+    'A 10-week online group drum class for complete beginners. 90-minute Zoom sessions with a small cohort capped at 10 students. No drumset required to start: just a practice pad, sticks, and Ted Reed\'s Syncopation.',
   url: pageUrl,
   image: heroSocialUrl,
   inLanguage: 'en-US',
@@ -72,7 +73,7 @@ const course = {
   hasCourseInstance: [
     {
       '@type': 'CourseInstance',
-      name: 'DJ1 — Pilot Cohort',
+      name: 'DJ1 Pilot Cohort',
       courseMode: 'Online',
       courseWorkload: 'PT15H',
       inLanguage: 'en-US',
@@ -127,7 +128,7 @@ const graph = {
       '@type': 'WebPage',
       '@id': `${pageUrl}#webpage`,
       url: pageUrl,
-      name: 'DJ1 — Online Group Drum Class for Beginners',
+      name: 'DJ1: Online Group Drum Class for Beginners',
       about: { '@id': courseId },
       primaryImageOfPage: heroSocialUrl,
       breadcrumb: {
@@ -144,8 +145,8 @@ const graph = {
 ---
 
 <Layout
-  title="DJ1 — Online Group Drum Class for Beginners | Jacobo Vega-Albela"
-  description="DJ1 — a 10-week online group drum class for complete beginners with Jacobo Vega-Albela. Small group, no kit required to start. Join the pilot cohort waitlist."
+  title="DJ1: Online Group Drum Class for Beginners | Jacobo Vega-Albela"
+  description="DJ1 is a 10-week online group drum class for complete beginners with Jacobo Vega-Albela. Small group, no kit required to start. Join the pilot cohort waitlist."
   themeColor="#091528"
   image={{
     url: heroSocial.src,
@@ -155,9 +156,15 @@ const graph = {
     alt: 'Open notebook of hand-written drum exercises resting on a snare drum',
   }}
   og={{
-    title: "DJ1 — Online Group Drum Class for Beginners",
+    title: "DJ1: Online Group Drum Class for Beginners",
     description: "A 10-week online group drum class for complete beginners. Small group, no kit required to start.",
     type: "website"
+  }}
+  stickyOffer={{
+    label: 'Join the DJ1 waitlist',
+    href: '/join',
+    event: 'dj1_waitlist_cta_click',
+    location: 'sticky_cta',
   }}
 >
   <JsonLd slot="head" data={graph} />
@@ -170,14 +177,22 @@ const graph = {
       <div class="hero-text">
         <p class="hero-eyebrow">Online group drum class</p>
         <h1 id="heroTitle">A 10-week online drum class<br />for <em>complete beginners</em>.</h1>
-        <p class="hero-sub">Drumset Jumpstart 1 (DJ1) is a small online cohort over Zoom &mdash; no kit to start.</p>
-        <a class="hero-rating" href="#testimonialsTitle">
-          <span class="hero-rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          <span class="hero-rating-text"><strong>5.0</strong> &middot; 6 Google reviews</span>
-        </a>
+        <p class="hero-sub">Drumset Jumpstart 1 (DJ1) is a small cohort over Zoom, taught live by an <strong>Eastman-trained</strong> jazz drummer. No kit needed to start.</p>
+        <div class="hero-teacher">
+          <span class="hero-teacher-photo">
+            <Image src={portraitImg} alt="Jacobo Vega-Albela smiling behind his drum kit" width={192} height={192} quality={80} loading="eager" />
+          </span>
+          <div class="hero-teacher-meta">
+            <span class="hero-teacher-name">Jacobo Vega-Albela</span>
+            <a class="hero-rating" href="#testimonialsTitle">
+              <span class="hero-rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+              <span class="hero-rating-text"><strong>5.0</strong> &middot; 6 Google reviews</span>
+            </a>
+          </div>
+        </div>
         <p class="hero-promo">
           <span class="hero-promo-tag">Pilot cohort</span>
-          <span class="hero-promo-text">Capped at <strong>10 seats</strong> &mdash; waitlist now open.</span>
+          <span class="hero-promo-text">Capped at <strong>10 seats</strong>. Waitlist now open.</span>
         </p>
         <ul class="chips" aria-label="Credentials">
           <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>Master's, Eastman School of Music</li>
@@ -191,6 +206,7 @@ const graph = {
           submitEvent="dj1_waitlist_submit"
           submitEventParams={{ form_location: 'group_classes_hero', value: 250, currency: 'USD' }}
         />
+        <p class="form-reassure">No payment now. Nothing is due until dates are set and you confirm your seat.</p>
         <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'group_classes_hero' })">Text or call (585) 802-4247</a>
         <p class="trust-line">Google-screened &middot; Background-checked</p>
       </div>
@@ -226,7 +242,7 @@ const graph = {
         <div class="tile">
           <span class="tile-tag">90-minute sessions</span>
           <h3>Long enough to play</h3>
-          <p>Each class leaves room for individual feedback &mdash; not just lecture.</p>
+          <p>Each class leaves room for individual feedback, not just lecture.</p>
         </div>
         <div class="tile">
           <span class="tile-tag">Capped at 10</span>
@@ -236,7 +252,7 @@ const graph = {
         <div class="tile">
           <span class="tile-tag">What to bring</span>
           <h3>Pad, sticks, book</h3>
-          <p>A practice pad, a pair of sticks, and Ted Reed's <em>Syncopation</em>. No drumset needed to start &mdash; and use my <a href="/metronome/">free online metronome</a> for daily practice. When you move to the kit, start with my <a href="/pdfs/drumset/three-basic-rock-beats/">Three Basic Rock Beats</a>.</p>
+          <p>A practice pad, a pair of sticks, and Ted Reed's <em>Syncopation</em>. No drumset needed to start. Use my <a href="/metronome/">free online metronome</a> for daily practice, and when you move to the kit, start with my <a href="/pdfs/drumset/three-basic-rock-beats/">Three Basic Rock Beats</a>.</p>
         </div>
       </div>
     </div>
@@ -253,16 +269,20 @@ const graph = {
       <div class="testimonials-grid">
         <figure class="tcard">
           <blockquote>An awesome first drum lesson! Jacobo was thorough, covering everything from reading music to my first drum beat. Highly recommend!</blockquote>
-          <figcaption>&mdash; <strong>Naomi</strong>, via Google</figcaption>
+          <figcaption><strong>Naomi</strong>, via Google</figcaption>
         </figure>
         <figure class="tcard">
           <blockquote>Jacobo made me feel comfortable from the very first lesson. He was incredibly patient and understanding. I highly recommend taking lessons with him!</blockquote>
-          <figcaption>&mdash; <strong>Nisaa R.</strong>, via Google</figcaption>
+          <figcaption><strong>Nisaa R.</strong>, via Google</figcaption>
         </figure>
         <figure class="tcard">
           <blockquote>Super down to earth guy that knows his stuff. I've taken lessons from a few different people and he has been the best.</blockquote>
-          <figcaption>&mdash; <strong>Patrick M.</strong>, via Google</figcaption>
+          <figcaption><strong>Patrick M.</strong>, via Google</figcaption>
         </figure>
+      </div>
+      <div class="mid-cta">
+        <p><strong>Every one of them started as a beginner.</strong> Grab a waitlist spot and start the same way.</p>
+        <a class="btn btn-primary" href="/join" onclick="gtag('event', 'dj1_waitlist_cta_click', { location: 'testimonials' })">Request a Waitlist Spot</a>
       </div>
     </div>
   </section>
@@ -280,18 +300,18 @@ const graph = {
           <span class="pcard-tag">Best value</span>
           <h3>Full course</h3>
           <p class="price">$250 <small>/ 10 weeks</small></p>
-          <p>Locks in your seat for the whole cohort. Works out to $25 per class &mdash; $50 less than drop-in.</p>
+          <p>Locks in your seat for the whole cohort. Works out to $25 per class, $50 less than drop-in.</p>
         </div>
         <div class="pcard">
           <span class="pcard-tag">Pay as you go</span>
           <h3>Drop-in</h3>
           <p class="price">$30 <small>/ class</small></p>
-          <p>One session at a time, no commitment. Subject to space &mdash; full-course students get priority.</p>
+          <p>One session at a time, no commitment. Subject to space, and full-course students get priority.</p>
         </div>
       </div>
       <p class="pricing-fineprint">Payment via Venmo, Zelle, or PayPal. Full course due before the first class; drop-in pays per session.</p>
       <div class="mid-cta">
-        <p><strong>Ready to claim a seat?</strong> The pilot cohort is capped at 10 &mdash; get on the waitlist and I'll be in touch with dates.</p>
+        <p><strong>Ready to claim a seat?</strong> The pilot cohort is capped at 10, so get on the waitlist and I'll be in touch with dates.</p>
         <a class="btn btn-primary" href="/join" onclick="gtag('event', 'dj1_waitlist_cta_click', { location: 'pricing_mid' })">Request a Waitlist Spot</a>
       </div>
     </div>
@@ -308,14 +328,14 @@ const graph = {
       <div class="about-grid">
         <div class="about-text">
           <h3>Practical, honest, steady wins.</h3>
-          <p>I'm a working drummer first and a teacher second. Everything I assign comes from a practical base &mdash; the same things I'm using on stage and in the studio.</p>
+          <p>I'm a working drummer first and a teacher second. Everything I assign comes from a practical base: the same things I'm using on stage and in the studio.</p>
           <p>Most of my students start as beginners, and there's nothing to &ldquo;catch up on&rdquo; before week one. The path is clarity about what to practice, honest feedback, and steady wins. We figure out where you want to go, then build the habits to get you there.</p>
         </div>
         <div class="about-bg">
           <h3>Background</h3>
           <ul class="bg-list">
-            <li><strong>Education</strong>MM, Jazz Studies &amp; Contemporary Media &mdash; Eastman School of Music (2022, Schirmer Prize in Jazz Performance) &middot; BM, Classical Percussion Performance &mdash; New Mexico State University (2019, Crimson Scholar) &middot; Betty Carter's Jazz Ahead alumnus (2023)</li>
-            <li><strong>Teaching</strong>Private instructor 2015&ndash;present &middot; K&ndash;12 and adults &middot; Beginners through advanced</li>
+            <li><strong>Education</strong>MM, Jazz Studies &amp; Contemporary Media, Eastman School of Music (2022, Schirmer Prize in Jazz Performance) &middot; BM, Classical Percussion Performance, New Mexico State University (2019, Crimson Scholar) &middot; Betty Carter's Jazz Ahead alumnus (2023)</li>
+            <li><strong>Teaching</strong>Private instructor 2015-present &middot; K-12 and adults &middot; Beginners through advanced</li>
             <li><strong>Performance</strong>Western New York Big Band, Las Cruces Symphony, The Swooners, Silver Arrow, Trio 55, Brendan Lanighan Octet &middot; Festivals: Rochester International Jazz Festival, Burlington Discover Jazz Festival, Las Cruces Juneteenth Jazz Festival</li>
           </ul>
         </div>
@@ -334,11 +354,11 @@ const graph = {
       <div class="faq-list">
         <details>
           <summary>Do I need a drumset?</summary>
-          <div class="faq-body">Nope. You'll start with a practice pad, a pair of sticks, and Ted Reed's <em>Syncopation</em> &mdash; that's it. Many students stay on the pad for months and make great progress before investing in a kit.</div>
+          <div class="faq-body">Nope. You'll start with a practice pad, a pair of sticks, and Ted Reed's <em>Syncopation</em>. That's it. Many students stay on the pad for months and make great progress before investing in a kit.</div>
         </details>
         <details>
           <summary>Can I sign my kid up?</summary>
-          <div class="faq-body">The pilot is for ages 15+. Younger students usually do better in private lessons where I can adapt to their pace and energy &mdash; reach out and we'll find a fit.</div>
+          <div class="faq-body">The pilot is for ages 15+. Younger students usually do better in private lessons where I can adapt to their pace and energy. Reach out and we'll find a fit.</div>
         </details>
         <details>
           <summary>What does &ldquo;small group format&rdquo; mean?</summary>
@@ -361,7 +381,7 @@ const graph = {
 <!-- FINAL CTA BAND -->
 <section class="cta-band" aria-label="Request a waitlist spot for the pilot cohort">
   <div class="cta-band-inner">
-    <h2>Pilot cohort &mdash; 10 seats.</h2>
+    <h2>Pilot cohort: 10 seats.</h2>
     <p>Request a waitlist spot and I'll be in touch as soon as dates and a start week are set.</p>
     <a class="btn btn-primary" href="/join" onclick="gtag('event', 'dj1_waitlist_cta_click', { location: 'cta_band' })">Request a Waitlist Spot</a>
   </div>

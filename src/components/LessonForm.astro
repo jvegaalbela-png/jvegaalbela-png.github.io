@@ -132,7 +132,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   .lesson-form {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     max-width: 480px;
     margin: 0.5rem 0 0;
   }
@@ -177,7 +177,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   }
   .lesson-form-field textarea {
     resize: vertical;
-    min-height: 64px;
+    min-height: 52px;
   }
   .lesson-form-field select {
     appearance: none;
@@ -219,9 +219,11 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
   .lesson-form-error {
     font-size: 12px;
     color: #ff9b9b;
-    min-height: 1em;
     line-height: 1.3;
   }
+  /* Empty error slots take no vertical space — the field stack stays
+     compact until a validation message actually appears. */
+  .lesson-form-error:empty { display: none; }
 
   /* Radio pill fieldsets */
   .lesson-form-radios {
@@ -281,7 +283,7 @@ const id = (suffix: string) => `${formIdSlug}-${suffix}`;
     align-items: center;
     gap: 1.25rem;
     flex-wrap: wrap;
-    margin-top: 8px;
+    margin-top: 6px;
   }
   .lesson-form-actions .btn {
     border-radius: 4px;
