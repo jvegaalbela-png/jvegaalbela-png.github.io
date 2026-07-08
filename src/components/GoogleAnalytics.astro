@@ -14,6 +14,17 @@
   gtag('js', new Date());
   gtag('config', 'G-SH7NCTZDJE');
 
+  // Only ship hits from the production site. Dev servers (localhost:4321),
+  // Cloudflare preview deployments (*.pages.dev), and anything else that
+  // isn't jva-music.com keeps the gtag() stub — so inline onclick handlers
+  // still work — but never loads gtag.js, so no hit ever reaches GA4.
+  // (Real-but-internal traffic like Tag Assistant runs is handled by a
+  // GA4 internal-traffic filter, not here.)
+  var GA_PROD = /^(www\.)?jva-music\.com$/.test(window.location.hostname);
+  if (!GA_PROD && window.console) {
+    console.info('[GA4] disabled — non-production host:', window.location.hostname);
+  }
+
   // Defer gtag.js until the first sign of user engagement, with a
   // 10-second backstop so passive viewers still get tracked. This
   // pushes gtag.js's ~150 KB parse/eval past Lighthouse's TBT and
@@ -27,7 +38,7 @@
     s.async = true;
     document.head.appendChild(s);
   }
-  (function () {
+  if (GA_PROD) (function () {
     var loaded = false;
     var events = ['scroll', 'mousedown', 'keydown', 'touchstart', 'pointermove'];
     function trigger() {
