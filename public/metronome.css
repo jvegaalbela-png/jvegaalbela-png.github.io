@@ -177,6 +177,10 @@
       gap: 0.5rem;
     }
     .metronome-shell .tempo-header .section-label { margin-bottom: 1rem; }
+    .metronome-shell .tempo-header-actions {
+      display: flex;
+      gap: 0.35rem;
+    }
 
     .metronome-shell .copy-link-btn {
       position: relative;
@@ -226,6 +230,58 @@
       transition: opacity 0.15s;
     }
     .metronome-shell .copy-link-btn.copied .copy-link-toast { opacity: 1; }
+
+    /* ── Reset-to-defaults confirm dialog ─────────────────────────────
+       display:flex below would beat the UA's [hidden]{display:none}, so
+       the hidden attribute needs its own explicit rule. */
+    .reset-confirm-overlay[hidden] { display: none; }
+    .reset-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(5, 10, 22, 0.7);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    .reset-confirm-card {
+      background: rgba(15, 25, 45, 0.98);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 12px;
+      padding: 1.25rem 1.4rem;
+      max-width: 340px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+    }
+    .reset-confirm-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .reset-confirm-desc {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: rgba(245, 243, 238, 0.7);
+      margin: 0 0 1rem;
+    }
+    .reset-confirm-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+    .metronome-shell .btn.reset-confirm-go {
+      background: rgba(232, 101, 10, 0.2);
+      border-color: rgba(245, 136, 42, 0.55);
+      color: var(--orange-lt);
+    }
+    .metronome-shell .btn.reset-confirm-go:hover {
+      background: rgba(232, 101, 10, 0.35);
+      border-color: var(--orange-lt);
+      color: var(--cream);
+    }
 
     .metronome-shell .btn {
       background: rgba(91, 141, 232, 0.12);
@@ -784,6 +840,13 @@
       border: 1px solid rgba(91, 141, 232, 0.22);
       border-radius: 4px;
       padding: 0.15rem 0.4rem;
+      /* Keyboard affordance — only meaningful where a physical keyboard
+         is the norm. Hidden on phones and tablets (touch input or narrow
+         viewports); shown on wide fine-pointer devices below. */
+      display: none;
+    }
+    @media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+      .metronome-shell .spacebar-hint { display: block; }
     }
 
     .metronome-shell .btn-play {

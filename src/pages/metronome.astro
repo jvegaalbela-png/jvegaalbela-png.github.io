@@ -218,10 +218,15 @@ const graph = {
   <div class="card card-tempo" id="tempo">
     <div class="tempo-header">
       <div class="section-label">Tempo</div>
-      <button class="copy-link-btn" id="copy-link-btn" type="button" aria-label="Copy a link to this metronome setup">
-        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M6.5 9.5 9.5 6.5 M6 4.5l1-1a3 3 0 0 1 4.243 4.243l-1 1 M10 11.5l-1 1a3 3 0 0 1-4.243-4.243l1-1"/></svg>
-        <span class="copy-link-toast" id="copy-link-toast" aria-live="polite">Link copied</span>
-      </button>
+      <div class="tempo-header-actions">
+        <button class="copy-link-btn" id="reset-defaults-btn" type="button" aria-label="Reset the metronome to its default settings">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M2.7 8a5.3 5.3 0 1 0 1.55-3.75 M2.7 2.9v3.4h3.4"/></svg>
+        </button>
+        <button class="copy-link-btn" id="copy-link-btn" type="button" aria-label="Copy a link to this metronome setup">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M6.5 9.5 9.5 6.5 M6 4.5l1-1a3 3 0 0 1 4.243 4.243l-1 1 M10 11.5l-1 1a3 3 0 0 1-4.243-4.243l1-1"/></svg>
+          <span class="copy-link-toast" id="copy-link-toast" aria-live="polite">Link copied</span>
+        </button>
+      </div>
     </div>
     <div class="bpm-row">
       <div class="bpm-step-group">
@@ -584,6 +589,19 @@ const graph = {
       </section>
     </div><!-- /.carousel-track -->
   </div><!-- /.metronome-carousel -->
+</div>
+
+<!-- Reset-to-defaults confirmation. Fixed overlay, opened from the ↺
+     button in the Tempo card header. -->
+<div class="reset-confirm-overlay" id="reset-confirm" hidden>
+  <div class="reset-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="reset-confirm-title" aria-describedby="reset-confirm-desc">
+    <div class="reset-confirm-title" id="reset-confirm-title">Reset to defaults?</div>
+    <p class="reset-confirm-desc" id="reset-confirm-desc">This clears your current setup &mdash; tempo, time signature, subdivisions, practice modes, and the current custom form. Forms saved to your library are kept.</p>
+    <div class="reset-confirm-actions">
+      <button class="btn" id="reset-cancel-btn" type="button">Cancel</button>
+      <button class="btn reset-confirm-go" id="reset-confirm-btn" type="button">Reset</button>
+    </div>
+  </div>
 </div>
 </main>
 
@@ -1627,10 +1645,40 @@ const graph = {
     if (e.code === 'Space' && document.activeElement !== bpmEl) {
       const tag = document.activeElement && document.activeElement.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      // Don't start/stop the click underneath the reset-confirm dialog.
+      const resetOverlay = document.getElementById('reset-confirm');
+      if (resetOverlay && !resetOverlay.hidden) return;
       e.preventDefault();
       togglePlay();
     }
   });
+
+  // ─── Reset to defaults ──────────────────────────────────────────────────────
+  // The ↺ button in the Tempo header opens a confirm dialog; confirming wipes
+  // the persisted settings (but NOT the saved-forms library) and reloads the
+  // page bare — location.replace drops any share-link params from the URL so
+  // they don't re-import the state that was just cleared.
+  (() => {
+    const overlay = document.getElementById('reset-confirm');
+    const openBtn = document.getElementById('reset-defaults-btn');
+    if (!overlay || !openBtn) return;
+    const close = () => { overlay.hidden = true; };
+    openBtn.addEventListener('click', () => {
+      overlay.hidden = false;
+      document.getElementById('reset-cancel-btn').focus();
+    });
+    document.getElementById('reset-cancel-btn').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !overlay.hidden) close();
+    });
+    document.getElementById('reset-confirm-btn').addEventListener('click', () => {
+      if (state.isPlaying) togglePlay();
+      [STORAGE_KEY, 'metronomeCarouselScreen_v1', 'metronomeFormEditorMode_v1', 'metronomeBgPrefs_v1']
+        .forEach((k) => { try { localStorage.removeItem(k); } catch (_) {} });
+      location.replace(location.pathname);
+    });
+  })();
 
   // ─── Advanced Mode ────────────────────────────────────────────────────────────
 
