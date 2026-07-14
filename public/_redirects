@@ -1,6 +1,0 @@
-# 301 redirect: no-trailing-slash URLs → trailing-slash equivalents
-# Cloudflare Pages _redirects format: <source> <destination> <status>
-# See https://developers.cloudflare.com/pages/configuration/redirects/
-
-/blog/*  /blog/:splat/  301
-/pdfs/*  /pdfs/:splat/  301
