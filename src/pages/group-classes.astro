@@ -6,6 +6,7 @@ import LessonForm from '../components/LessonForm.astro';
 import JsonLd from '../components/JsonLd.astro';
 import heroImg from '../assets/blog/how-long-hero.webp';
 import portraitImg from '../assets/at-drums-cheerful.webp';
+import googleReviews from '../data/reviews.json';
 import { SITE_URL, PERSON, PERSON_ID, ORGANIZATION_ID } from '../data/schema';
 
 const pageUrl = `${SITE_URL}/group-classes`;
@@ -186,7 +187,7 @@ const graph = {
             <span class="hero-teacher-name">Jacobo Vega-Albela</span>
             <a class="hero-rating" href="#testimonialsTitle">
               <span class="hero-rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-              <span class="hero-rating-text"><strong>5.0</strong> &middot; 11 Google reviews</span>
+              <span class="hero-rating-text"><strong>{googleReviews.rating.toFixed(1)}</strong> &middot; {googleReviews.count} Google reviews</span>
             </a>
           </div>
         </div>

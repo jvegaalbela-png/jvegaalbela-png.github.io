@@ -199,12 +199,12 @@ const graph = {
 <div class="app">
   <div class="header">
     <div class="beat-flash" id="beat-flash"></div>
-    <h1>Free Online Metronome with Subdivisions</h1>
+    <h1 id="using-the-metronome">Free Online Metronome with Subdivisions</h1>
     <div class="beat-flash" id="beat-flash-2"></div>
   </div>
 
   <div class="metronome-carousel">
-    <nav class="carousel-tabs" role="tablist" aria-label="Metronome sections">
+    <nav class="carousel-tabs" role="tablist" aria-label="Metronome sections" id="metronome-tabs">
       <button class="carousel-tab active" type="button" data-screen="0" role="tab" aria-selected="true" aria-controls="screen-pulse">Pulse</button>
       <button class="carousel-tab" type="button" data-screen="1" role="tab" aria-selected="false" aria-controls="screen-practice">Practice</button>
       <button class="carousel-tab" type="button" data-screen="2" role="tab" aria-selected="false" aria-controls="screen-forms">Forms</button>
@@ -611,9 +611,10 @@ const graph = {
      headings keep their explicit ids as raw HTML in that file (Astro's
      markdown pipeline doesn't auto-slug headings), since the FAQ/HowTo
      JSON-LD above and in-page links (e.g. #odd-meters) depend on them. -->
-<article class="metronome-prose" aria-labelledby="guide-intro">
+<article class="metronome-prose" aria-labelledby="guide-intro" id="practice-guide">
   <div class="metronome-prose-inner">
     <p class="prose-eyebrow" id="guide-intro">Practice guide</p>
+
     <GuideContent />
   </div>
 </article>
@@ -4462,4 +4463,135 @@ const graph = {
     });
   }
 </script>
+
+<style is:global>
+  article.metronome-prose .jump-to-section {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(91, 141, 232, 0.2) !important;
+    border-radius: 10px !important;
+    padding: 20px 24px !important;
+    margin: 20px 0 28px !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+  article.metronome-prose .jump-to-section-heading {
+    display: block !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.14em !important;
+    color: var(--orange-lt) !important;
+    margin-bottom: 10px !important;
+  }
+  article.metronome-prose .jump-to-section-list {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  article.metronome-prose .jump-to-section-list li {
+    margin: 0 !important;
+    padding: 4px 0 !important;
+  }
+  article.metronome-prose .jump-to-section-list a {
+    color: var(--blue-lt) !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid rgba(91,141,232,0.3) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: color 0.15s, border-color 0.15s !important;
+  }
+  article.metronome-prose .jump-to-section-list a:hover {
+    color: #fff !important;
+    border-bottom-color: #fff !important;
+  }
+</style>
+
+<!-- ══════════════════════════════════════════ PRE-FOOTER LINKS -->
+<section class="metronome-footer-links">
+  <div class="metronome-footer-links-inner">
+    <div class="metronome-footer-col">
+      <h3 class="metronome-footer-heading">Exercises</h3>
+      <ul class="metronome-footer-list">
+        <li><a href="/pdfs">PDFs &amp; Worksheets</a></li>
+        <li><a href="/pdfs/single-surface/tech-routine-1">Tech Routine 1</a></li>
+        <li><a href="/pdfs/single-surface/tech-routine-2">Tech Routine 2</a></li>
+        <li><a href="/pdfs/drumset/bass-drum-eighth-note-partials">Bass Drum Eighth Note Partials</a></li>
+        <li><a href="/pdfs/drumset/bass-drum-sixteenth-note-partials">Bass Drum Sixteenth Note Partials</a></li>
+        <li><a href="/pdfs/drumset/independence-exercise-pamphlet">Independence Exercise Pamphlet</a></li>
+      </ul>
+    </div>
+    <div class="metronome-footer-col">
+      <h3 class="metronome-footer-heading">Looking For A Teacher?</h3>
+      <ul class="metronome-footer-list">
+        <li><a href="/drum-lessons">Drum Lessons</a></li>
+        <li><a href="/group-classes">Group Classes</a></li>
+      </ul>
+    </div>
+    <div class="metronome-footer-col">
+      <h3 class="metronome-footer-heading">Resources</h3>
+      <ul class="metronome-footer-list">
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/blog/5-easy-drum-songs-for-beginner-drummers">5 Easy Drum Songs for Beginner Drummers</a></li>
+        <li><a href="/blog/how-long-to-learn-drums">How Long to Learn Drums</a></li>
+        <li><a href="/blog/how-to-learn-drum-rudiments">How to Learn Drum Rudiments</a></li>
+        <li><a href="/blog/how-to-practice-jazz-drumming-as-a-beginner">How to Practice Jazz Drumming as a Beginner</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .metronome-footer-links {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 40px 20px 48px;
+    margin-top: 48px;
+  }
+  .metronome-footer-links-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .metronome-footer-heading {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--orange-lt);
+    margin: 0 0 12px;
+    padding: 0;
+  }
+  .metronome-footer-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .metronome-footer-list li {
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+  }
+  .metronome-footer-list a {
+    color: var(--blue-lt);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(91,141,232,0.3);
+    font-size: 13px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .metronome-footer-list a:hover {
+    color: #fff;
+    border-bottom-color: #fff;
+  }
+  @media (max-width: 640px) {
+    .metronome-footer-links-inner {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+</style>
+
 </Layout>
