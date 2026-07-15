@@ -20,7 +20,7 @@ const offerClick = offer?.event
   : undefined;
 ---
 
-<aside class="sticky-cta" id="stickyCta" aria-label="Contact Jacobo" data-has-offer={offer ? 'true' : undefined}>
+<aside class="sticky-cta" id="stickyCta" aria-label="Contact Jacobo" data-has-offer={offer ? 'true' : undefined} data-collapsed="false">
   <div class="sticky-cta-menu" id="stickyCtaMenu" aria-hidden="true">
     {offer && (
       <a class="sticky-cta-btn sticky-cta-offer" data-cta href={offer.href} onclick={offerClick}>
@@ -55,7 +55,7 @@ const offerClick = offer?.event
     aria-label={offer ? `${offer.label} — open contact options` : 'Open contact options'}
   >
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8l-3 3v-3H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/></svg>
-    <span>{offer ? offer.label : 'Contact'}</span>
+    <span class="sticky-cta-label">{offer ? offer.label : 'Contact'}</span>
   </button>
 </aside>
 
@@ -196,6 +196,43 @@ const offerClick = offer?.event
     .sticky-cta,
     .sticky-cta-menu { transition: none; }
   }
+
+  /* ─── Auto-collapse the sticky-cta text label ──────────────────────────
+       After 4s or after scrolling 200px, the label fades out leaving only
+       the icon visible. Reappears on hover/focus. */
+  .sticky-cta[data-collapsed="true"] .sticky-cta-label {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
+  }
+  .sticky-cta[data-collapsed="true"] .sticky-cta-trigger {
+    padding: 10px;
+    justify-content: center;
+  }
+  .sticky-cta[data-collapsed="false"] .sticky-cta-label {
+    opacity: 1;
+    width: auto;
+    transition: opacity 0.3s ease 0.1s, width 0.3s ease 0.1s;
+  }
+  .sticky-cta[data-collapsed="false"] .sticky-cta-trigger {
+    padding: 10px 16px;
+  }
+  .sticky-cta-trigger:hover .sticky-cta-label,
+  .sticky-cta-trigger:focus-visible .sticky-cta-label {
+    opacity: 1 !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+  .sticky-cta-trigger:hover,
+  .sticky-cta-trigger:focus-visible {
+    padding: 10px 16px !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sticky-cta-label { transition: none !important; }
+  }
 </style>
 
 <script>
@@ -257,6 +294,33 @@ const offerClick = offer?.event
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && band.dataset.open === 'true') setOpen(false);
       });
+
+      // ─── Auto-collapse sticky-cta label ─────────────────────────────────
+      // After 4s on page load, or after scrolling past 200px, the text
+      // label fades out (icon stays visible). Reappears on hover/focus.
+      var timeout;
+      function collapseLabel() {
+        band.setAttribute('data-collapsed', 'true');
+      }
+      function expandLabel() {
+        band.setAttribute('data-collapsed', 'false');
+        clearTimeout(timeout);
+        timeout = setTimeout(collapseLabel, 4000);
+      }
+      // Collapse after 4s on load
+      timeout = setTimeout(collapseLabel, 4000);
+      // Expand on interaction
+      band.addEventListener('mouseenter', expandLabel);
+      band.addEventListener('touchstart', expandLabel);
+      band.addEventListener('focusin', expandLabel);
+      // Collapse on scroll after a delay
+      var scrollTimer;
+      window.addEventListener('scroll', function () {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(function () {
+          if (window.scrollY > 200) collapseLabel();
+        }, 3000);
+      }, { passive: true });
     }
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);

@@ -589,6 +589,9 @@ const graph = {
       </section>
     </div><!-- /.carousel-track -->
   </div><!-- /.metronome-carousel -->
+  <!-- Sentinel for return-to-top button: placed after the carousel so
+       the pill appears once the user has scrolled past the tool UI. -->
+  <div id="top-of-content" style="position:absolute;top:0"></div>
 </div>
 
 <!-- Reset-to-defaults confirmation. Fixed overlay, opened from the ↺
@@ -603,6 +606,13 @@ const graph = {
     </div>
   </div>
 </div>
+
+  <!-- ─── Return-to-top pill ────────────────────────────────────────────
+       Appears after scrolling past the carousel. Sits top-right. -->
+<button class="return-top-pill is-hidden" id="return-top" type="button" aria-label="Return to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  ▲
+</button>
+
 </main>
 
 <!-- ══════════════════════════════════════════ PRACTICE GUIDE
@@ -4464,6 +4474,23 @@ const graph = {
   }
 </script>
 
+<script is:inline>
+  // ─── Return-to-top pill ──────────────────────────────────────────────────────
+  // Uses IntersectionObserver on a sentinel placed after the carousel. Shows the
+  // ▲ pill when the sentinel scrolls above the viewport top.
+  (function(){
+    var sentinel = document.getElementById('top-of-content');
+    var pill = document.getElementById('return-top');
+    if (!sentinel || !pill) return;
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        pill.classList.toggle('is-visible', !e.isIntersecting);
+      });
+    }, { threshold: 0 });
+    observer.observe(sentinel);
+  })();
+</script>
+
 <style is:global>
   article.metronome-prose .jump-to-section {
     background: rgba(255, 255, 255, 0.06) !important;
@@ -4592,6 +4619,47 @@ const graph = {
       gap: 28px;
     }
   }
+
+  /* ─── Return-to-top pill ──────────────────────────────────────────────
+       Floating ▲ button, top-right, appears after scrolling past the
+       metronome carousel. Same look as the sticky-cta trigger. */
+  .return-top-pill {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 90;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: rgba(9, 21, 40, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(91, 141, 232, 0.35);
+    color: var(--cream);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+  }
+  .return-top-pill.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+  }
+  .return-top-pill:hover {
+    background: rgba(15, 28, 52, 1);
+    border-color: rgba(141, 173, 234, 0.55);
+  }
+
+  @media print { .return-top-pill { display: none; } }
 </style>
 
 </Layout>
