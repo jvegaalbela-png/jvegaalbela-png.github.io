@@ -589,10 +589,12 @@ const graph = {
       </section>
     </div><!-- /.carousel-track -->
   </div><!-- /.metronome-carousel -->
-  <!-- Sentinel for return-to-top button: placed after the carousel so
-       the pill appears once the user has scrolled past the tool UI. -->
-  <div id="top-of-content" style="height:1px;width:100%"></div>
 </div>
+
+<!-- Sentinel for return-to-top button: triggers once the practice guide
+     article enters the viewport (the metronome tool UI has been scrolled
+     past). -->
+<div id="top-of-content" style="height:1px;width:100%"></div>
 
 <!-- Reset-to-defaults confirmation. Fixed overlay, opened from the ↺
      button in the Tempo card header. -->
