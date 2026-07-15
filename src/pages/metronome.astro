@@ -611,7 +611,7 @@ const graph = {
 
   <!-- ─── Return-to-top pill ────────────────────────────────────────────
        Appears after scrolling past the carousel. Sits top-right. -->
-<button class="return-top-pill is-hidden" id="return-top" type="button" aria-label="Return to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+<button class="return-top-pill is-hidden" id="return-top" type="button" aria-label="Return to top">
   ▲
 </button>
 
@@ -4492,6 +4492,13 @@ const graph = {
       });
     }, { threshold: 0, rootMargin: '300% 0px 0px 0px' });
     observer.observe(sentinel);
+    // Scroll-to-top on click — uses the H1 anchor for reliable smooth
+    // scroll on mobile without needing a user-gesture context.
+    pill.addEventListener('click', function() {
+      var h1 = document.querySelector('h1');
+      if (h1) h1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   })();
 </script>
 
