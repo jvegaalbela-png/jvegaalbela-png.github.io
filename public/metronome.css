@@ -48,11 +48,11 @@
       background: rgba(9, 18, 36, 0.96);
       border: 1px solid rgba(91, 141, 232, 0.22);
       border-radius: 8px;
-      /* Stick to top of viewport while the user scrolls vertically through
-         a tab's content — the active screen stays one tap away regardless
-         of how far down they've scrolled. */
+      /* Stick below the site header so switching tabs doesn't scroll the
+         page — the active screen stays one tap away no matter how far
+         down the user has scrolled. */
       position: sticky;
-      top: 0;
+      top: calc(var(--header-h, 64px) + 8px);
       z-index: 20;
       backdrop-filter: blur(8px);
     }
