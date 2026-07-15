@@ -4478,8 +4478,10 @@ const graph = {
 
 <script is:inline>
   // ─── Return-to-top pill ──────────────────────────────────────────────────────
-  // Uses IntersectionObserver on a sentinel placed after the carousel. Shows the
-  // ▲ pill when the sentinel scrolls above the viewport top.
+  // Watches a sentinel placed right before the practice guide article.
+  // The ▲ pill appears only when the sentinel is at least one full viewport
+  // above the viewport top (rootMargin), meaning the user has scrolled well
+  // past the metronome tool UI into the guide content.
   (function(){
     var sentinel = document.getElementById('top-of-content');
     var pill = document.getElementById('return-top');
@@ -4488,7 +4490,7 @@ const graph = {
       entries.forEach(function(e) {
         pill.classList.toggle('is-visible', !e.isIntersecting);
       });
-    }, { threshold: 0 });
+    }, { threshold: 0, rootMargin: '100% 0px 0px 0px' });
     observer.observe(sentinel);
   })();
 </script>
