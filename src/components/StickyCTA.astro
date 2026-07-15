@@ -203,11 +203,13 @@ const offerClick = offer?.event
   .sticky-cta[data-collapsed="true"] .sticky-cta-label {
     opacity: 0;
     width: 0;
+    padding: 0;
     margin: 0;
     overflow: hidden;
-    transition: opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
+    transition: opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, margin 0.3s ease;
   }
   .sticky-cta[data-collapsed="true"] .sticky-cta-trigger {
+    gap: 0;
     padding: 10px;
     justify-content: center;
   }
@@ -217,16 +219,19 @@ const offerClick = offer?.event
     transition: opacity 0.3s ease 0.1s, width 0.3s ease 0.1s;
   }
   .sticky-cta[data-collapsed="false"] .sticky-cta-trigger {
+    gap: 8px;
     padding: 10px 16px;
   }
   .sticky-cta-trigger:hover .sticky-cta-label,
   .sticky-cta-trigger:focus-visible .sticky-cta-label {
     opacity: 1 !important;
     width: auto !important;
+    padding: 0 !important;
     margin: 0 !important;
   }
   .sticky-cta-trigger:hover,
   .sticky-cta-trigger:focus-visible {
+    gap: 8px !important;
     padding: 10px 16px !important;
   }
 
