@@ -78,12 +78,12 @@ const thumbDims = await thumbDimensions(item.thumbnail);
 
 const intakeKey = `${categoryId}/${slug}`;
 const intakeRaw = (pdfContent as Record<string, string>)[intakeKey] ?? '';
-const intakeParagraphs = intakeRaw
-  .trim()
+const practiceSource = item.howToPractice?.trim() || intakeRaw;
+const practiceParagraphs = practiceSource
   .split(/\n{2,}/)
   .map((p) => p.trim())
   .filter(Boolean);
-const hasIntake = intakeParagraphs.length > 0;
+const hasIntake = practiceParagraphs.length > 0;
 
 // Tiny inline-markdown renderer for intake paragraphs: HTML-escapes the
 // content, then promotes **text** to <strong> and [text](url) to <a>.
@@ -261,7 +261,7 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
       <div class="pdf-detail-prose">
         <h2>How to practice this</h2>
         {hasIntake ? (
-          intakeParagraphs.map((p) =>
+          practiceParagraphs.map((p) =>
             p.startsWith('### ')
               ? <h3 set:html={renderInline(p.slice(4))} />
               : <p set:html={renderInline(p)} />

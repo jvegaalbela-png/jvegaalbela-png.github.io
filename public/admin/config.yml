@@ -120,6 +120,14 @@ collections:
                     name: description
                     widget: text
                     required: false
+                  - label: How to Practice
+                    name: howToPractice
+                    widget: markdown
+                    required: false
+                    hint: >-
+                      Practice notes and context for this PDF. Appears as the "How to practice this"
+                      section on the PDF's detail page. Supports **bold**, [links](/metronome/),
+                      and paragraphs (separated by blank lines). Leave blank for a "Coming soon" placeholder.
           - label: Handwritten Section
             name: handwritten
             widget: object

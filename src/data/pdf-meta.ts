@@ -13,6 +13,7 @@ export interface PdfItem {
   thumbnail: string;
   title: string;
   description: string;
+  howToPractice?: string;
 }
 
 export interface PdfCategory {
