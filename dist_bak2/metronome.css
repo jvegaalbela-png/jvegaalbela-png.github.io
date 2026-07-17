@@ -1,0 +1,2784 @@
+    /* Metronome tool — uses the site's brand palette (navy / cobalt /
+       blue-lt / orange / cream) defined in global.css. The .metronome-shell
+       container declares an explicit baseline (font-size, line-height,
+       font-family) so global body styles don't leak into button metrics
+       and throw off the beat-circle layout. Color tokens map to:
+         normal beat  → blue family (cobalt / blue-lt)
+         accent beat  → orange family (orange / orange-lt)
+         mute beat    → muted cream
+       Play button: cobalt → orange when playing (warm "armed" state). */
+
+    body.metronome-page {
+      background: var(--navy);
+      color: var(--cream);
+      min-height: 100vh;
+    }
+
+    .metronome-shell {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: calc(var(--header-h) + 1.5rem) 1rem 3rem;
+      /* Reset inheritance from global body so layout matches the original tool. */
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .metronome-shell .app {
+      width: 100%;
+      max-width: 620px;
+    }
+
+    /* ─── Carousel ────────────────────────────────────────────────────────
+       The three tool screens (Pulse / Practice / Forms) live inside a
+       horizontally-snapping scroll container. Mobile swipes between them,
+       desktop uses the tab nav at the top. Each screen is the full width
+       of the carousel container (which is .app at max 620px). Educational
+       content sits below the carousel and stays untouched. */
+    .metronome-shell .metronome-carousel {
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+    .metronome-shell .carousel-tabs {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.7rem;
+      padding: 0.25rem;
+      background: rgba(9, 18, 36, 0.96);
+      border: 1px solid rgba(91, 141, 232, 0.22);
+      border-radius: 8px;
+      /* Stick to top of viewport while the user scrolls vertically through
+         a tab's content — the active screen stays one tap away regardless
+         of how far down they've scrolled. */
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+    }
+    .metronome-shell .carousel-tab {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      color: rgba(245, 243, 238, 0.55);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .carousel-tab:hover { color: var(--cream); }
+    .metronome-shell .carousel-tab.active {
+      background: rgba(91, 141, 232, 0.28);
+      color: var(--cream);
+    }
+    .metronome-shell .carousel-track {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: clip;   /* don't let the horizontal-scroll container
+                              steal vertical gestures — vertical scroll
+                              goes to the document. (clip — not visible —
+                              because overflow-y:visible silently becomes
+                              auto when overflow-x is set.) */
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      overscroll-behavior-x: contain;
+      /* On touch, declare both axes — pan-y lets vertical swipes pass
+         through to the page scroller, pan-x keeps horizontal carousel
+         swipes working. */
+      touch-action: pan-x pan-y;
+      /* Hide native scrollbar — the tab nav is the visible indicator. */
+      scrollbar-width: none;
+    }
+    .metronome-shell .carousel-track::-webkit-scrollbar { display: none; }
+    .metronome-shell .carousel-screen {
+      flex: 0 0 100%;
+      min-width: 0;       /* allow children with overflow to shrink */
+      scroll-snap-align: start;
+      /* The carousel screens are <section> elements, which the site-wide
+         global.css gives 72 px of vertical padding + a top rule for landing
+         pages. Reset both here — we don't want that breathing room inside
+         the carousel. */
+      padding: 0;
+      border-top: 0;
+    }
+
+    .metronome-shell .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metronome-shell h1 {
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 300;
+      font-style: italic;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .metronome-shell .beat-flash {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(91, 141, 232, 0.12);
+      border: 2px solid rgba(91, 141, 232, 0.35);
+      transition: background 0.05s, box-shadow 0.05s, border-color 0.05s;
+      flex-shrink: 0;
+    }
+
+    .metronome-shell .beat-flash.on-accent {
+      background: var(--orange-lt);
+      border-color: var(--orange-lt);
+      box-shadow: 0 0 12px rgba(245, 136, 42, 0.6);
+    }
+
+    .metronome-shell .beat-flash.on-beat {
+      background: var(--blue-lt);
+      border-color: var(--blue-lt);
+      box-shadow: 0 0 12px rgba(91, 141, 232, 0.55);
+    }
+
+    .metronome-shell .beat-flash.on-soft {
+      background: rgba(91, 141, 232, 0.35);
+      border-color: rgba(91, 141, 232, 0.55);
+      box-shadow: 0 0 8px rgba(91, 141, 232, 0.3);
+    }
+
+    .metronome-shell .card {
+      background: rgba(91, 141, 232, 0.08);
+      border: 1px solid rgba(91, 141, 232, 0.26);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .metronome-shell .section-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      color: rgba(245, 243, 238, 0.65);
+      margin-bottom: 1rem;
+    }
+
+    .metronome-shell .tempo-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .metronome-shell .tempo-header .section-label { margin-bottom: 1rem; }
+    .metronome-shell .tempo-header-actions {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .metronome-shell .copy-link-btn {
+      position: relative;
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: rgba(245, 243, 238, 0.7);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      flex-shrink: 0;
+      margin-top: -2px;
+    }
+    .metronome-shell .copy-link-btn:hover {
+      background: rgba(91, 141, 232, 0.12);
+      border-color: rgba(91, 141, 232, 0.55);
+      color: var(--cream);
+    }
+    .metronome-shell .copy-link-btn:focus-visible {
+      outline: 2px solid var(--blue-lt);
+      outline-offset: 2px;
+    }
+    .metronome-shell .copy-link-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    .metronome-shell .copy-link-toast {
+      position: absolute;
+      top: 50%;
+      right: calc(100% + 8px);
+      transform: translateY(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      color: var(--cream);
+      background: rgba(15, 25, 45, 0.95);
+      border: 1px solid rgba(91, 141, 232, 0.45);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .metronome-shell .copy-link-btn.copied .copy-link-toast { opacity: 1; }
+
+    /* ── Reset-to-defaults confirm dialog ─────────────────────────────
+       display:flex below would beat the UA's [hidden]{display:none}, so
+       the hidden attribute needs its own explicit rule. */
+    .reset-confirm-overlay[hidden] { display: none; }
+    .reset-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(5, 10, 22, 0.7);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    .reset-confirm-card {
+      background: rgba(15, 25, 45, 0.98);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 12px;
+      padding: 1.25rem 1.4rem;
+      max-width: 340px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+    }
+    .reset-confirm-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .reset-confirm-desc {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: rgba(245, 243, 238, 0.7);
+      margin: 0 0 1rem;
+    }
+    .reset-confirm-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+    .metronome-shell .btn.reset-confirm-go {
+      background: rgba(232, 101, 10, 0.2);
+      border-color: rgba(245, 136, 42, 0.55);
+      color: var(--orange-lt);
+    }
+    .metronome-shell .btn.reset-confirm-go:hover {
+      background: rgba(232, 101, 10, 0.35);
+      border-color: var(--orange-lt);
+      color: var(--cream);
+    }
+
+    .metronome-shell .btn {
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.34);
+      color: rgba(245, 243, 238, 0.88);
+      border-radius: 8px;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.08s;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .metronome-shell .btn:hover {
+      background: rgba(91, 141, 232, 0.16);
+      border-color: rgba(91, 141, 232, 0.45);
+      color: var(--cream);
+    }
+
+    .metronome-shell .btn:active { transform: scale(0.95); }
+
+    .metronome-shell .btn.active {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+
+    .metronome-shell .bpm-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding: 0 1.5rem;
+    }
+
+    .metronome-shell .bpm-center {
+      text-align: center;
+      flex: 0 0 auto;
+    }
+
+    .metronome-shell .bpm-number {
+      font-size: clamp(2.6rem, 14vw, 4.5rem);
+      font-weight: 700;
+      color: var(--cream);
+      cursor: text;
+      display: inline-block;
+      text-align: center;
+      line-height: 1;
+      border-bottom: 2px solid transparent;
+      outline: none;
+      transition: border-color 0.15s, color 0.15s;
+      caret-color: var(--blue-lt);
+    }
+
+    .metronome-shell .bpm-number:focus {
+      border-bottom-color: var(--blue-lt);
+      color: var(--blue-lt);
+    }
+
+    .metronome-shell .bpm-unit {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: rgba(245, 243, 238, 0.65);
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    .metronome-shell .bpm-step-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .metronome-shell .btn-step {
+      min-width: 46px;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.6rem;
+    }
+
+    .metronome-shell .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .metronome-shell .slider-label {
+      font-size: 0.75rem;
+      color: rgba(245, 243, 238, 0.62);
+      min-width: 2.5ch;
+      text-align: center;
+    }
+
+    .metronome-shell input[type="range"] {
+      flex: 1;
+      appearance: none;
+      height: 6px;
+      background: rgba(91, 141, 232, 0.18);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .metronome-shell input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--blue-lt);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--cream);
+      transition: background 0.12s;
+    }
+
+    .metronome-shell input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--cream);
+    }
+
+    .metronome-shell input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--blue-lt);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--cream);
+    }
+
+    .metronome-shell .tap-row {
+      display: flex;
+      justify-content: center;
+    }
+
+    .metronome-shell .btn-tap {
+      min-width: 140px;
+      padding: 0.6rem 1.5rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+    }
+
+    .metronome-shell .btn-tap:active {
+      background: rgba(91, 141, 232, 0.25);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .time-sig-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .metronome-shell .btn-sig {
+      font-size: 0.9rem;
+      padding: 0.35rem 0.75rem;
+      font-weight: 600;
+    }
+
+    .metronome-shell .custom-sig {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* When the active signature doesn't match any preset, the Custom
+       button carries the usual .btn.active state and its fields pick up
+       the same accent so the whole row reads as the engaged control. */
+    .metronome-shell .custom-sig.custom-active input,
+    .metronome-shell .custom-sig.custom-active select {
+      border-color: var(--blue-lt);
+      background: rgba(91, 141, 232, 0.22);
+    }
+
+    .metronome-shell .custom-sig input,
+    .metronome-shell .custom-sig select {
+      background: rgba(91, 141, 232, 0.08);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+      border-radius: 7px;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      width: 60px;
+      text-align: center;
+      outline: none;
+    }
+
+    .metronome-shell .custom-sig select { width: 70px; cursor: pointer; }
+
+    .metronome-shell .custom-sig select option,
+    .metronome-shell .form-unit-select option {
+      color: #0e0d0b;
+      background: #f5f3ee;
+    }
+
+    .metronome-shell .custom-sig-slash {
+      font-size: 1.6rem;
+      color: rgba(91, 141, 232, 0.4);
+      line-height: 1;
+    }
+
+    .metronome-shell .subdivision-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    /* Swing controls — sit inside the subdivisions card, dim when the
+       current subdivision isn't a duplet (the only case swing affects). */
+    .metronome-shell .swing-controls {
+      margin-top: 0.7rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: opacity 0.15s;
+    }
+    .metronome-shell .swing-controls.inactive { opacity: 0.5; }
+    .metronome-shell .swing-presets-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .metronome-shell .swing-label {
+      font-size: 0.78rem;
+      color: rgba(245, 243, 238, 0.65);
+      letter-spacing: 0.05em;
+    }
+    .metronome-shell .swing-presets {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      flex: 1;
+    }
+    .metronome-shell .swing-preset {
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      border-radius: 6px;
+      color: rgba(245, 243, 238, 0.7);
+      font-family: inherit;
+      font-size: 0.74rem;
+      padding: 0.3rem 0.55rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .swing-preset:hover { background: rgba(91, 141, 232, 0.22); color: var(--cream); }
+    .metronome-shell .swing-preset.active {
+      background: rgba(91, 141, 232, 0.28);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .metronome-shell .swing-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .metronome-shell .swing-slider-row input[type="range"] { flex: 1; }
+    .metronome-shell .swing-val {
+      min-width: 2.5em;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--cream);
+    }
+    .metronome-shell .swing-unit { font-size: 0.7rem; color: rgba(245, 243, 238, 0.4); }
+    .metronome-shell .swing-hint {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.5);
+      font-style: italic;
+      display: none;
+    }
+    .metronome-shell .swing-controls.inactive .swing-hint { display: block; }
+
+    .metronome-shell .btn-sub {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.6rem 0.4rem;
+    }
+
+    .metronome-shell .sub-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .metronome-shell .sub-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+      color: rgba(245, 243, 238, 0.5);
+    }
+
+    .metronome-shell .btn-sub.active .sub-label {
+      color: var(--cream);
+    }
+
+    .metronome-shell #beat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .metronome-shell .beat-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 3px solid rgba(91, 141, 232, 0.42);
+      background: rgba(91, 141, 232, 0.1);
+      color: rgba(245, 243, 238, 0.82);
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.12s, background 0.12s, color 0.12s, transform 0.12s, box-shadow 0.12s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      user-select: none;
+    }
+
+    .metronome-shell .beat-btn:hover {
+      border-color: rgba(91, 141, 232, 0.5);
+      background: rgba(91, 141, 232, 0.12);
+    }
+
+    .metronome-shell .beat-btn .beat-num {
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .metronome-shell .beat-btn .beat-icon {
+      font-size: 0.65rem;
+      line-height: 1;
+      opacity: 0.7;
+    }
+
+    .metronome-shell .beat-btn.state-normal {
+      border-color: rgba(91, 141, 232, 0.35);
+      background: rgba(91, 141, 232, 0.08);
+      color: var(--blue-lt);
+    }
+
+    .metronome-shell .beat-btn.state-accent {
+      border-color: rgba(232, 101, 10, 0.55);
+      background: rgba(232, 101, 10, 0.1);
+      color: var(--orange-lt);
+    }
+
+    .metronome-shell .beat-btn.state-soft {
+      border-color: rgba(91, 141, 232, 0.2);
+      background: rgba(91, 141, 232, 0.03);
+      color: rgba(91, 141, 232, 0.6);
+    }
+
+    .metronome-shell .beat-btn.state-mute {
+      border-color: rgba(245, 243, 238, 0.18);
+      background: rgba(0, 0, 0, 0.38);
+      color: rgba(245, 243, 238, 0.5);
+    }
+
+    .metronome-shell .beat-btn.active.state-normal {
+      border-color: var(--blue-lt);
+      background: var(--cobalt);
+      color: var(--cream);
+      box-shadow: 0 0 0 4px rgba(91, 141, 232, 0.25), 0 0 18px rgba(91, 141, 232, 0.4);
+      transform: scale(1.12);
+    }
+
+    .metronome-shell .beat-btn.active.state-accent {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.3);
+      color: var(--cream);
+      box-shadow: 0 0 0 4px rgba(245, 136, 42, 0.25), 0 0 18px rgba(245, 136, 42, 0.4);
+      transform: scale(1.12);
+    }
+
+    .metronome-shell .beat-btn.active.state-soft {
+      border-color: rgba(91, 141, 232, 0.6);
+      background: rgba(91, 141, 232, 0.22);
+      color: var(--cream);
+      box-shadow: 0 0 0 3px rgba(91, 141, 232, 0.18), 0 0 12px rgba(91, 141, 232, 0.28);
+      transform: scale(1.08);
+    }
+
+    .metronome-shell .beat-btn.active.state-mute {
+      border-color: rgba(245, 243, 238, 0.22);
+      transform: scale(1.05);
+    }
+
+    .metronome-shell .sub-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 1rem;
+      min-height: 12px;
+    }
+
+    .metronome-shell .sub-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.28);
+      transition: background 0.05s, border-color 0.05s;
+    }
+
+    .metronome-shell .sub-dot.active {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .sub-dot.active-accent {
+      background: var(--orange);
+      border-color: var(--orange-lt);
+    }
+
+    .metronome-shell .beat-grid-hint {
+      font-size: 0.65rem;
+      color: rgba(245, 243, 238, 0.62);
+      text-align: center;
+      margin-top: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Custom subdivision panel ───────────────────────────────
+       Count picker + a programmable on/off grid for the inner
+       subdivisions of each beat. Shown only when "Custom" is the
+       active subdivision option. */
+    .metronome-shell .sub-custom-panel {
+      margin-top: 0.7rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .metronome-shell .sub-custom-panel[hidden] { display: none; }
+    .metronome-shell .sub-count-row #sub-count-name {
+      min-width: 5.5em;
+      text-align: right;
+    }
+    .metronome-shell .sub-pattern-head {
+      font-size: 0.78rem;
+      color: rgba(245, 243, 238, 0.65);
+      letter-spacing: 0.05em;
+    }
+    .metronome-shell .sub-pattern-hint {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.45);
+      font-style: italic;
+      letter-spacing: 0;
+    }
+    .metronome-shell .sub-pattern-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .metronome-shell .sub-cell {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      background: rgba(91, 141, 232, 0.1);
+      color: rgba(245, 243, 238, 0.5);
+      font-family: inherit;
+      font-size: 0.85rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .sub-cell.on {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .metronome-shell .sub-cell.off {
+      background: rgba(0, 0, 0, 0.28);
+      border-color: rgba(245, 243, 238, 0.14);
+      color: rgba(245, 243, 238, 0.4);
+    }
+    .metronome-shell .sub-cell.on:hover { background: rgba(42, 92, 200, 0.85); }
+    .metronome-shell .sub-cell.off:hover { background: rgba(91, 141, 232, 0.18); }
+    /* The first cell is the beat itself — voiced by the Beats menu, not
+       togglable here. Styled as a fixed accent marker. */
+    .metronome-shell .sub-cell-beat {
+      cursor: default;
+      background: rgba(232, 101, 10, 0.16);
+      border-color: rgba(232, 101, 10, 0.5);
+      color: var(--orange-lt);
+    }
+
+    /* ── Follow-beat-mute toggle ───────────────────────────────── */
+    .metronome-shell .sub-followmute {
+      margin-top: 0.7rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      transition: opacity 0.15s;
+    }
+    .metronome-shell .sub-followmute.inactive { opacity: 0.5; }
+    .metronome-shell .sub-followmute-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .metronome-shell .sub-followmute-label {
+      font-size: 0.82rem;
+      color: var(--cream);
+      letter-spacing: 0.03em;
+    }
+    .metronome-shell .sub-followmute-desc {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.5);
+    }
+
+    .metronome-shell .sub-dot.off {
+      background: rgba(0, 0, 0, 0.28);
+      border-color: rgba(245, 243, 238, 0.12);
+    }
+
+    .metronome-shell .tempo-name {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--blue-lt);
+      text-transform: uppercase;
+      margin-top: 0.15rem;
+      min-height: 1em;
+      transition: color 0.3s;
+    }
+
+    .metronome-shell .play-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .metronome-shell .spacebar-hint {
+      font-size: 0.6rem;
+      color: rgba(245, 243, 238, 0.62);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid rgba(91, 141, 232, 0.22);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      /* Keyboard affordance — only meaningful where a physical keyboard
+         is the norm. Hidden on phones and tablets (touch input or narrow
+         viewports); shown on wide fine-pointer devices below. */
+      display: none;
+    }
+    @media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+      .metronome-shell .spacebar-hint { display: block; }
+    }
+
+    .metronome-shell .btn-play {
+      min-width: 180px;
+      padding: 0.9rem 2rem;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      border-radius: 50px;
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+
+    .metronome-shell .btn-play:hover {
+      background: var(--blue);
+      border-color: var(--cream);
+      color: var(--cream);
+    }
+
+    .metronome-shell .btn-play.playing {
+      background: var(--orange);
+      border-color: var(--orange-lt);
+      color: var(--navy);
+    }
+
+    .metronome-shell .btn-play.playing:hover {
+      background: var(--orange-lt);
+      border-color: var(--cream);
+    }
+
+    .metronome-shell .adv-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.875rem;
+      margin: 1rem 0 0.5rem;
+      cursor: pointer;
+    }
+
+    .metronome-shell .adv-toggle-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.25em;
+      color: rgba(245, 243, 238, 0.35);
+      text-transform: uppercase;
+      transition: color 0.2s;
+      user-select: none;
+    }
+
+    .metronome-shell .adv-toggle-row.active .adv-toggle-label { color: var(--cream); }
+
+    .metronome-shell .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .metronome-shell .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+    .metronome-shell .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.28);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .metronome-shell .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: rgba(245, 243, 238, 0.4);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .metronome-shell .toggle-switch input:checked + .toggle-track {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .toggle-switch input:checked + .toggle-track::after {
+      transform: translateX(20px);
+      background: var(--cream);
+    }
+
+    .metronome-shell .adv-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.35s ease;
+    }
+
+    .metronome-shell .adv-panel.open { max-height: 9999px; }
+
+    .metronome-shell .adv-feature-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .metronome-shell .adv-feature-desc {
+      font-size: 0.7rem;
+      color: rgba(245, 243, 238, 0.45);
+      margin-top: 0.2rem;
+      line-height: 1.4;
+    }
+
+    .metronome-shell .adv-controls { transition: opacity 0.2s; }
+    .metronome-shell .adv-controls.disabled { opacity: 0.3; pointer-events: none; }
+
+    /* ── Device card (Background play + Wake lock toggles) ───────────────── */
+    .metronome-shell .card-device .device-card-head { margin-bottom: 0.5rem; }
+    .metronome-shell .card-device .device-feature-row {
+      border-top: 1px solid rgba(91, 141, 232, 0.12);
+      padding-top: 0.65rem;
+      margin-bottom: 0;
+    }
+    .metronome-shell .device-feature-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cream);
+    }
+    /* ── Background-render floating toast ───────────────────────────────── */
+    /* Positioned outside the carousel so it's visible on any tab.          */
+    /* display:flex below would beat the UA's [hidden]{display:none}, so    */
+    /* the hidden attribute needs its own explicit rule.                    */
+    .bg-render-toast[hidden] {
+      display: none;
+    }
+    .bg-render-toast {
+      position: fixed;
+      bottom: 5.5rem;      /* sit above the floating play pill */
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      background: rgba(13, 13, 26, 0.88);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      white-space: nowrap;
+      z-index: 120;
+      pointer-events: none;
+    }
+    .bg-render-toast-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(91, 141, 232, 0.9);
+      animation: bg-pulse 1.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .bg-render-toast-text {
+      font-size: 0.72rem;
+      color: rgba(245, 243, 238, 0.85);
+      letter-spacing: 0.01em;
+    }
+    @keyframes bg-pulse {
+      0%, 100% { opacity: 0.55; }
+      50%       { opacity: 1;   }
+    }
+
+    .metronome-shell .adv-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .metronome-shell .adv-label {
+      font-size: 0.75rem;
+      color: rgba(91, 141, 232, 0.85);
+      min-width: 5rem;
+    }
+
+    .metronome-shell .adv-row input[type="range"] { flex: 1; }
+
+    .metronome-shell .adv-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--cream);
+      min-width: 2rem;
+      text-align: right;
+    }
+
+    .metronome-shell .adv-unit { font-size: 0.7rem; color: rgba(245, 243, 238, 0.4); }
+
+    /* Tap-to-edit affordance for every numeric readout next to a slider.
+       Subtle by default, soft hover bg, clear focus ring + bg when active.
+       font-size: 16px so iOS Safari doesn't auto-zoom the page on focus. */
+    .metronome-shell .adv-value[contenteditable="true"],
+    .metronome-shell .swing-val[contenteditable="true"] {
+      outline: none;
+      border-radius: 4px;
+      padding: 0.05rem 0.3rem;
+      margin: -0.05rem -0.3rem;
+      cursor: text;
+      font-size: 16px;
+      transition: background 0.12s, box-shadow 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .adv-value[contenteditable="true"]:hover,
+    .metronome-shell .swing-val[contenteditable="true"]:hover {
+      background: rgba(91, 141, 232, 0.14);
+    }
+    .metronome-shell .adv-value[contenteditable="true"]:focus,
+    .metronome-shell .swing-val[contenteditable="true"]:focus {
+      background: rgba(91, 141, 232, 0.22);
+      box-shadow: 0 0 0 1px rgba(141, 173, 234, 0.6);
+      color: var(--cream);
+    }
+    /* Same 16px rule for the beats-per-measure <input>: stops iOS auto-zoom
+       on focus. */
+    .metronome-shell #beats-input { font-size: 16px; }
+
+    /* Gap "Count by" pill — two-button radio group inside the gap card */
+    .metronome-shell .gap-unit-row { justify-content: flex-start; gap: 0.6rem; }
+    .metronome-shell .gap-unit-toggle {
+      display: inline-flex;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .metronome-shell .gap-unit-btn {
+      background: transparent;
+      border: 0;
+      color: rgba(245, 243, 238, 0.6);
+      font-family: inherit;
+      font-size: 0.78rem;
+      padding: 0.32rem 0.7rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-shell .gap-unit-btn + .gap-unit-btn {
+      border-left: 1px solid rgba(91, 141, 232, 0.35);
+    }
+    .metronome-shell .gap-unit-btn:hover { background: rgba(91, 141, 232, 0.12); color: var(--cream); }
+    .metronome-shell .gap-unit-btn.active {
+      background: rgba(91, 141, 232, 0.22);
+      color: var(--cream);
+    }
+
+    .metronome-shell .gap-phase-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.25rem;
+      min-height: 1.6rem;
+    }
+
+    .metronome-shell .phase-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.28);
+      color: rgba(245, 243, 238, 0.45);
+      transition: all 0.15s;
+    }
+
+    .metronome-shell .phase-pill.play   { background: rgba(141, 184, 32, 0.14); border-color: rgba(141, 184, 32, 0.45); color: var(--lime); }
+    .metronome-shell .phase-pill.silent { background: rgba(232, 101, 10, 0.14); border-color: rgba(232, 101, 10, 0.45); color: var(--orange-lt); }
+
+    .metronome-shell .phase-progress { font-size: 0.68rem; color: rgba(245, 243, 238, 0.4); }
+
+    .metronome-shell .form-list {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid rgba(91, 141, 232, 0.18);
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      padding: 0.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .metronome-shell .form-group-header {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.42rem 0.6rem;
+      background: rgba(91, 141, 232, 0.06);
+      border-radius: 6px;
+      border: 1px solid rgba(91, 141, 232, 0.18);
+      transition: background 0.1s, border-color 0.1s;
+    }
+
+    .metronome-shell .form-group-header.form-active {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+
+    .metronome-shell .form-group-range {
+      font-size: 0.62rem;
+      color: rgba(245, 243, 238, 0.4);
+      min-width: 3.2rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metronome-shell .form-group-meter {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--blue-lt);
+      min-width: 3rem;
+      letter-spacing: 0.02em;
+    }
+
+    .metronome-shell .form-group-header.form-active .form-group-meter,
+    .metronome-shell .form-group-header.form-active .form-group-range,
+    .metronome-shell .form-group-header.form-active .form-group-count { color: var(--cream); }
+
+    .metronome-shell .form-group-count {
+      font-size: 0.72rem;
+      color: rgba(245, 243, 238, 0.4);
+      flex: 1;
+    }
+
+    .metronome-shell .form-expand-btn {
+      background: none;
+      border: none;
+      color: rgba(245, 243, 238, 0.45);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.35rem;
+      border-radius: 3px;
+      line-height: 1;
+      transition: color 0.12s, background 0.12s;
+    }
+
+    .metronome-shell .form-expand-btn:hover { color: var(--cream); background: rgba(91, 141, 232, 0.18); }
+
+    .metronome-shell .form-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.32rem 0.5rem 0.32rem 1.6rem;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(91, 141, 232, 0.1);
+      transition: background 0.1s;
+    }
+
+    .metronome-shell .form-row.form-active { background: rgba(91, 141, 232, 0.18); border-color: var(--blue-lt); }
+
+    .metronome-shell .form-row-num {
+      font-size: 0.68rem;
+      color: rgba(245, 243, 238, 0.4);
+      min-width: 1.4rem;
+      text-align: right;
+    }
+
+    .metronome-shell .form-beats-input {
+      width: 40px;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+      border-radius: 5px;
+      padding: 0.22rem 0.3rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      text-align: center;
+      outline: none;
+    }
+
+    .metronome-shell .form-slash { color: rgba(91, 141, 232, 0.4); font-size: 1rem; }
+
+    .metronome-shell .form-unit-select {
+      width: 60px;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+      border-radius: 5px;
+      padding: 0.22rem 0.2rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .metronome-shell .form-delete-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: rgba(232, 101, 10, 0.45);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .metronome-shell .form-delete-btn:hover { color: var(--orange-lt); background: rgba(232, 101, 10, 0.15); }
+
+    .metronome-shell .btn-add-measure {
+      width: 100%;
+      padding: 0.45rem;
+      font-size: 0.82rem;
+      border-style: dashed;
+      margin-bottom: 0.5rem;
+      color: rgba(245, 243, 238, 0.55);
+    }
+
+    .metronome-shell .form-counter {
+      font-size: 0.68rem;
+      color: rgba(245, 243, 238, 0.4);
+      text-align: center;
+      min-height: 1rem;
+    }
+
+    .metronome-shell .form-toolbar {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .metronome-shell .form-tool-btn {
+      flex: 1;
+      font-size: 0.72rem;
+      padding: 0.38rem 0.3rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .metronome-shell .form-tool-btn:disabled { opacity: 0.22; cursor: not-allowed; }
+
+    .metronome-shell .form-bulk-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .metronome-shell .form-bulk-label {
+      font-size: 0.75rem;
+      color: rgba(91, 141, 232, 0.85);
+    }
+
+    .metronome-shell .sound-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .metronome-shell .btn-sound {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.65rem 0.4rem;
+    }
+
+    .metronome-shell .sound-icon { font-size: 1.15rem; line-height: 1; }
+    .metronome-shell .sound-label { font-size: 0.65rem; letter-spacing: 0.05em; color: rgba(245, 243, 238, 0.5); }
+    .metronome-shell .btn-sound.active .sound-label { color: var(--cream); }
+    .metronome-shell .sound-note {
+      font-size: 0.62rem;
+      color: rgba(245, 243, 238, 0.35);
+      text-align: center;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    /* ── Responsive card grids ───────────────────────────────────────────
+       Mobile (<640px) keeps the single-column stack. From 640px the cards
+       form a grid so tablets stop wasting their side margins, and from
+       900px a three-column layout pairs every card with neighbors of
+       similar height — the goal is that no card gets stretched far past
+       its own content.
+
+         640–899px (tablet):        ≥900px (desktop):
+           tempo   timesig            tempo  timesig  timesig
+           tempo   subdiv             tempo  subdiv   sound
+           sound   subdiv             tempo  subdiv   beats
+           beats   beats
+    */
+    @media (min-width: 640px) {
+      .metronome-shell .app { max-width: 880px; }
+
+      .metronome-shell .basic-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "tempo  timesig"
+          "tempo  subdiv"
+          "sound  subdiv"
+          "beats  beats";
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .metronome-shell .basic-grid > .card {
+        margin-bottom: 0;
+        padding: 0.9rem 1.1rem;
+      }
+      .metronome-shell .basic-grid .card-tempo   { grid-area: tempo; display: flex; flex-direction: column; }
+      .metronome-shell .basic-grid .card-timesig { grid-area: timesig; }
+      .metronome-shell .basic-grid .card-subdiv  { grid-area: subdiv; }
+      .metronome-shell .basic-grid .card-sound   { grid-area: sound; }
+      .metronome-shell .basic-grid .card-beats   { grid-area: beats; }
+
+      /* Tighter internal spacing across cards once they sit in a grid. */
+      .metronome-shell .basic-grid .section-label { margin-bottom: 0.55rem; }
+
+      /* Tempo card — the BPM row owns the flexible middle: it grows and
+         vertically centers, so any surplus height the grid hands the card
+         becomes breathing room around the readout instead of a dead gap
+         above the transport cluster at the bottom. */
+      .metronome-shell .basic-grid .card-tempo .bpm-row {
+        flex: 1;
+        padding: 0 0.5rem;
+        margin-bottom: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .bpm-number { font-size: clamp(2.8rem, 5.5vw, 4.75rem); }
+      .metronome-shell .basic-grid .card-tempo .bpm-unit { margin-top: 0.1rem; }
+      .metronome-shell .basic-grid .card-tempo .tempo-name { margin-top: 0.05rem; letter-spacing: 0.16em; }
+      .metronome-shell .basic-grid .card-tempo .bpm-step-group { gap: 0.3rem; }
+      .metronome-shell .basic-grid .card-tempo .btn-step {
+        min-width: 42px;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.5rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .slider-row { margin-bottom: 0.55rem; }
+      .metronome-shell .basic-grid .card-tempo .tap-row { margin-bottom: 0.5rem; }
+      .metronome-shell .basic-grid .card-tempo .btn-tap {
+        min-width: 120px;
+        padding: 0.45rem 1.2rem;
+        font-size: 0.85rem;
+      }
+      /* Keep Start truly centered; balance the SPACE hint with an empty slot
+         on the left so the visual center isn't pulled to the right. */
+      .metronome-shell .basic-grid .card-tempo .play-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        margin-top: 0;
+        gap: 0.5rem;
+      }
+      .metronome-shell .basic-grid .card-tempo .play-row .btn-play {
+        grid-column: 2;
+        padding: 0.7rem 1.7rem;
+        font-size: 1.05rem;
+        min-width: 170px;
+      }
+      .metronome-shell .basic-grid .card-tempo .play-row .spacebar-hint {
+        grid-column: 3;
+        justify-self: start;
+        align-self: center;
+      }
+
+      /* Time Signature — a uniform preset grid (two rows of seven) instead
+         of ragged flex wrapping; the custom row centers beneath it. */
+      .metronome-shell .basic-grid .card-timesig .time-sig-presets {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        margin-bottom: 0.7rem;
+        gap: 0.4rem;
+      }
+      .metronome-shell .basic-grid .card-timesig .btn-sig { padding: 0.32rem 0.2rem; text-align: center; }
+      .metronome-shell .basic-grid .card-timesig .custom-sig { justify-content: center; }
+
+      /* Subdivision — equalize icon-row height so the buttons line up
+         regardless of glyph width (♩ vs ♬♬ have very different metrics). */
+      .metronome-shell .basic-grid .card-subdiv .subdivision-grid { gap: 0.4rem; }
+      .metronome-shell .basic-grid .card-subdiv .btn-sub { padding: 0.45rem 0.3rem; }
+      /* Tighter dividers between the sub-blocks (follow-mute, swing,
+         custom panel) — the mobile stack's 0.7rem air adds up to a lot
+         of column height on desktop. */
+      .metronome-shell .basic-grid .card-subdiv .sub-followmute,
+      .metronome-shell .basic-grid .card-subdiv .swing-controls,
+      .metronome-shell .basic-grid .card-subdiv .sub-custom-panel {
+        margin-top: 0.55rem;
+        padding-top: 0.55rem;
+      }
+      .metronome-shell .basic-grid .card-subdiv .sub-icon {
+        min-height: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      /* The Count slider row has to fit a narrower column than the mobile
+         stack gave it — let the label and slider shrink and truncate the
+         subdivision name instead of overflowing the card. */
+      .metronome-shell .basic-grid .card-subdiv .sub-count-row .adv-label { min-width: 0; }
+      .metronome-shell .basic-grid .card-subdiv .adv-row input[type="range"] { min-width: 50px; }
+      .metronome-shell .basic-grid .card-subdiv .sub-count-row #sub-count-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Sound — a naturally short card; center its buttons in whatever
+         height the grid row gives it. */
+      .metronome-shell .basic-grid .card-sound { display: flex; flex-direction: column; }
+      .metronome-shell .basic-grid .card-sound .sound-grid {
+        gap: 0.4rem;
+        flex: 1;
+        align-content: center;
+      }
+      .metronome-shell .basic-grid .card-sound .btn-sound { padding: 0.55rem 0.3rem; }
+      .metronome-shell .basic-grid .card-sound .sound-icon {
+        min-height: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Beats — center the live circles in the card, both axes; drop the
+         redundant cycle hint. */
+      .metronome-shell .basic-grid .card-beats {
+        display: flex;
+        flex-direction: column;
+        padding: 0.75rem 1.1rem;
+      }
+      .metronome-shell .basic-grid .card-beats .section-label { text-align: center; }
+      .metronome-shell .basic-grid .card-beats .beat-grid-hint { display: none; }
+      .metronome-shell .basic-grid .card-beats #beat-grid {
+        flex: 1;
+        align-content: center;
+      }
+      .metronome-shell .basic-grid .card-beats .sub-indicators { margin-top: 0.6rem; }
+
+      /* Practice tab — Gap Click and Random Mute side by side, Device
+         spanning below. (Custom Form lives on the Forms tab now, so it
+         no longer reserves a column here.) */
+      .metronome-shell .adv-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "gap     random"
+          "device  device";
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .metronome-shell .adv-grid > .card { margin-bottom: 0; padding: 0.9rem 1.1rem; }
+      .metronome-shell .adv-grid .card-gap    { grid-area: gap; }
+      .metronome-shell .adv-grid .card-random { grid-area: random; }
+      .metronome-shell .adv-grid .card-device { grid-area: device; }
+
+      /* When the grid stretches one card to match its neighbor, vertically
+         center the controls in the slack so neither reads top-heavy. */
+      .metronome-shell .adv-grid .card-gap,
+      .metronome-shell .adv-grid .card-random {
+        display: flex;
+        flex-direction: column;
+      }
+      .metronome-shell .adv-grid .card-gap .adv-controls,
+      .metronome-shell .adv-grid .card-random .adv-controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .metronome-shell .adv-grid .card-gap .adv-row:last-of-type,
+      .metronome-shell .adv-grid .card-random .adv-row:last-of-type {
+        margin-bottom: 0;
+      }
+    }
+
+    /* Desktop: three columns. Tempo is the full-height left rail; Time
+       Signature spans the right two columns; Subdivision (the tallest
+       card, especially with the Custom panel open) gets its own column;
+       Sound and Beats stack beside it, with Beats absorbing the leftover
+       height for the live display. */
+    @media (min-width: 900px) {
+      .metronome-shell {
+        padding: calc(var(--header-h) + 1rem) 2rem 2.5rem;
+      }
+
+      .metronome-shell .app { max-width: 1120px; }
+
+      /* Slim page chrome — the h1 and tab strip sit above the fold budget
+         on every desktop visit, so they stay compact. */
+      .metronome-shell .header { margin-bottom: 0.75rem; }
+      .metronome-shell h1 { font-size: 1.35rem; }
+      .metronome-shell .carousel-tabs { margin-bottom: 0.55rem; }
+      .metronome-shell .carousel-tab { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
+
+      /* The "applies to duplet" hint under the swing slider adds a line
+         whenever swing is inactive (the default). The dimmed styling
+         already signals inactive on desktop — drop the extra line. */
+      .metronome-shell .basic-grid .card-subdiv .swing-hint { display: none; }
+      .metronome-shell .basic-grid .card-beats .sub-indicators { margin-top: 0.45rem; }
+
+      /* Time Signature — the Custom controls ride the header row next to
+         the section label (CSS grid re-slots them; DOM order unchanged),
+         so the card is only two rows tall: label+custom, then presets.
+         Desktop-only: on the tablet's narrower card the label would wrap
+         against the Custom controls. */
+      .metronome-shell .basic-grid .card-timesig {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "label   custom"
+          "presets presets";
+        align-items: center;
+        row-gap: 0.55rem;
+      }
+      .metronome-shell .basic-grid .card-timesig .section-label { grid-area: label; margin-bottom: 0; }
+      .metronome-shell .basic-grid .card-timesig .custom-sig { grid-area: custom; }
+      .metronome-shell .basic-grid .card-timesig .time-sig-presets {
+        grid-area: presets;
+        margin-bottom: 0;
+      }
+
+      .metronome-shell .basic-grid {
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.1fr) minmax(0, 1fr);
+        grid-template-areas:
+          "tempo  timesig  timesig"
+          "tempo  subdiv   sound"
+          "tempo  subdiv   beats";
+      }
+
+      /* Slightly smaller beat circles so four sit per row in the column;
+         the card still grows rows for high beat counts. */
+      .metronome-shell .basic-grid .card-beats .beat-btn {
+        width: 52px;
+        height: 52px;
+        border-width: 2px;
+      }
+      .metronome-shell .basic-grid .card-beats .beat-btn .beat-num { font-size: 1.1rem; }
+      .metronome-shell .basic-grid .card-beats #beat-grid { gap: 0.5rem; }
+    }
+
+    /* Wide desktop: the two-column Time Signature card is broad enough for
+       all 14 presets on a single row. */
+    @media (min-width: 1200px) {
+      .metronome-shell .basic-grid .card-timesig .time-sig-presets {
+        grid-template-columns: repeat(14, minmax(0, 1fr));
+      }
+      .metronome-shell .basic-grid .card-beats .beat-btn {
+        width: 58px;
+        height: 58px;
+      }
+      .metronome-shell .basic-grid .card-beats #beat-grid { gap: 0.6rem; }
+    }
+    @media (min-width: 1400px) {
+      .metronome-shell .app { max-width: 1220px; }
+    }
+
+    /* Short desktop viewports (landscape laptops, 1080p at 125% scaling) —
+       tighten the vertical chrome and card innards so the whole Pulse grid
+       fits above the fold without scrolling. */
+    @media (min-width: 900px) and (max-height: 840px) {
+      .metronome-shell { padding-top: calc(var(--header-h) + 0.4rem); }
+      .metronome-shell .header { margin-bottom: 0.45rem; }
+      .metronome-shell h1 { font-size: 1.2rem; }
+      .metronome-shell .carousel-tabs { margin-bottom: 0.45rem; }
+      .metronome-shell .basic-grid,
+      .metronome-shell .adv-grid { gap: 0.55rem; }
+      .metronome-shell .basic-grid > .card { padding: 0.7rem 1rem; }
+      .metronome-shell .basic-grid .section-label { margin-bottom: 0.4rem; }
+      .metronome-shell .basic-grid .card-tempo .slider-row { margin-bottom: 0.45rem; }
+      .metronome-shell .basic-grid .card-tempo .tap-row { margin-bottom: 0.4rem; }
+      .metronome-shell .basic-grid .card-tempo .play-row .btn-play { padding: 0.55rem 1.5rem; }
+      .metronome-shell .basic-grid .card-subdiv .btn-sub { padding: 0.4rem 0.3rem; }
+      .metronome-shell .basic-grid .card-subdiv .sub-followmute,
+      .metronome-shell .basic-grid .card-subdiv .swing-controls,
+      .metronome-shell .basic-grid .card-subdiv .sub-custom-panel {
+        margin-top: 0.45rem;
+        padding-top: 0.45rem;
+      }
+      .metronome-shell .basic-grid .card-subdiv .sub-custom-panel { gap: 0.45rem; }
+      .metronome-shell .basic-grid .card-subdiv .sub-custom-panel .sub-count-row { margin-bottom: 0; }
+      .metronome-shell .basic-grid .card-subdiv .sub-cell { width: 30px; height: 30px; }
+    }
+
+    /* ─── Practice guide prose (below the tool) ────────────────────
+       Long-form explainer content for SEO and education. Same dark
+       palette as the tool above but typographic and constrained for
+       reading. */
+    .metronome-prose {
+      background: var(--navy);
+      color: var(--cream);
+      padding: 4.5rem 1.5rem 6rem;
+      border-top: 1px solid rgba(91, 141, 232, 0.18);
+    }
+    .metronome-prose-inner {
+      max-width: 64ch;
+      margin: 0 auto;
+    }
+    .metronome-prose .prose-eyebrow {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--orange-lt);
+      margin: 0 0 1rem;
+      text-align: center;
+    }
+    .metronome-prose .prose-intro {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(1.0625rem, 2vw, 1.25rem);
+      line-height: 1.55;
+      color: rgba(245, 243, 238, 0.82);
+      margin: 0 0 3rem;
+      text-align: center;
+    }
+    .metronome-prose h2 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(1.375rem, 3vw, 1.875rem);
+      line-height: 1.2;
+      color: var(--cream);
+      margin: 3rem 0 1rem;
+      letter-spacing: -0.005em;
+      scroll-margin-top: 5rem;
+    }
+    .metronome-prose h2:first-of-type { margin-top: 0; }
+    .metronome-prose p {
+      font-size: 1rem;
+      line-height: 1.72;
+      color: rgba(245, 243, 238, 0.86);
+      margin: 0 0 1.25rem;
+    }
+    .metronome-prose p:last-child { margin-bottom: 0; }
+    .metronome-prose strong {
+      color: var(--cream);
+      font-weight: 600;
+    }
+    .metronome-prose em { font-style: italic; }
+    .metronome-prose ol,
+    .metronome-prose ul {
+      padding-left: 1.5rem;
+      margin: 0 0 1.5rem;
+    }
+    .metronome-prose ol > li {
+      margin-bottom: 1.25rem;
+      font-size: 1rem;
+      line-height: 1.72;
+      color: rgba(245, 243, 238, 0.86);
+    }
+    .metronome-prose ol > li:last-child { margin-bottom: 0; }
+    .metronome-prose ol > li > p:first-child { margin-bottom: 0.5rem; }
+    .metronome-prose ul > li {
+      margin-bottom: 0.625rem;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: rgba(245, 243, 238, 0.86);
+    }
+    .metronome-prose a {
+      color: var(--blue-lt);
+      text-decoration: underline;
+      text-decoration-color: rgba(91, 141, 232, 0.4);
+      text-underline-offset: 3px;
+      transition: text-decoration-color 0.18s, color 0.18s;
+    }
+    .metronome-prose a:hover {
+      color: #fff;
+      text-decoration-color: var(--blue-lt);
+    }
+    .metronome-prose .faq-item {
+      margin-bottom: 1.5rem;
+    }
+    .metronome-prose .faq-item:last-child { margin-bottom: 0; }
+    .metronome-prose .lead {
+      color: var(--cream);
+      font-weight: 600;
+    }
+    @media (max-width: 600px) {
+      .metronome-prose { padding: 3.5rem 1.25rem 4.5rem; }
+    }
+
+    /* ───────────────── Custom Form Editor ─────────────────
+       Full-screen overlay opened from the Custom Form card. Replaces the
+       inline form-list view with a notation-flavored bar grid:
+       proportional widths, auto-flow with manual line breaks, plus-button
+       to add bars, tap a beat to cycle state, sticky play on mobile. */
+
+    .metronome-shell .btn-open-editor {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 0.5rem;
+      background: rgba(91, 141, 232, 0.18);
+      border-color: rgba(91, 141, 232, 0.5);
+    }
+    .metronome-shell .btn-open-editor:hover {
+      background: rgba(91, 141, 232, 0.28);
+      border-color: var(--blue-lt);
+    }
+
+    .form-editor-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--navy);
+      color: var(--cream);
+      display: none;
+      flex-direction: column;
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+    .form-editor-modal[aria-hidden="false"] { display: flex; }
+    body.form-editor-open { overflow: hidden; }
+
+    /* The shell is now inside a regular .card on the Forms tab — no special
+       positioning, the card provides the visual container. */
+    .form-editor-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .form-editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+      /* No bottom border / margin — this is the last thing in the card. */
+    }
+    /* Don't let toolbar children shrink — wrap to a new row instead,
+       otherwise the Beat/Chart toggle (with overflow: hidden for its
+       pill-radius) clips its label on narrow viewports. */
+    .form-editor-toolbar > * { flex-shrink: 0; }
+    .form-editor-toolbar-left,
+    .form-editor-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .form-editor-close {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 6px;
+      width: 34px; height: 34px;
+      padding: 0;
+      cursor: pointer;
+      color: var(--cream);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-editor-close:hover { background: rgba(91, 141, 232, 0.18); }
+    .form-editor-close svg { width: 14px; height: 14px; }
+    .form-editor-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .form-editor-bpm {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: rgba(245, 243, 238, 0.85);
+    }
+    .form-editor-bpm-label {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      opacity: 0.6;
+      margin-left: 0.2rem;
+    }
+    .form-editor-bpm-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cream);
+      min-width: 2ch;
+      text-align: center;
+      padding: 0.15rem 0.3rem;
+      border-radius: 4px;
+      outline: none;
+      cursor: text;
+    }
+    .form-editor-bpm-value:focus { background: rgba(91, 141, 232, 0.18); }
+    .form-editor-bpm-step {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 4px;
+      color: var(--cream);
+      width: 28px; height: 28px;
+      padding: 0;
+      font-size: 0.95rem;
+      line-height: 1;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-bpm-step:hover { background: rgba(91, 141, 232, 0.18); }
+    .form-editor-bpm-step:active { background: rgba(91, 141, 232, 0.32); }
+    /* (Floating play pill replaces the old in-toolbar play button and the
+       short-lived form-editor-play-row; see .metronome-play-pill below.) */
+
+    /* Floating play pill — bottom-right, persistent across carousel
+       screens. Auto-hides whenever the Pulse-screen main play button is
+       visible (so it never duplicates the primary control). The Contact
+       pill (StickyCTA) lives in bottom-LEFT; the two never overlap. */
+    .metronome-play-pill {
+      position: fixed;
+      right: calc(env(safe-area-inset-right, 0px) + 14px);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+      z-index: 95;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.7rem 1.15rem;
+      background: var(--orange);
+      color: var(--navy);
+      border: 1px solid var(--orange);
+      border-radius: 999px;
+      font: 700 0.85rem/1 var(--sans, inherit);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36);
+      transition: transform 0.22s ease, opacity 0.22s ease, background 0.18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .metronome-play-pill:hover { background: var(--orange-lt); border-color: var(--orange-lt); }
+    .metronome-play-pill.is-playing {
+      background: rgba(15, 25, 45, 0.94);
+      color: var(--cream);
+      border-color: rgba(245, 243, 238, 0.4);
+    }
+    .metronome-play-pill.is-playing:hover { background: rgba(15, 25, 45, 1); }
+    .metronome-play-pill.is-hidden {
+      transform: translateY(140%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .metronome-play-pill-icon { font-size: 0.9rem; }
+    @media print { .metronome-play-pill { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .metronome-play-pill { transition: none; } }
+
+    /* Beat / Chart mode toggle */
+    .form-editor-mode-toggle {
+      display: inline-flex;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-left: 0.25rem;
+    }
+    .form-editor-mode-btn {
+      background: transparent;
+      border: none;
+      color: rgba(245, 243, 238, 0.7);
+      font-size: 0.7rem;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-mode-btn + .form-editor-mode-btn {
+      border-left: 1px solid rgba(91, 141, 232, 0.35);
+    }
+    .form-editor-mode-btn:hover { color: var(--cream); background: rgba(91, 141, 232, 0.12); }
+    .form-editor-mode-btn.active {
+      background: rgba(91, 141, 232, 0.28);
+      color: var(--cream);
+    }
+    @media (max-width: 700px) {
+      .form-editor-mode-btn { padding: 0.3rem 0.5rem; font-size: 0.65rem; }
+    }
+
+    /* Undo / redo — compact icon buttons */
+    .form-editor-undoredo {
+      display: inline-flex;
+      gap: 0.25rem;
+    }
+    .form-editor-ur-btn {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 6px;
+      color: var(--cream);
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-ur-btn:not([disabled]):hover {
+      background: rgba(91, 141, 232, 0.18);
+      border-color: var(--blue-lt);
+    }
+    .form-editor-ur-btn[disabled] {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    @media (max-width: 700px) {
+      .form-editor-ur-btn { width: 26px; height: 26px; font-size: 0.9rem; }
+      .form-editor-undoredo { gap: 0.2rem; }
+    }
+
+    /* Clear-all button — subtle by default, gets a warning tone on hover */
+    .form-editor-clear {
+      background: transparent;
+      border: 1px solid rgba(245, 243, 238, 0.18);
+      color: rgba(245, 243, 238, 0.7);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-clear:hover {
+      background: rgba(232, 30, 30, 0.15);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+    @media (max-width: 700px) {
+      .form-editor-clear { padding: 0.3rem 0.45rem; font-size: 0.65rem; }
+    }
+
+    /* ───────────────── Chart Mode ─────────────────
+       Sequence-of-tiles view. Each tile shows just the time signature.
+       4 tiles per row in portrait, 8 in landscape.
+
+       Two layouts:
+       - No manual line breaks: a fixed N-column grid (auto-flow, a
+         partial last row leaves a gap).
+       - With manual line breaks (.chart-lines): explicit flex rows, one
+         per user-defined line, with the tiles stretching to fill the
+         full width. */
+    .form-editor-grid.chart-mode:not(.chart-lines) {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 0.5rem;
+    }
+    @media (orientation: portrait) {
+      .form-editor-grid.chart-mode:not(.chart-lines) { grid-template-columns: repeat(4, 1fr); }
+    }
+    .form-editor-grid.chart-mode.chart-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .form-chart-line {
+      display: flex;
+      gap: 0.5rem;
+    }
+    /* Default line tiles keep the same fixed width they'd have in the
+       N-column grid — a partial line leaves a gap on the right. */
+    .form-chart-line .form-chart-tile {
+      flex: 0 0 calc((100% - 7 * 0.5rem) / 8);
+      min-width: 0;
+    }
+    @media (orientation: portrait) {
+      .form-chart-line .form-chart-tile {
+        flex: 0 0 calc((100% - 3 * 0.5rem) / 4);
+      }
+    }
+    /* Only a line that's immediately followed by a manual break stretches
+       its tiles edge to edge. Cap-wrapped lines and the trailing line are
+       left alone. */
+    .form-chart-line.stretch .form-chart-tile {
+      flex: 1 1 0;
+    }
+
+    .form-chart-tile {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.2rem;
+      padding: 0.4rem 0.4rem 0.4rem 0.4rem;
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--cream);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+    }
+    .form-chart-tile:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+    }
+    .form-chart-tile.active {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.15);
+      box-shadow: 0 0 0 2px rgba(245, 136, 42, 0.22);
+    }
+
+    /* The little tools sit in the tile corners */
+    .form-chart-tile-delete {
+      position: absolute;
+      top: 0.2rem;
+      right: 0.2rem;
+      width: 1.2rem; height: 1.2rem;
+      background: transparent;
+      border: 1px solid rgba(245, 243, 238, 0.18);
+      border-radius: 3px;
+      color: rgba(245, 243, 238, 0.5);
+      font-size: 0.65rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-chart-tile-delete:hover {
+      background: rgba(232, 30, 30, 0.2);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+    .form-chart-tile-delete[disabled] { opacity: 0.25; cursor: not-allowed; }
+
+    .form-chart-tile-break {
+      position: absolute;
+      bottom: 0.2rem;
+      right: 0.2rem;
+      width: 1.2rem; height: 1.2rem;
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      border-radius: 3px;
+      color: rgba(91, 141, 232, 0.7);
+      font-size: 0.7rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-chart-tile-break:hover { background: rgba(91, 141, 232, 0.2); color: var(--cream); }
+    .form-chart-tile-break.on {
+      background: rgba(91, 141, 232, 0.32);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+
+    /* Card now provides the outer padding; the body just stacks content
+       vertically. Bottom margin leaves a little breathing room above the
+       floating play pill. */
+    .form-editor-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-editor-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      padding-bottom: 1rem;
+    }
+
+    /* Each row holds bars whose beat counts sum to <= 8. Bars within a row
+       stretch to fill the line width, sized in proportion to their beat
+       counts (flex-grow: <beats>). Row breaks are computed in JS. */
+    .form-editor-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+
+    /* Bar card — compact by default. Tap the sig label to toggle the edit
+       chrome (sig inputs) for that one bar. Always-visible ✕ in the
+       top-right deletes the bar. */
+    .form-bar {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      /* Symmetric padding — the absolute delete ✕ only overlaps the top
+         band (sig tag / edit chrome), not the beats row, so the bar
+         doesn't need a wide right gutter. The edit chrome carries its
+         own right padding for delete clearance instead. */
+      padding: 0.4rem 0.5rem 0.45rem 0.5rem;
+      background: rgba(91, 141, 232, 0.07);
+      border: 1px solid rgba(91, 141, 232, 0.3);
+      border-radius: 6px;
+      min-width: 0;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      /* Default flex sizing; the JS render sets flex-grow to bar.beats so
+         a 7-beat bar takes more row width than a 3-beat bar. */
+      flex: 1 1 0;
+    }
+    .form-bar.active {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.1);
+      box-shadow: 0 0 0 2px rgba(245, 136, 42, 0.18);
+    }
+    .form-bar.editing {
+      border-color: rgba(91, 141, 232, 0.7);
+      background: rgba(91, 141, 232, 0.13);
+    }
+
+    .form-bar-sig-tag {
+      align-self: flex-start;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: rgba(245, 243, 238, 0.85);
+      background: rgba(91, 141, 232, 0.18);
+      border: 1px solid rgba(91, 141, 232, 0.38);
+      border-radius: 4px;
+      padding: 0.2rem 0.55rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1.1;
+    }
+    .form-bar.editing .form-bar-sig-tag { display: none; }
+    .form-bar-sig-tag:hover {
+      background: rgba(91, 141, 232, 0.3);
+      color: var(--cream);
+    }
+
+    /* Always-visible delete in the top-right corner */
+    .form-bar-delete {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.3rem;
+      width: 1.4rem;
+      height: 1.4rem;
+      padding: 0;
+      background: transparent;
+      border: 1px solid rgba(245, 243, 238, 0.18);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.5);
+      font-size: 0.75rem;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-bar-delete:hover {
+      background: rgba(232, 30, 30, 0.18);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+    .form-bar-delete[disabled] {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    /* Edit chrome — only shown when .form-bar.editing */
+    .form-bar-edit {
+      display: none;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.4rem;
+      /* Right padding keeps the sig inputs / Insert button clear of the
+         absolute delete ✕ in the top-right corner. */
+      padding: 0.05rem 1.4rem 0.05rem 0;
+    }
+    .form-bar.editing .form-bar-edit { display: flex; }
+
+    .form-bar-sig {
+      display: flex;
+      align-items: center;
+      gap: 0.1rem;
+    }
+    .form-bar-sig-input {
+      width: 2.25em;
+      background: rgba(15, 25, 45, 0.6);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 4px;
+      color: var(--cream);
+      padding: 0.1rem 0.25rem;
+      /* font-size must stay >= 16px so iOS Safari doesn't auto-zoom the
+         viewport when the input is focused */
+      font-size: 16px;
+      text-align: center;
+      font-family: inherit;
+      -moz-appearance: textfield;
+    }
+    .form-bar-sig-input::-webkit-outer-spin-button,
+    .form-bar-sig-input::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .form-bar-sig-slash { opacity: 0.5; font-size: 0.8rem; }
+
+    .form-bar-insert {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.85);
+      font-size: 0.72rem;
+      font-family: inherit;
+      letter-spacing: 0.02em;
+      padding: 0.25rem 0.55rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-bar-insert:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .form-bar-sig-unit {
+      background: rgba(15, 25, 45, 0.6);
+      border: 1px solid rgba(91, 141, 232, 0.35);
+      border-radius: 4px;
+      color: var(--cream);
+      padding: 0.1rem 0.2rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+    }
+    .form-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+      margin-left: auto;
+    }
+    .form-bar-action {
+      background: transparent;
+      border: 1px solid rgba(91, 141, 232, 0.25);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.7);
+      width: 24px; height: 24px;
+      padding: 0;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-bar-action:hover {
+      background: rgba(91, 141, 232, 0.18);
+      color: var(--cream);
+    }
+    .form-bar-action[disabled] { opacity: 0.3; cursor: not-allowed; }
+    .form-bar-action.danger:hover {
+      background: rgba(232, 30, 30, 0.18);
+      border-color: rgba(232, 80, 80, 0.5);
+      color: rgba(255, 220, 220, 1);
+    }
+
+    .form-bar-beats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem 0.25rem;
+      align-items: center;
+      align-content: center;
+      justify-content: space-evenly;
+      flex: 1;
+    }
+    .form-beat {
+      flex: 0 0 auto;
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--cream);
+      transition: background 0.1s, border-color 0.1s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    @media (max-width: 700px) {
+      .form-beat { width: 2.2rem; height: 2.2rem; font-size: 0.8rem; }
+    }
+    .form-beat:focus-visible {
+      outline: 2px solid var(--blue-lt);
+      outline-offset: 2px;
+    }
+    .form-beat.state-accent {
+      background: var(--orange);
+      border-color: var(--orange-lt);
+      color: var(--cream);
+    }
+    .form-beat.state-normal {
+      background: var(--cobalt);
+      border-color: var(--blue-lt);
+    }
+    .form-beat.state-soft {
+      background: transparent;
+      border-color: rgba(91, 141, 232, 0.5);
+      color: rgba(91, 141, 232, 0.85);
+    }
+    .form-beat.state-mute {
+      background: rgba(0, 0, 0, 0.35);
+      border-color: rgba(245, 243, 238, 0.18);
+      color: rgba(245, 243, 238, 0.45);
+    }
+    .form-beat.playing {
+      box-shadow: 0 0 0 3px rgba(245, 136, 42, 0.32);
+      transform: scale(1.18);
+    }
+
+    /* Manual line break: a thin horizontal divider that takes the full
+       row width. Toggling it on inserts itself between bars; toggling off
+       removes it. Hovering between bars surfaces an "add break" cue. */
+    .form-line-break {
+      flex: 0 0 100%;
+      height: 0;
+      position: relative;
+      margin: 0.3rem 0;
+    }
+    .form-line-break::before {
+      content: "";
+      position: absolute;
+      inset: 50% 0 auto 0;
+      height: 1px;
+      background: rgba(91, 141, 232, 0.32);
+    }
+    .form-line-break-toggle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--navy);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 4px;
+      color: rgba(245, 243, 238, 0.7);
+      font-size: 0.6rem;
+      padding: 0.15rem 0.45rem;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .form-line-break-toggle:hover {
+      background: rgba(91, 141, 232, 0.2);
+      color: var(--cream);
+    }
+
+    /* "Add break here" affordance between bars (hover only, desktop) */
+    .form-bar-break-cue {
+      flex: 0 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+      cursor: pointer;
+      align-self: stretch;
+    }
+    .form-bar-break-cue:hover { opacity: 1; }
+    .form-bar-break-cue::before {
+      content: "↵";
+      color: rgba(91, 141, 232, 0.6);
+      font-size: 0.85rem;
+    }
+    @media (hover: none) {
+      .form-bar-break-cue { display: none; }
+    }
+
+    .form-editor-add-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px dashed rgba(91, 141, 232, 0.5);
+      border-radius: 8px;
+      color: rgba(245, 243, 238, 0.85);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+      margin-top: 0.5rem;
+    }
+    .form-editor-add-bar:hover {
+      background: rgba(91, 141, 232, 0.22);
+      border-color: var(--blue-lt);
+      color: var(--cream);
+    }
+    .form-editor-add-bar-plus {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    /* Add-bar + Select-bars action row beneath the grid */
+    .form-editor-body-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+    .form-editor-body-actions .form-editor-add-bar { margin-top: 0; }
+    .form-editor-select-btn {
+      background: rgba(91, 141, 232, 0.1);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 8px;
+      color: rgba(245, 243, 238, 0.9);
+      font-size: 0.85rem;
+      font-family: inherit;
+      padding: 0.55rem 1rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-editor-select-btn:hover {
+      background: rgba(91, 141, 232, 0.2);
+      border-color: var(--blue-lt);
+    }
+
+    /* Contextual selection card — appears below the toolbar while in
+       select mode. Shows the range status + Duplicate/Delete/Cancel.
+       Uses the same .card surface as the rest of the Forms tab so it
+       reads as part of the page chrome (not a modal-era strip). */
+    .metronome-shell .card.form-select-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.5rem;
+      padding: 0.7rem 1.1rem;
+    }
+    .metronome-shell .card.form-select-bar[aria-hidden="false"] { display: flex; }
+    .form-select-status {
+      font-size: 0.78rem;
+      color: var(--cream);
+    }
+    .form-select-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .form-select-action {
+      background: rgba(91, 141, 232, 0.2);
+      border: 1px solid rgba(91, 141, 232, 0.45);
+      border-radius: 6px;
+      color: var(--cream);
+      font-size: 0.75rem;
+      font-family: inherit;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-select-action:hover { background: rgba(91, 141, 232, 0.3); }
+    .form-select-action[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .form-select-action.danger:hover {
+      background: rgba(232, 30, 30, 0.22);
+      border-color: rgba(232, 80, 80, 0.55);
+      color: rgba(255, 220, 220, 1);
+    }
+    /* Playback actions — warm accent so they read as "go" vs the
+       neutral edit actions. */
+    .form-select-action.play {
+      background: rgba(232, 101, 10, 0.18);
+      border-color: rgba(245, 136, 42, 0.5);
+    }
+    .form-select-action.play:not([disabled]):hover {
+      background: rgba(232, 101, 10, 0.3);
+      border-color: var(--orange-lt);
+    }
+    @media (max-width: 700px) {
+      /* Stack the status above a single row of evenly-divided buttons
+         so the action array always fits on one line, no matter how
+         many actions or how wide their labels are. */
+      .metronome-shell .card.form-select-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.6rem 0.85rem;
+      }
+      .form-select-status { font-size: 0.7rem; text-align: center; }
+      .form-select-actions {
+        flex-wrap: nowrap;
+        gap: 0.3rem;
+        width: 100%;
+      }
+      .form-select-action {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0.3rem 0.25rem;
+        font-size: 0.66rem;
+        text-align: center;
+      }
+    }
+
+    /* Selected-range highlight (works for both beat-mode cards and chart
+       tiles). Distinct from the orange 'playing' and blue 'editing'
+       states — a brighter blue ring. '.looping' keeps that same ring on
+       the range while "loop selection" plays it. */
+    .form-bar.selected,
+    .form-chart-tile.selected,
+    .form-bar.looping,
+    .form-chart-tile.looping {
+      border-color: var(--blue-lt);
+      background: rgba(91, 141, 232, 0.24);
+      box-shadow: 0 0 0 2px rgba(91, 141, 232, 0.45);
+    }
+    /* The currently-playing bar always shows the orange 'playing' state,
+       even when it sits inside the looped range. */
+    .form-bar.looping.active,
+    .form-chart-tile.looping.active {
+      border-color: var(--orange-lt);
+      background: rgba(232, 101, 10, 0.15);
+      box-shadow: 0 0 0 2px rgba(245, 136, 42, 0.22);
+    }
+    /* In select mode the whole bar/tile is one tap target — kill child
+       pointer events so a tap anywhere on it registers as a selection. */
+    .form-editor-grid.select-mode .form-bar,
+    .form-editor-grid.select-mode .form-chart-tile {
+      cursor: pointer;
+    }
+    .form-editor-grid.select-mode .form-bar *,
+    .form-editor-grid.select-mode .form-chart-tile * {
+      pointer-events: none;
+    }
+
+    /* Save & Share panel — bottom-of-page library hub. Save the current
+       form, copy a share link, or import a pasted share link. The chip
+       strip below the buttons is the saved-forms library (tap to load,
+       × to delete). Visible in both beat and chart modes — the library
+       is useful regardless of which editor view you're in. */
+    .form-code-panel {
+      margin-top: 1.75rem;
+      padding: 0.85rem;
+      background: rgba(91, 141, 232, 0.06);
+      border: 1px solid rgba(91, 141, 232, 0.22);
+      border-radius: 8px;
+      max-width: 480px;
+    }
+    .form-code-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(245, 243, 238, 0.6);
+      margin-bottom: 0.4rem;
+    }
+    .form-code-help {
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: rgba(245, 243, 238, 0.6);
+      margin: 0 0 0.7rem;
+    }
+    .form-code-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .form-code-btn {
+      position: relative;
+      background: rgba(91, 141, 232, 0.16);
+      border: 1px solid rgba(91, 141, 232, 0.4);
+      border-radius: 6px;
+      color: var(--cream);
+      font-size: 0.8rem;
+      font-family: inherit;
+      padding: 0.4rem 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-code-btn:hover {
+      background: rgba(91, 141, 232, 0.28);
+      border-color: var(--blue-lt);
+    }
+    .form-code-copied {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 25, 45, 0.96);
+      border-radius: 6px;
+      color: var(--blue-lt);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .form-code-btn.copied .form-code-copied { opacity: 1; }
+
+    /* (The mobile-sticky play bar from the old modal layout is unused now
+       that the editor lives as a tab and the toolbar play is always
+       visible. Element kept in DOM for back-compat with JS handlers.) */
+    .form-editor-mobile-play { display: none; }
+    @media (max-width: 700px) {
+      .form-editor-toolbar {
+        padding: 0.55rem 0.6rem;
+        gap: 0.4rem;
+        flex-wrap: nowrap;
+      }
+      .form-editor-toolbar-left,
+      .form-editor-toolbar-right { gap: 0.4rem; }
+      /* Hide the title and the trailing "BPM" label on mobile so the
+         single-row toolbar fits at 390px viewport without wrapping. */
+      .form-editor-title { display: none; }
+      .form-editor-bpm-label { display: none; }
+      .form-editor-bpm { gap: 0.15rem; }
+      .form-editor-bpm-value { font-size: 1rem; padding: 0.1rem 0.2rem; }
+      .form-editor-bpm-step { width: 26px; height: 26px; }
+      .form-editor-mode-btn { padding: 0.28rem 0.5rem; font-size: 0.65rem; }
+      .form-editor-clear { padding: 0.28rem 0.45rem; font-size: 0.65rem; white-space: nowrap; }
+      .form-editor-close { width: 30px; height: 30px; }
+      .form-editor-body { padding: 0; }
+      .form-bar { padding: 0.5rem 0.5rem 0.45rem 0.5rem; }
+    }
+
+    /* The Forms-tab card holds just the header bar (label/desc/toggle/
+       mode/undo/redo/Clear all/BPM). Tighter padding than the default
+       .card since there's less content to breathe around, and the
+       header→toolbar gap shrinks to bring the card's height down. */
+    .metronome-shell .card-form {
+      padding: 0.7rem 1.1rem;
+    }
+    .metronome-shell .card-form .adv-feature-header {
+      margin-bottom: 0.35rem;
+    }
+    /* Keep the explainer to a single line on phones — the copy is short
+       enough; nowrap guards against any future fontsize / token tweaks
+       wrapping it. */
+    .metronome-shell .card-form .adv-feature-desc {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Saved forms library — the chip strip below the Save/Share/Import
+       button row inside .form-code-panel. Tap a chip to load the form;
+       the × inside each chip deletes it. Horizontal scroll so a long
+       library doesn't wrap awkwardly on narrow viewports. */
+    .form-saved-list {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      margin-top: 0.45rem;
+      padding: 0.1rem 0 0.2rem;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+    .form-saved-list::-webkit-scrollbar { height: 4px; }
+    .form-saved-list::-webkit-scrollbar-thumb {
+      background: rgba(245, 243, 238, 0.18);
+      border-radius: 4px;
+    }
+    .form-saved-empty {
+      font-size: 0.72rem;
+      color: rgba(245, 243, 238, 0.4);
+      font-style: italic;
+      padding: 0.4rem 0.2rem;
+      flex: 1;
+    }
+    .form-saved-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-shrink: 0;
+      background: rgba(91, 141, 232, 0.12);
+      border: 1px solid rgba(91, 141, 232, 0.32);
+      border-radius: 999px;
+      color: var(--cream);
+      font: 500 0.74rem/1 var(--sans);
+      padding: 0.4rem 0.55rem 0.4rem 0.8rem;
+      cursor: pointer;
+      max-width: 14rem;
+      transition: background 0.18s, border-color 0.18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-saved-chip:hover {
+      background: rgba(91, 141, 232, 0.22);
+      border-color: var(--blue-lt);
+    }
+    .form-saved-chip-name {
+      max-width: 9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .form-saved-chip-meta {
+      font-size: 0.65rem;
+      color: rgba(245, 243, 238, 0.5);
+      white-space: nowrap;
+    }
+    .form-saved-chip-del {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      line-height: 1;
+      color: rgba(245, 243, 238, 0.55);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .form-saved-chip-del:hover {
+      background: rgba(232, 30, 30, 0.25);
+      color: rgba(255, 220, 220, 1);
+    }
+
+    /* ─── Standalone PWA chromeless mode ──────────────────────────────────
+       When the metronome is launched from the home-screen install (Add to
+       Home Screen on iOS, or the install prompt on Android/desktop), drop
+       the site nav, footer, and contact pill so the metronome reads like
+       a real app rather than a webpage. The display-mode media query only
+       matches in installed-PWA mode — a regular browser tab still gets
+       the full site chrome.
+
+       Padding the shell with env(safe-area-inset-top) keeps the
+       "Metronome" h1 below the iOS status bar (which we draw under via
+       apple-mobile-web-app-status-bar-style: black-translucent). */
+    @media (display-mode: standalone) {
+      body.metronome-page .site-header,
+      body.metronome-page footer,
+      body.metronome-page .sticky-cta { display: none; }
+
+      body.metronome-page .metronome-shell {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+      }
+    }

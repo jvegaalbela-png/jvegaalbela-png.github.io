@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Content Manager</title>
+  </head>
+  <body>
+    <script type="module" src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+    <script>
+      // Wire the Sveltia preview pane up to look like a real blog post:
+      //
+      //   1. registerPreviewStyle injects the site's stylesheets into
+      //      the preview iframe (which is otherwise unstyled). The two
+      //      files are copied from src/styles/ on every dev/build by
+      //      scripts/sync-cms-preview-styles.mjs.
+      //
+      //   2. registerPreviewTemplate('blog', ...) tells Sveltia to use
+      //      our custom component for rendering the blog preview, in
+      //      place of the default field-dump layout. The template
+      //      mirrors src/pages/blog/[...slug].astro so the CSS in
+      //      blog-post.css has the right HTML structure to style.
+      //
+      // Sveltia loads as an ES module, so window.CMS isn't ready when
+      // this classic script first runs — poll briefly (capped) for it.
+      (function () {
+        var tries = 0;
+        (function register() {
+          if (!window.CMS || typeof window.CMS.registerPreviewStyle !== 'function') {
+            if (tries++ < 200) setTimeout(register, 50);
+            return;
+          }
+
+          window.CMS.registerPreviewStyle('/admin/global.css');
+          window.CMS.registerPreviewStyle('/admin/blog-post.css');
+
+          // The CMS exposes Preact's createElement as either CMS.h or
+          // globally as h. Resolve once, fall back gracefully.
+          var h = window.CMS.h || window.h;
+          if (!h || typeof window.CMS.registerPreviewTemplate !== 'function') return;
+
+          function fmtDate(d) {
+            if (!d) return '';
+            try {
+              var dt = (d instanceof Date) ? d : new Date(d);
+              if (isNaN(dt.getTime())) return '';
+              return dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            } catch (_) { return ''; }
+          }
+
+          function get(entry, key) {
+            // Sveltia mirrors Decap's Immutable.js entry — use getIn,
+            // but tolerate a plain object as a fallback.
+            try {
+              var data = entry.get ? entry.get('data') : entry.data;
+              if (!data) return undefined;
+              return data.get ? data.get(key) : data[key];
+            } catch (_) { return undefined; }
+          }
+
+          function tagsList(entry) {
+            var t = get(entry, 'tags');
+            if (!t) return [];
+            if (Array.isArray(t)) return t;
+            if (t.toJS) return t.toJS();
+            return [];
+          }
+
+          function BlogPreview(props) {
+            var entry = props.entry;
+            var title = get(entry, 'title') || '';
+            var description = get(entry, 'description') || '';
+            var pub = get(entry, 'pubDate');
+            var upd = get(entry, 'updatedDate');
+            var heroImage = get(entry, 'heroImage');
+            var tags = tagsList(entry);
+
+            var heroUrl = null;
+            if (heroImage && props.getAsset) {
+              try { heroUrl = props.getAsset(heroImage).toString(); } catch (_) {}
+            }
+
+            var eyebrowKids = [
+              h('a', { href: '#' }, 'Blog'),
+              h('span', { className: 'sep' }, ' · '),
+              h('time', null, fmtDate(pub)),
+            ];
+            if (upd) {
+              eyebrowKids.push(h('span', { className: 'sep' }, ' · '));
+              eyebrowKids.push(h('span', null, 'Updated ' + fmtDate(upd)));
+            }
+
+            var heroTextKids = [
+              h('p', { className: 'post-hero-eyebrow' }, eyebrowKids),
+              h('h1', { className: 'post-hero-title' }, title),
+              h('p', { className: 'post-hero-desc' }, description),
+            ];
+            if (tags.length > 0) {
+              heroTextKids.push(
+                h('ul', { className: 'post-hero-tags' },
+                  tags.map(function (t, i) {
+                    return h('li', { className: 'post-hero-tag', key: i }, t);
+                  })
+                )
+              );
+            }
+
+            var heroInnerKids = [h('div', { className: 'post-hero-text' }, heroTextKids)];
+            if (heroUrl) {
+              heroInnerKids.push(
+                h('figure', { className: 'post-hero-img' },
+                  h('img', { src: heroUrl, alt: '' })
+                )
+              );
+            }
+
+            return h('main', { className: 'post' },
+              h('header', { className: 'post-hero' },
+                h('div', { className: 'post-hero-inner' }, heroInnerKids)
+              ),
+              h('article', { className: 'post-article' },
+                h('div', { className: 'prose' }, props.widgetFor('body')),
+                h('nav', { className: 'post-back' },
+                  h('a', { href: '#' }, '← Back to all posts')
+                )
+              )
+            );
+          }
+
+          window.CMS.registerPreviewTemplate('blog', BlogPreview);
+        })();
+      })();
+    </script>
+  </body>
+</html>
