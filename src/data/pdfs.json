@@ -46,6 +46,13 @@
           "title": "Pulse Explainer - Quarter Note Sheet",
           "description": "An introduction to rhythmic notation designed for complete beginners with no experience. Built to encourage audiation, and to help the student learn count rhythms out loud to work through them.",
           "howToPractice": ""
+        },
+        {
+          "file": "/pdfs/Eighth Notes Explained.pdf",
+          "thumbnail": "",
+          "title": "Eighth Notes Explained",
+          "description": "An introduction to eighth notes and the idea of subdivision.",
+          "howToPractice": ""
         }
       ]
     },
@@ -93,7 +100,8 @@
           "file": "/pdfs/drumset/jazz-comping-exercise.pdf",
           "thumbnail": "/pdfs/_thumbs/drumset/jazz-comping-exercise.webp",
           "title": "Jazz Comping Exercise",
-          "description": "This worksheet is geared towards beginner jazz drummers, and is meant to serve as a series of prompts for improvisation. Each line demonstrates a concept you can experiment with in order to generate compelling comping ideas without being limited by a lack of sophisticated four-way coordination."
+          "description": "This worksheet is geared towards beginner jazz drummers, and is meant to serve as a series of prompts for improvisation. Each line demonstrates a concept you can experiment with in order to generate compelling comping ideas without being limited by a lack of sophisticated four-way coordination.",
+          "howToPractice": ""
         }
       ]
     },
