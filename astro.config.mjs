@@ -26,6 +26,15 @@ const REDIRECTS = {
  '/lessons-landing-3-old': '/drum-lessons',
  '/lessons-landing-3-dark': '/drum-lessons',
  '/education-1': '/drum-lessons',
+ '/lessons-landing-nope': '/drum-lessons',
+ // PDF slug cleanup — Tech Routine 2 used to build with a space in its
+ // slug (file was /pdfs/Tech Routine 2.pdf). The clean page lives at
+ // /pdfs/single-surface/tech-routine-2/; cover every variant Google may
+ // have indexed (literal space + percent-encoded, with/without slash).
+ '/pdfs/single-surface/Tech Routine 2': '/pdfs/single-surface/tech-routine-2',
+ '/pdfs/single-surface/Tech Routine 2/': '/pdfs/single-surface/tech-routine-2/',
+ '/pdfs/single-surface/Tech%20Routine%202': '/pdfs/single-surface/tech-routine-2',
+ '/pdfs/single-surface/Tech%20Routine%202/': '/pdfs/single-surface/tech-routine-2/',
  // Old "listen" pages — collapse to the homepage where the album lives
  '/listen': '/',
  '/listen/unbelonging': '/',
