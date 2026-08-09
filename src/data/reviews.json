@@ -1,5 +1,42 @@
 {
   "rating": 5.0,
   "count": 13,
-  "updated": "2026-08-08"
+  "updated": "2026-08-08",
+  "reviews": [
+    {
+      "id": "Ci9DQUlRQUNvZENodHljRjlvT2tKSVNWcDZRV1ZTYTFKM2JUbFVNemRrVlZBd1JVRRAB",
+      "author": "Li-Yang Hsu",
+      "rating": 5,
+      "text": "I\u2019ve been learning drums and music theory with Jacobo since 2021 and it\u2019s been absolutely amazing! He had me focused on crucial elements of music and build a solid foundation on my rhythmic feel over the years.",
+      "publish_time": "2025-12-23T20:41:36.046448273Z"
+    },
+    {
+      "id": "ChdDSUhNMG9nS0VJQ0FnTUR3a01qX29nRRAB",
+      "author": "Naomrtz",
+      "rating": 5,
+      "text": "I had an awesome first drum lesson! Jacobo was thorough, covering everything from reading music to teaching me my first drum beat. We also went over technique, which was super helpful. Highly recommend!",
+      "publish_time": "2025-03-22T18:12:53.701560Z"
+    },
+    {
+      "id": "ChdDSUhNMG9nS0VJQ0FnTUN3bHN6U2lnRRAB",
+      "author": "Nisaa Reed",
+      "rating": 5,
+      "text": "I recently started drumming, and going into it, I was very anxious since this was something completely new to me. However, Jacob made me feel comfortable from the very first lesson. He was incredibly patient and understanding, knowing it was my first time ever playing the drums. If you\u2019re looking for a drum instructor who is kind, patient, and supportive, I highly recommend taking lessons with Jacabo!!!",
+      "publish_time": "2025-03-18T16:29:10.360546Z"
+    },
+    {
+      "id": "ChdDSUhNMG9nS0VJQ0FnSUR6MXJqRG93RRAB",
+      "author": "Joseph Ortiz",
+      "rating": 5,
+      "text": "My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.",
+      "publish_time": "2024-06-09T22:37:06.244438Z"
+    },
+    {
+      "id": "ChZDSUhNMG9nS0VJQ0FnSUR6anRqZ1dnEAE",
+      "author": "Adam Aronesty",
+      "rating": 5,
+      "text": "Jacobo is one of the most insightful teachers I\u2019ve ever had. I took drum lessons with him after many years of professional experience, and I can tell you he\u2019s the real deal. I would encourage you to get your lessons with him before he gets famous!!",
+      "publish_time": "2024-06-10T03:09:33.231456Z"
+    }
+  ]
 }
