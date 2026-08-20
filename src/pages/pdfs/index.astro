@@ -50,8 +50,8 @@ const allItems = manifest.categories.flatMap((cat) =>
     description: item.description,
     file: item.file,
     url: `${SITE_URL}${item.file}`,
-    landingPath: landingPathFor(cat.id, item.file),
-    landingUrl: `${SITE_URL}${landingPathFor(cat.id, item.file)}`,
+    landingPath: landingPathFor(cat.id, item),
+    landingUrl: `${SITE_URL}${landingPathFor(cat.id, item)}`,
     category: cat.title,
     categoryId: cat.id,
     fileSize: pdfFileSize(item.file),
@@ -164,7 +164,7 @@ const graph = {
           {cat.blurb && <p class="pdf-section-blurb">{cat.blurb}</p>}
           <div class="pdf-grid">
             {cat.items.map((item) => {
-              const landing = landingPathFor(cat.id, item.file);
+              const landing = landingPathFor(cat.id, item);
               const thumb = item.thumbnail ?? '';
               const dims = thumbDims.get(thumb);
               const isLcp = thumb && thumb === firstThumb;

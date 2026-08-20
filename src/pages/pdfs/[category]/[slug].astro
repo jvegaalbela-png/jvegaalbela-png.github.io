@@ -11,7 +11,7 @@ import {
   ABOUT_BY_FILE,
   CATEGORY_LEAD_IN,
   CATEGORY_EDUCATIONAL_LEVEL,
-  slugFromFile,
+  slugFor,
   type PdfItem,
 } from '../../../data/pdf-meta';
 import pdfContent from '../../../data/pdf-content.json';
@@ -19,7 +19,7 @@ import pdfContent from '../../../data/pdf-content.json';
 export function getStaticPaths() {
   return INDEXABLE_CATEGORIES.flatMap((cat) =>
     cat.items.map((item) => ({
-      params: { category: cat.id, slug: slugFromFile(item.file) },
+      params: { category: cat.id, slug: slugFor(item) },
       props: { categoryId: cat.id, file: item.file },
     }))
   );
@@ -34,7 +34,7 @@ const { categoryId, file } = Astro.props;
 
 const category = INDEXABLE_CATEGORIES.find((c) => c.id === categoryId)!;
 const item = category.items.find((i) => i.file === file)!;
-const slug = slugFromFile(file);
+const slug = slugFor(item);
 
 const pageUrl = `${SITE_URL}/pdfs/${categoryId}/${slug}/`;
 const pdfUrl = `${SITE_URL}${item.file}`;
@@ -105,12 +105,12 @@ const leadIn = CATEGORY_LEAD_IN[categoryId] ?? category.title;
 // than 3 items total.
 const siblingItems = (() => {
   const list = category.items;
-  const idx = list.findIndex((i: PdfItem) => slugFromFile(i.file) === slug);
+  const idx = list.findIndex((i: PdfItem) => slugFor(i) === slug);
   if (idx < 0 || list.length < 2) return [] as PdfItem[];
   return [
     list[(idx + 1) % list.length],
     list[(idx + 2) % list.length],
-  ].filter((x, i, arr) => slugFromFile(x.file) !== slug && arr.findIndex((y) => slugFromFile(y.file) === slugFromFile(x.file)) === i);
+  ].filter((x, i, arr) => slugFor(x) !== slug && arr.findIndex((y) => slugFor(y) === slugFor(x)) === i);
 })();
 
 const metaTitle = `${item.title} — ${category.title} PDF | Jacobo Vega-Albela`;
@@ -289,7 +289,7 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
           </li>
           {siblingItems.map((sib) => (
             <li>
-              <a class="pdf-detail-related-card" href={`/pdfs/${categoryId}/${slugFromFile(sib.file)}/`}>
+              <a class="pdf-detail-related-card" href={`/pdfs/${categoryId}/${slugFor(sib)}/`}>
                 <span class="pdf-detail-related-card-title">{sib.title}<span class="pdf-detail-related-card-arrow" aria-hidden="true">→</span></span>
                 <span class="pdf-detail-related-card-desc">{sib.description || `${leadIn} from the ${category.title.toLowerCase()} library.`}</span>
               </a>

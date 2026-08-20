@@ -14,6 +14,7 @@ export interface PdfItem {
   title: string;
   description: string;
   howToPractice?: string;
+  slug?: string;
 }
 
 export interface PdfCategory {
@@ -99,8 +100,29 @@ export function slugFromFile(file: string): string {
   return base.replace(/\.pdf$/i, '');
 }
 
-export function landingPathFor(categoryId: string, file: string): string {
-  return `/pdfs/${categoryId}/${slugFromFile(file)}/`;
+// URL-safe slug: lowercase, collapse runs of non-alphanumeric chars to
+// a single hyphen, trim leading/trailing hyphens. Used as the fallback
+// so a missing/blank `slug` never yields a page URL with spaces or caps.
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Resolve an item's URL slug in order of precedence: the explicit
+// `slug` field (so a CMS editor can pin a URL and keep it stable across
+// file renames) → the slugified title → the slugified filename basename.
+export function slugFor(item: PdfItem): string {
+  const explicit = item.slug?.trim();
+  if (explicit) return explicit;
+  const fromTitle = slugify(item.title);
+  if (fromTitle) return fromTitle;
+  return slugify(slugFromFile(item.file));
+}
+
+export function landingPathFor(categoryId: string, item: PdfItem): string {
+  return `/pdfs/${categoryId}/${slugFor(item)}/`;
 }
 
 export function intakeKeyFor(categoryId: string, slug: string): string {

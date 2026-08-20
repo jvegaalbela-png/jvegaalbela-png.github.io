@@ -27,14 +27,31 @@ const REDIRECTS = {
  '/lessons-landing-3-dark': '/drum-lessons',
  '/education-1': '/drum-lessons',
  '/lessons-landing-nope': '/drum-lessons',
- // PDF slug cleanup — Tech Routine 2 used to build with a space in its
- // slug (file was /pdfs/Tech Routine 2.pdf). The clean page lives at
- // /pdfs/single-surface/tech-routine-2/; cover every variant Google may
- // have indexed (literal space + percent-encoded, with/without slash).
- '/pdfs/single-surface/Tech Routine 2': '/pdfs/single-surface/tech-routine-2',
- '/pdfs/single-surface/Tech Routine 2/': '/pdfs/single-surface/tech-routine-2/',
- '/pdfs/single-surface/Tech%20Routine%202': '/pdfs/single-surface/tech-routine-2',
- '/pdfs/single-surface/Tech%20Routine%202/': '/pdfs/single-surface/tech-routine-2/',
+  // PDF slug cleanup — several PDFs used to build with a space (or
+  // hyphenated) slug derived directly from their filename. Their clean
+  // pages now live under lowercase hyphenated slugs; cover every variant
+  // Google may have indexed (literal space + percent-encoded, with and
+  // without trailing slash).
+  '/pdfs/single-surface/Tech Routine 2': '/pdfs/single-surface/tech-routine-2',
+  '/pdfs/single-surface/Tech Routine 2/': '/pdfs/single-surface/tech-routine-2/',
+  '/pdfs/single-surface/Tech%20Routine%202': '/pdfs/single-surface/tech-routine-2',
+  '/pdfs/single-surface/Tech%20Routine%202/': '/pdfs/single-surface/tech-routine-2/',
+  '/pdfs/single-surface/Pulse Explainer - Quarter Note Sheet': '/pdfs/single-surface/pulse-explainer-quarter-note-sheet',
+  '/pdfs/single-surface/Pulse Explainer - Quarter Note Sheet/': '/pdfs/single-surface/pulse-explainer-quarter-note-sheet/',
+  '/pdfs/single-surface/Pulse%20Explainer%20-%20Quarter%20Note%20Sheet': '/pdfs/single-surface/pulse-explainer-quarter-note-sheet',
+  '/pdfs/single-surface/Pulse%20Explainer%20-%20Quarter%20Note%20Sheet/': '/pdfs/single-surface/pulse-explainer-quarter-note-sheet/',
+  '/pdfs/single-surface/Eighth Notes Explained': '/pdfs/single-surface/eighth-notes-explained',
+  '/pdfs/single-surface/Eighth Notes Explained/': '/pdfs/single-surface/eighth-notes-explained/',
+  '/pdfs/single-surface/Eighth%20Notes%20Explained': '/pdfs/single-surface/eighth-notes-explained',
+  '/pdfs/single-surface/Eighth%20Notes%20Explained/': '/pdfs/single-surface/eighth-notes-explained/',
+  '/pdfs/single-surface/Sixteenth Notes Explained': '/pdfs/single-surface/sixteenth-notes-explained',
+  '/pdfs/single-surface/Sixteenth Notes Explained/': '/pdfs/single-surface/sixteenth-notes-explained/',
+  '/pdfs/single-surface/Sixteenth%20Notes%20Explained': '/pdfs/single-surface/sixteenth-notes-explained',
+  '/pdfs/single-surface/Sixteenth%20Notes%20Explained/': '/pdfs/single-surface/sixteenth-notes-explained/',
+  '/pdfs/drumset/Three Basic Rock Beats': '/pdfs/drumset/three-basic-rock-beats',
+  '/pdfs/drumset/Three Basic Rock Beats/': '/pdfs/drumset/three-basic-rock-beats/',
+  '/pdfs/drumset/Three%20Basic%20Rock%20Beats': '/pdfs/drumset/three-basic-rock-beats',
+  '/pdfs/drumset/Three%20Basic%20Rock%20Beats/': '/pdfs/drumset/three-basic-rock-beats/',
  // Old "listen" pages — collapse to the homepage where the album lives
  '/listen': '/',
  '/listen/unbelonging': '/',

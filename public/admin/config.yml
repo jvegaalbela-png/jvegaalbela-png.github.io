@@ -7,6 +7,14 @@ backend:
 media_folder: public/uploads/blog
 public_folder: /uploads/blog
 
+# Slugify uploaded filenames so media never enters the repo with spaces or
+# odd characters (Sveltia default keeps raw names). The site's PDF page URLs
+# come from explicit slug fields, so renamed uploads stay URL-stable.
+media_libraries:
+  default:
+    config:
+      slugify_filename: true
+
 collections:
   - name: blog
     label: Blog Posts
@@ -106,9 +114,18 @@ collections:
                     widget: file
                     media_folder: /public/pdfs
                     public_folder: /pdfs
+                    accept: application/pdf,.pdf
                   - label: Title
                     name: title
                     widget: string
+                  - label: Slug
+                    name: slug
+                    widget: string
+                    required: false
+                    hint: >-
+                      URL identifier — lowercase letters, numbers, hyphens only. Leave blank to
+                      auto-derive from the title. Changing this changes the page URL, so keep it
+                      stable across file updates.
                   - label: Description
                     name: description
                     widget: text
@@ -137,6 +154,7 @@ collections:
                     widget: file
                     media_folder: /public/pdfs/handwritten
                     public_folder: /pdfs/handwritten
+                    accept: application/pdf,.pdf
                   - label: Title
                     name: title
                     widget: string
