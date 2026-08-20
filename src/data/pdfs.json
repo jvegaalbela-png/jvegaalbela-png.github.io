@@ -13,7 +13,7 @@
           "thumbnail": "/pdfs/_thumbs/single-surface/tech-routine-1.webp"
         },
         {
-          "file": "/pdfs/single-surface/tech-routine-2.pdf",
+          "file": "/pdfs/Tech Routine 2.pdf",
           "title": "Tech Routine 2",
           "description": "A brief survey of short rolls, paradiddles, and flams — a sample-platter intro to the rudiments built on simple rhythms.",
           "howToPractice": "This packet is a brief survey of a few of the essential rudiments. It touches on short rolls, and the paradiddle and flam families. The goal with these exercises is to begin to apply the motions and techniques the student has learned through studying Tech Routine 1. This is by no means a comprehensive study of the rudiments, instead it is a sort of sample platter meant to give the hands and the brain a preview of what is to come in a more serious and in-depth exploration of rudimental drumming.\n\nSpecial care has been taken to make the rhythmic language of the exercises as simple as possible in order to make them approachable. This simplicity should allow the student to focus deeply on the kinesthetics of each exercise. The explanations given for each exercise provide cues for what to pay attention to during practice, and variations that will allow the student to get more mileage out of each pattern.\n\nI urge anyone curious about the rudiments to view their study not as an obligation that must be fulfilled in the interest of becoming a \"good\" or a \"serious\" drummer, but rather to think of the rudiments as idioms and turns of phrase that allow one to begin speaking the language of a particular style of music called rudimental drumming.\n\nListen to Joseph Rudolph \"Philly Joe\" Jones' phenomenal solos on tracks like Wynton Kelly's \"Potluck,\" from the album 'Kelly At Midnight,' Sonny Clark's \"Royal Flush,\" from the album 'Cool Struttin' or Miles Davis' \"Salt Peanuts\" from the album 'Steamin' With The Miles Davis Quintet' for some examples of exceptionally brilliant rudimental improvisation. Check out a video of Santa Clara Vanguard, or The Blue Devils (or really any DCI line) for some examples of clever and challenging writing using these little idioms and turns of phrase.",
@@ -135,18 +135,21 @@
           "file": "/pdfs/transcriptions/marcus-gilmore-chorale-comping-sample.pdf",
           "title": "Marcus Gilmore — Chorale Comping Sample",
           "description": "A short comping sample from Marcus Gilmore on Vijay Iyer's \"Chorale\" — a study in modern jazz drumset accompaniment.",
+          "howToPractice": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/marcus-gilmore-chorale-comping-sample.webp"
         },
         {
           "file": "/pdfs/transcriptions/island-in-the-sun.pdf",
           "title": "Island In The Sun",
           "description": "Drum part transcription for Weezer's \"Island in the Sun\" — a clean, beginner-friendly modern rock groove study.",
+          "howToPractice": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/island-in-the-sun.webp"
         },
         {
           "file": "/pdfs/transcriptions/undone-the-sweater-song.pdf",
           "title": "Undone (The Sweater Song)",
           "description": "Drum part transcription for Weezer's \"Undone (The Sweater Song)\" — a song-form study perfect for early kit players.",
+          "howToPractice": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/undone-the-sweater-song.webp"
         }
       ]
