@@ -202,11 +202,23 @@
         "description": ""
       },
       {
-        "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
-        "slug": "grooves-worksheet-2",
-        "title": "Grooves Worksheet 2",
-        "description": ""
+       "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
+       "slug": "grooves-worksheet-2",
+       "title": "Grooves Worksheet 2",
+       "description": ""
+      },
+      {
+       "file": "/pdfs/handwritten/tadds-delight-philly-joe.pdf",
+       "slug": "tadds-delight-philly-joe",
+       "title": "Tadd's Delight (Philly Joe Jones)",
+       "description": ""
+      },
+      {
+       "file": "/pdfs/handwritten/philly-joe-jones-comping-bye-bye-blackbird.pdf",
+       "slug": "philly-joe-jones-comping-bye-bye-blackbird",
+       "title": "Philly Joe Jones Comping Bye Bye Blackbird",
+       "description": ""
       }
-    ]
+      ]
   }
 }
