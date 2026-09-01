@@ -1,8 +1,15 @@
 {
   "rating": 5.0,
   "count": 13,
-  "updated": "2026-08-08",
+  "updated": "2026-09-01",
   "reviews": [
+    {
+      "id": "Ci9DQUlRQUNvZENodHljRjlvT2xOWWNtTlJSVXhTT1ZONWNtWlBNVUprY0dKNFNuYxAB",
+      "author": "Jocelyn Hernandez",
+      "rating": 5,
+      "text": "Jacobo is an outstanding drum instructor! My son is 8 years old and has been taking lessons with him for about 10 months, and the growth we've seen has been incredible. Jacobo meets my son exactly where he is developmentally and tailors each lesson to his skill level while keeping them engaging and fun. Even in a virtual setting, he does an amazing job of holding my son's attention with interactive activities and enjoyable practice assignments my son actually looks forward to completing.\n\nBeyond the technical skills he's gained, I've watched my son's confidence, love for music, and understanding of rhythm and musical notation grow tremendously. Jacobo is patient, encouraging, and truly passionate about teaching. We are so grateful for the positive impact he's had on my son's musical journey and highly recommend him to anyone looking for an exceptional drum instructor!",
+      "publish_time": "2026-07-09T22:37:41.664215991Z"
+    },
     {
       "id": "Ci9DQUlRQUNvZENodHljRjlvT2tKSVNWcDZRV1ZTYTFKM2JUbFVNemRrVlZBd1JVRRAB",
       "author": "Li-Yang Hsu",
@@ -30,13 +37,6 @@
       "rating": 5,
       "text": "My experience working with Jacobo was great. The exercises he writes really helped me with my flow. He is a drummer first and a teacher second, so everything he teaches comes from a practical base of knowledge and mastery.",
       "publish_time": "2024-06-09T22:37:06.244438Z"
-    },
-    {
-      "id": "ChZDSUhNMG9nS0VJQ0FnSUR6anRqZ1dnEAE",
-      "author": "Adam Aronesty",
-      "rating": 5,
-      "text": "Jacobo is one of the most insightful teachers I\u2019ve ever had. I took drum lessons with him after many years of professional experience, and I can tell you he\u2019s the real deal. I would encourage you to get your lessons with him before he gets famous!!",
-      "publish_time": "2024-06-10T03:09:33.231456Z"
     }
   ]
 }
