@@ -68,6 +68,14 @@
           "description": "An introduction to sixteenth notes. Designed for complete beginners. Built to encourage audiation, and to help the student learn count rhythms out loud while working through them.",
           "howToPractice": "Read the explanations carefully, then practice the examples with a metronome set to 60bpm. Once the exercises are comfortable, and you can repeat them each at least four times, you can work your way up 5-10bpm at a time to challenge yourself. You can also challenge yourself to use an alternating sticking on the sixteenth note passages.",
           "thumbnail": "/pdfs/_thumbs/sixteenth-notes-explained.webp"
+        },
+        {
+          "file": "/pdfs/single-surface/subdivision-mixture.pdf",
+          "slug": "subdivision-mixture",
+          "title": "Subdivision Mixture",
+          "description": "Reading exercises mixing the two one-beat rhythms — “1 & a” (eighth + two sixteenths) and “1 e &” (two sixteenths + eighth) — with practice versions that subdivide every beat into eighths and sixteenths, plus familiar melodies to encourage audiation.",
+          "howToPractice": "Read the explanations carefully, then practice the exercises with a metronome at 60bpm, beat one accent turned on, and subdivision set to sixteenth notes. Once those are comfortable, try them with the metronome set to eighth-note subdivision, and finally with no subdivision. Play each exercise at least four times before moving on, then work your way up 5–10bpm at a time to challenge yourself. The melodies at the end are for audiation — play the rhythm of the words on a single surface, and hear them as music.",
+          "thumbnail": "/pdfs/_thumbs/single-surface/subdivision-mixture.webp"
         }
       ]
     },
@@ -202,23 +210,23 @@
         "description": ""
       },
       {
-       "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
-       "slug": "grooves-worksheet-2",
-       "title": "Grooves Worksheet 2",
-       "description": ""
+        "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
+        "slug": "grooves-worksheet-2",
+        "title": "Grooves Worksheet 2",
+        "description": ""
       },
       {
-       "file": "/pdfs/handwritten/tadds-delight-philly-joe.pdf",
-       "slug": "tadds-delight-philly-joe",
-       "title": "Tadd's Delight (Philly Joe Jones)",
-       "description": ""
+        "file": "/pdfs/handwritten/tadds-delight-philly-joe.pdf",
+        "slug": "tadds-delight-philly-joe",
+        "title": "Tadd's Delight (Philly Joe Jones)",
+        "description": ""
       },
       {
-       "file": "/pdfs/handwritten/philly-joe-jones-comping-bye-bye-blackbird.pdf",
-       "slug": "philly-joe-jones-comping-bye-bye-blackbird",
-       "title": "Philly Joe Jones Comping Bye Bye Blackbird",
-       "description": ""
+        "file": "/pdfs/handwritten/philly-joe-jones-comping-bye-bye-blackbird.pdf",
+        "slug": "philly-joe-jones-comping-bye-bye-blackbird",
+        "title": "Philly Joe Jones Comping Bye Bye Blackbird",
+        "description": ""
       }
-      ]
+    ]
   }
 }
