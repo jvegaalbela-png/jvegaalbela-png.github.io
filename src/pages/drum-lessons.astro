@@ -28,12 +28,12 @@ const heroSocialUrl = new URL(heroSocial.src, SITE_URL).toString();
 const pageUrl = `${SITE_URL}/drum-lessons`;
 
 const offers = [
-  { name: '60-minute private drum lesson', price: '50' },
-  { name: '30-minute private drum lesson', price: '30' },
-  { name: '4-pack of 60-minute lessons', price: '180' },
-  { name: '4-pack of 30-minute lessons', price: '100' },
-  { name: 'Half-price first 60-minute lesson (new students)', price: '25' },
-  { name: 'Half-price first 30-minute lesson (new students)', price: '15' },
+  { name: '60-minute private drum lesson', price: '60' },
+  { name: '30-minute private drum lesson', price: '35' },
+  { name: '4-pack of 60-minute lessons', price: '220' },
+  { name: '4-pack of 30-minute lessons', price: '120' },
+  { name: 'Half-price first 60-minute lesson (new students)', price: '30' },
+  { name: 'First 30-minute lesson (new students)', price: '15' },
 ];
 
 const faqs = [
@@ -232,7 +232,7 @@ const graph = {
 
 <Layout
   title="Drum Lessons in Rochester, NY | First Lesson from $15"
-  description="Private drum lessons in Rochester for kids and adults. First lesson half off: 30-min $15 or 60-min $25. Jazz, rock, funk, Latin. Studio or Zoom."
+  description="Private drum lessons in Rochester for kids and adults. First lesson half off: 30-min $15 or 60-min $30. Jazz, rock, funk, Latin. Studio or Zoom."
   themeColor="#091528"
   image={{
     url: heroSocial.src,
@@ -242,7 +242,7 @@ const graph = {
     alt: 'Jacobo Vega-Albela playing drums on a concert hall stage',
   }}
   stickyOffer={{
-    label: '$25 first lesson',
+    label: '$30 first lesson',
     href: '/book',
     event: 'lesson_booking_cta_click',
     location: 'sticky_cta',
@@ -271,7 +271,7 @@ const graph = {
       </div>
       <p class="hero-promo">
         <span class="hero-promo-tag">New students</span>
-        <span class="hero-promo-text">First lesson <strong>50% off</strong>: $25 for an hour. Then $50 / 60&nbsp;min &middot; $30 / 30&nbsp;min.</span>
+        <span class="hero-promo-text">First lesson <strong>50% off</strong>: $30 for an hour. Then $60 / 60&nbsp;min &middot; $35 / 30&nbsp;min.</span>
       </p>
       <ul class="chips" aria-label="Credentials">
         <li class="chip"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.2 3.2L13 5"/></svg>College percussion professor</li>
@@ -283,7 +283,7 @@ const graph = {
         formId="xjglgjjj"
         formIdSlug="hero-lesson-form"
         submitEvent="lesson_inquiry_submit"
-        submitEventParams={{ form_location: 'lessons_hero', value: 25, currency: 'USD' }}
+        submitEventParams={{ form_location: 'lessons_hero', value: 30, currency: 'USD' }}
       />
       <p class="form-reassure">No commitment. I read every message and usually reply the same day.</p>
       <a class="tel-link hero-tel" href="tel:+15858024247" aria-label="Text or call 5 8 5, 8 0 2, 4 2 4 7" onclick="gtag('event', 'cta_call_click', { location: 'lessons_hero' })">Text or call (585) 802-4247</a>
@@ -340,15 +340,15 @@ const graph = {
       <div class="pcard featured">
         <span class="pcard-tag">Most popular</span>
         <h3>Standard rate</h3>
-        <p class="price">$50 <small>/ 60 min</small></p>
-        <p class="price">$30 <small>/ 30 min</small></p>
+        <p class="price">$60 <small>/ 60 min</small></p>
+        <p class="price">$35 <small>/ 30 min</small></p>
         <p>At my home studio in Rochester, or virtual over Zoom. Same rate either way.</p>
       </div>
       <div class="pcard">
         <span class="pcard-tag">4-lesson pack</span>
-        <h3>Save ~10%</h3>
-        <p class="price">$180 <small>/ four 60-min</small></p>
-        <p class="price">$100 <small>/ four 30-min</small></p>
+        <h3>Save $20</h3>
+        <p class="price">$220 <small>/ four 60-min</small></p>
+        <p class="price">$120 <small>/ four 30-min</small></p>
         <p>Steady momentum, slightly better price. Reschedulable with 24h notice.</p>
       </div>
       <div class="pcard">
@@ -489,7 +489,7 @@ const graph = {
 <section class="cta-band" aria-label="Request your half-price first lesson">
   <div class="cta-band-inner">
     <h2>Your first lesson, half off.</h2>
-    <p>Just $25 for an hour. Try a real lesson before committing and see if we click.</p>
+    <p>Just $30 for an hour. Try a real lesson before committing and see if we click.</p>
     <a class="btn btn-primary" data-cta href="/book" onclick="gtag('event', 'lesson_booking_cta_click', { location: 'cta_band' })">Request My Half-Price Lesson</a>
   </div>
 </section>
