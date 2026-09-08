@@ -15,7 +15,7 @@ section:first-of-type{border-top:0}
 
 /* section heads */
 .section-head{display:flex;align-items:baseline;gap:1.25rem;margin-bottom:2.25rem}
-.section-tag{font-size:.6875rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-dk);white-space:nowrap}
+.section-tag{font-size:.6875rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue-accent);white-space:nowrap}
 .section-rule{flex:1;height:1px;background:var(--rule)}
 .section-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.5rem,3.4vw,2.25rem);line-height:1.15}
 
@@ -70,7 +70,7 @@ main > section:not(.hero){
 }
 .hero .wrap{position:relative;display:grid;gap:2rem;grid-template-columns:1fr;align-items:stretch}
 .hero-text{display:flex;flex-direction:column}
-.hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-lt);margin-bottom:.75rem}
+.hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--blue-lt);margin-bottom:.75rem}
 
 /* Teacher chip — small round portrait + name + the 5-star Google
    rating link. Mirrors the lessons-page treatment so there's a human
@@ -106,15 +106,15 @@ main > section:not(.hero){
    cohort + 10 seats hook here. */
 .hero-promo{
   display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .65rem;
-  background:rgba(232,101,10,.16);
-  border-left:3px solid var(--orange-lt);
+  background:rgba(91,141,232,.2);
+  border-left:3px solid var(--blue-lt);
   padding:.55rem .75rem;border-radius:2px;
   font-size:.875rem;line-height:1.4;color:rgba(245,243,238,.95);
   margin:0 0 .875rem;
 }
 .hero-promo-tag{
   font-size:.625rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
-  background:var(--orange);color:var(--navy);padding:.2rem .45rem;border-radius:2px;line-height:1.2;
+  background:var(--blue-lt);color:var(--navy);padding:.2rem .45rem;border-radius:2px;line-height:1.2;
 }
 .hero-promo-text strong{color:#fff;font-weight:700}
 .hero h1{
@@ -124,7 +124,6 @@ main > section:not(.hero){
      onto its own line, pushing the form's CTA below the fold. */
   font-size:clamp(2rem,4.4vw,2.75rem);margin-bottom:.625rem;
 }
-.hero h1 em{font-style:italic;color:var(--blue-lt)}
 /* em instead of ch — see lessons.css for rationale (ch unit
    resolves differently in Inter vs fallback Arial, causing CLS). */
 .hero-sub{font-size:clamp(1rem,1.6vw,1.125rem);line-height:1.55;color:rgba(245,243,238,.82);max-width:32em;margin-bottom:.75rem}
@@ -210,7 +209,7 @@ main > section:not(.hero){
   display:flex;flex-direction:column;gap:.5rem;
 }
 .pcard.featured{border-color:var(--cobalt);box-shadow:0 6px 20px rgba(26,58,138,.08)}
-.pcard-tag{font-size:.6875rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange-dk)}
+.pcard-tag{font-size:.6875rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--blue-accent)}
 .pcard.featured .pcard-tag{color:var(--cobalt)}
 .pcard h3{font-family:var(--serif);font-weight:400;font-size:1.375rem;line-height:1.2}
 .pcard .price{font-family:var(--serif);font-size:1.5rem;color:var(--ink);font-weight:400}

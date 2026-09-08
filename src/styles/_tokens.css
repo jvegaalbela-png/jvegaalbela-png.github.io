@@ -11,6 +11,7 @@
   --cobalt:  #1a3a8a;        /* dominant blue */
   --blue:    #2a5cc8;        /* mid blue */
   --blue-lt: #5b8de8;        /* bright blue highlight */
+  --blue-accent: var(--cobalt); /* kicker/eyebrow blue: cobalt on cream (light), blue-lt on navy (dark) */
   --orange:  #e8650a;        /* warm orange from painting */
   --orange-lt: #f5882a;
   --orange-dk: #b04600;      /* AA-contrast on cream for small text */
@@ -94,6 +95,7 @@ img { max-width: 100%; height: auto; display: block; }
        the brighter brand colors here. */
     --orange-dk: var(--orange);
     --lime-dk:   var(--lime);
+    --blue-accent: var(--blue-lt);
     /* Painterly Refined accents are also brightened on dark surfaces. */
     --crimson:   #d65a6e;
     --gold:      #e8b542;

@@ -215,7 +215,7 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
           <a href={`/pdfs/#${categoryId}`}>{category.title}</a>
         </nav>
         <span class="pdf-detail-eyebrow">{category.title}</span>
-        <h1 class="pdf-detail-title">{leadIn}<br /><em>{item.title}</em></h1>
+        <h1 class="pdf-detail-title">{leadIn}<br />{item.title}</h1>
         {item.description && <p class="pdf-detail-lede">{item.description}</p>}
         <div class="pdf-detail-cta-row">
           <a class="pdf-detail-cta" href={item.file} target="_blank" rel="noopener" data-pdf-download>
@@ -373,7 +373,7 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     font-weight: 700;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--orange-lt);
+    color: var(--blue-lt);
     margin-bottom: 14px;
   }
 
@@ -386,15 +386,9 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     margin: 0 0 18px;
   }
 
-  .pdf-detail-title em {
-    font-style: italic;
-    color: var(--blue-lt);
-  }
-
   .pdf-detail-lede {
     font-family: var(--serif);
     font-size: 19px;
-    font-style: italic;
     font-weight: 300;
     line-height: 1.55;
     color: rgba(245, 243, 238, 0.82);
@@ -625,7 +619,7 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     font-weight: 700;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--orange-dk);
+    color: var(--blue-accent);
     white-space: nowrap;
   }
 
@@ -781,7 +775,7 @@ if (aboutFragment && (aboutFragment as { '@type'?: string })['@type'] === 'Music
     }
     .pdf-detail-placeholder strong { color: var(--blue-lt); }
 
-    .pdf-detail-related-tag { color: var(--orange); }
+    .pdf-detail-related-tag { color: var(--blue-lt); }
 
     .pdf-detail-related-card {
       background: #142544;

@@ -15,7 +15,7 @@ section:first-of-type{border-top:0}
 
 /* section heads (matches EPK rhythm) */
 .section-head{display:flex;align-items:baseline;gap:1.25rem;margin-bottom:2.25rem}
-.section-tag{font-size:.6875rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-dk);white-space:nowrap}
+.section-tag{font-size:.6875rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue-accent);white-space:nowrap}
 .section-rule{flex:1;height:1px;background:var(--rule)}
 .section-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.5rem,3.4vw,2.25rem);line-height:1.15}
 
@@ -81,7 +81,7 @@ main > section:not(.hero){
 .hero-text{grid-area:text;display:flex;flex-direction:column}
 .hero-img{grid-area:image}
 .hero-tel{margin-top:1rem;padding-left:0;padding-right:0}
-.hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-lt);margin-bottom:.5rem}
+.hero-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--blue-lt);margin-bottom:.5rem}
 
 /* Teacher chip — small round portrait + name + the 5-star Google
    rating link. Lives between hero-sub and the promo so there's a
@@ -117,15 +117,15 @@ main > section:not(.hero){
    conversion lever, so it gets its own callout above the form. */
 .hero-promo{
   display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .65rem;
-  background:rgba(232,101,10,.16);
-  border-left:3px solid var(--orange-lt);
+  background:rgba(91,141,232,.2);
+  border-left:3px solid var(--blue-lt);
   padding:.55rem .75rem;border-radius:2px;
   font-size:.875rem;line-height:1.4;color:rgba(245,243,238,.95);
   margin:0 0 .625rem;
 }
 .hero-promo-tag{
   font-size:.625rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
-  background:var(--orange);color:var(--navy);padding:.2rem .45rem;border-radius:2px;line-height:1.2;
+  background:var(--blue-lt);color:var(--navy);padding:.2rem .45rem;border-radius:2px;line-height:1.2;
 }
 .hero-promo-text strong{color:#fff;font-weight:700}
 
@@ -133,7 +133,6 @@ main > section:not(.hero){
   font-family:var(--serif);font-weight:300;line-height:1.05;letter-spacing:-.01em;
   font-size:clamp(2rem,4.6vw,2.875rem);margin-bottom:.625rem;
 }
-.hero h1 em{font-style:italic;color:var(--blue-lt)}
 /* max-width in em (relative to font-size) instead of ch (relative
    to "0"-glyph width) so the paragraph's wrap point stays stable
    through the Inter font swap — ch values can differ by ~10% between
@@ -234,7 +233,7 @@ main > section:not(.hero){
   display:flex;flex-direction:column;gap:.5rem;
 }
 .pcard.featured{border-color:var(--cobalt);box-shadow:0 6px 20px rgba(26,58,138,.08)}
-.pcard-tag{font-size:.6875rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange-dk)}
+.pcard-tag{font-size:.6875rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--blue-accent)}
 .pcard.featured .pcard-tag{color:var(--cobalt)}
 .pcard h3{font-family:var(--serif);font-weight:400;font-size:1.375rem;line-height:1.2}
 .pcard .price{font-family:var(--serif);font-size:1.5rem;color:var(--ink);font-weight:400}
@@ -278,7 +277,7 @@ main > section:not(.hero){
 .pricing-row:last-child{border-bottom:0}
 .pricing-row-tag{
   font-size:.6875rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--orange-dk);grid-row:1;grid-column:1;
+  color:var(--blue-accent);grid-row:1;grid-column:1;
 }
 .pricing-row-title{
   font-family:var(--serif);font-size:1.125rem;color:var(--ink);grid-row:1;grid-column:2;

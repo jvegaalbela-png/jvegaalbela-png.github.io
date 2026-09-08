@@ -243,12 +243,13 @@ function swatchesFor(t: Tokens) {
                 {/* Sample card */}
                 <div class="sample">
                   <p class="s-eyebrow">Section eyebrow</p>
-                  <h3 class="s-h1">Drum lessons in <em>Rochester, NY</em></h3>
+                  <h3 class="s-h1">Drum lessons in Rochester, NY</h3>
                   <h4 class="s-h2">A working drummer first, a teacher second.</h4>
                   <p class="s-body">
                     Body copy in Inter. The quick brown fox jumps over the
                     lazy dog 1234567890. Some <a class="s-link" href="#">inline link</a>
-                    text and a bit of <em>italic emphasis</em> for good measure. This is
+                    text, with italics reserved for titles like <em>"Un-Belonging"</em>.
+                    This is
                     where most reading happens — the goal is "can read for ten minutes
                     without straining."
                   </p>
@@ -309,7 +310,7 @@ function swatchesFor(t: Tokens) {
                   <div class="s-hero-strip">
                     <span class="s-hero-eyebrow">Hero eyebrow on navy</span>
                     <div class="s-hero-name">
-                      Jacobo <em>Vega-Albela</em>
+                      Jacobo Vega-Albela
                     </div>
                     <div class="s-hero-role">Jazz Drummer · Composer · Bandleader</div>
                   </div>
@@ -502,19 +503,6 @@ function swatchesFor(t: Tokens) {
     margin-bottom: 12px;
   }
 
-  .s-h1 em {
-    font-style: italic;
-    color: var(--cobalt);
-  }
-
-  /* Cobalt on a dark navy bg is ~1.5:1 — invisible. The site already
-     remaps the same italic-em treatment to --blue-lt anywhere it lives
-     on a dark surface (hero h1, post hero, pdf-detail title). Mirror
-     that here so the sample matches site behavior. */
-  .mode-dark .s-h1 em {
-    color: var(--blue-lt);
-  }
-
   .s-h2 {
     font-family: var(--serif);
     font-size: clamp(20px, 2.2vw, 26px);
@@ -697,11 +685,6 @@ function swatchesFor(t: Tokens) {
     font-weight: 300;
     line-height: 1;
     letter-spacing: -0.01em;
-  }
-
-  .s-hero-name em {
-    font-style: italic;
-    color: var(--blue-lt);
   }
 
   .s-hero-role {
