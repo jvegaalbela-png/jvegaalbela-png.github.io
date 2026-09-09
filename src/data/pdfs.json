@@ -178,6 +178,13 @@
           "description": "Drum part transcription for Weezer's \"Undone (The Sweater Song)\" — a song-form study perfect for early kit players.",
           "howToPractice": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/undone-the-sweater-song.webp"
+        },
+        {
+          "file": "/pdfs/transcriptions/come-as-you-are.pdf",
+          "slug": "come-as-you-are",
+          "title": "Come As You Are",
+          "description": "",
+          "thumbnail": "/pdfs/_thumbs/transcriptions/come-as-you-are.webp"
         }
       ]
     }
@@ -185,12 +192,6 @@
   "handwritten": {
     "blurb": "A handful of older worksheets in my own handwriting. To be digitized eventually.",
     "items": [
-      {
-        "file": "/pdfs/handwritten/come-as-you-are.pdf",
-        "slug": "come-as-you-are",
-        "title": "Come As You Are",
-        "description": ""
-      },
       {
         "file": "/pdfs/handwritten/in-bloom.pdf",
         "slug": "in-bloom",

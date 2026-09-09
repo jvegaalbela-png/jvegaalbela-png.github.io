@@ -63,6 +63,10 @@ const REDIRECTS = {
  // Old Squarespace contact-form variants
  '/contact-1': '/',
  '/contact-6': '/',
+ // Come As You Are transcription digitized — handwritten PDF replaced by the
+ // engraved version now living in the Transcriptions category.
+ '/pdfs/handwritten/come-as-you-are.pdf': '/pdfs/transcriptions/come-as-you-are/',
+ '/pdfs/handwritten/come-as-you-are': '/pdfs/transcriptions/come-as-you-are/',
  // Old Squarespace events index (Cloudflare also handles subpaths
  // like /upcoming-events/{slug} via a subpath-matching bulk redirect)
  '/upcoming-events': '/',
