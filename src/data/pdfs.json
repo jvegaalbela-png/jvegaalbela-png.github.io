@@ -192,6 +192,13 @@
           "title": "There Will Never Be Another You — Alan Dawson Trades and Solo",
           "description": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/there-will-never-be-another-you-alan-dawson-trades-and-solo.webp"
+        },
+        {
+          "file": "/pdfs/transcriptions/in-bloom.pdf",
+          "slug": "in-bloom",
+          "title": "In Bloom",
+          "description": "",
+          "thumbnail": "/pdfs/_thumbs/transcriptions/in-bloom.webp"
         }
       ]
     }
@@ -199,12 +206,6 @@
   "handwritten": {
     "blurb": "A handful of older worksheets in my own handwriting. To be digitized eventually.",
     "items": [
-      {
-        "file": "/pdfs/handwritten/in-bloom.pdf",
-        "slug": "in-bloom",
-        "title": "In Bloom",
-        "description": ""
-      },
       {
         "file": "/pdfs/handwritten/oakland-beats.pdf",
         "slug": "oakland-beats",

@@ -67,6 +67,10 @@ const REDIRECTS = {
  // engraved version now living in the Transcriptions category.
  '/pdfs/handwritten/come-as-you-are.pdf': '/pdfs/transcriptions/come-as-you-are/',
  '/pdfs/handwritten/come-as-you-are': '/pdfs/transcriptions/come-as-you-are/',
+ // In Bloom transcription digitized — handwritten PDF replaced by the
+ // engraved version now living in the Transcriptions category.
+ '/pdfs/handwritten/in-bloom.pdf': '/pdfs/transcriptions/in-bloom/',
+ '/pdfs/handwritten/in-bloom': '/pdfs/transcriptions/in-bloom/',
  // Old Squarespace events index (Cloudflare also handles subpaths
  // like /upcoming-events/{slug} via a subpath-matching bulk redirect)
  '/upcoming-events': '/',
