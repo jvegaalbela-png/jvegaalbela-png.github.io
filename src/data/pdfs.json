@@ -199,6 +199,13 @@
           "title": "In Bloom",
           "description": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/in-bloom.webp"
+        },
+        {
+          "file": "/pdfs/transcriptions/oakland-beats.pdf",
+          "slug": "oakland-beats",
+          "title": "Oakland Beats",
+          "description": "",
+          "thumbnail": "/pdfs/_thumbs/transcriptions/oakland-beats.webp"
         }
       ]
     }
@@ -206,12 +213,6 @@
   "handwritten": {
     "blurb": "A handful of older worksheets in my own handwriting. To be digitized eventually.",
     "items": [
-      {
-        "file": "/pdfs/handwritten/oakland-beats.pdf",
-        "slug": "oakland-beats",
-        "title": "Oakland Beats",
-        "description": ""
-      },
       {
         "file": "/pdfs/handwritten/potluck.pdf",
         "slug": "potluck",
