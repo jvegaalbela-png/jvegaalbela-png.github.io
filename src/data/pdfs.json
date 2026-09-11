@@ -206,6 +206,20 @@
           "title": "Oakland Beats",
           "description": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/oakland-beats.webp"
+        },
+        {
+          "file": "/pdfs/transcriptions/chameleon.pdf",
+          "slug": "chameleon",
+          "title": "Chameleon",
+          "description": "",
+          "thumbnail": "/pdfs/_thumbs/transcriptions/chameleon.webp"
+        },
+        {
+          "file": "/pdfs/transcriptions/two-bossa-nova-patterns.pdf",
+          "slug": "two-bossa-nova-patterns",
+          "title": "Two Bossa Nova Patterns",
+          "description": "",
+          "thumbnail": "/pdfs/_thumbs/transcriptions/two-bossa-nova-patterns.webp"
         }
       ]
     }
