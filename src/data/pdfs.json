@@ -131,6 +131,22 @@
           "description": "This worksheet is geared towards beginner jazz drummers, and is meant to serve as a series of prompts for improvisation. Each line demonstrates a concept you can experiment with in order to generate compelling comping ideas without being limited by a lack of sophisticated four-way coordination.",
           "howToPractice": "",
           "thumbnail": "/pdfs/_thumbs/drumset/jazz-comping-exercise.webp"
+        },
+        {
+          "file": "/pdfs/drumset/two-bossa-nova-patterns.pdf",
+          "title": "Two Bossa Nova Patterns",
+          "slug": "two-bossa-nova-patterns",
+          "description": "",
+          "howToPractice": "",
+          "thumbnail": "/pdfs/_thumbs/drumset/two-bossa-nova-patterns.webp"
+        },
+        {
+          "file": "/pdfs/drumset/6-8-backbeat-patterns.pdf",
+          "title": "6/8 Backbeat Patterns",
+          "slug": "6-8-backbeat-patterns",
+          "description": "",
+          "howToPractice": "",
+          "thumbnail": "/pdfs/_thumbs/drumset/6-8-backbeat-patterns.webp"
         }
       ]
     },
@@ -218,14 +234,6 @@
           "description": "A comping sample and some improvisational prompts from Harvey Mason's drumming on Herbie Hancock's \"Chameleon\".",
           "howToPractice": "Work through the A section transcription, then take the ideas and make them your own. The B section material is MUCH HARDER than the A, and is almost never played or addressed, despite (or maybe because of) the brilliance of the drumming. Work through the main groove, get the cells into your hands, work out some different bass drum patterns against the systems provided, and work to develop flow in the style.",
           "thumbnail": "/pdfs/_thumbs/transcriptions/chameleon.webp"
-        },
-        {
-          "file": "/pdfs/transcriptions/two-bossa-nova-patterns.pdf",
-          "title": "Two Bossa Nova Patterns",
-          "slug": "two-bossa-nova-patterns",
-          "description": "",
-          "howToPractice": "",
-          "thumbnail": "/pdfs/_thumbs/transcriptions/two-bossa-nova-patterns.webp"
         }
       ]
     }
@@ -238,12 +246,6 @@
         "title": "Potluck",
         "description": "",
         "slug": "potluck"
-      },
-      {
-        "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
-        "title": "Grooves Worksheet 2",
-        "description": "",
-        "slug": "grooves-worksheet-2"
       },
       {
         "file": "/pdfs/handwritten/tadds-delight-philly-joe.pdf",

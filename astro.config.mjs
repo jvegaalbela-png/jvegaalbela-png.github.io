@@ -80,6 +80,12 @@ const REDIRECTS = {
  // single successor page; send the old URL to the PDF library.
  '/pdfs/handwritten/grooves-worksheet-2.pdf': '/pdfs/',
  '/pdfs/handwritten/grooves-worksheet-2': '/pdfs/',
+ // Two Bossa Nova Patterns and 6/8 Backbeat Patterns moved from Transcriptions
+ // into the Drumset Exercises section (kept in the URL space they briefly had).
+ '/pdfs/transcriptions/two-bossa-nova-patterns.pdf': '/pdfs/drumset/two-bossa-nova-patterns/',
+ '/pdfs/transcriptions/two-bossa-nova-patterns': '/pdfs/drumset/two-bossa-nova-patterns/',
+ '/pdfs/transcriptions/6-8-backbeat-patterns.pdf': '/pdfs/drumset/6-8-backbeat-patterns/',
+ '/pdfs/transcriptions/6-8-backbeat-patterns': '/pdfs/drumset/6-8-backbeat-patterns/',
  // Old Squarespace events index (Cloudflare also handles subpaths
  // like /upcoming-events/{slug} via a subpath-matching bulk redirect)
  '/upcoming-events': '/',
