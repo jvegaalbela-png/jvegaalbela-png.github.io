@@ -131,6 +131,22 @@
           "description": "This worksheet is geared towards beginner jazz drummers, and is meant to serve as a series of prompts for improvisation. Each line demonstrates a concept you can experiment with in order to generate compelling comping ideas without being limited by a lack of sophisticated four-way coordination.",
           "howToPractice": "",
           "thumbnail": "/pdfs/_thumbs/drumset/jazz-comping-exercise.webp"
+        },
+        {
+          "file": "/pdfs/drumset/two-bossa-nova-patterns.pdf",
+          "title": "Two Bossa Nova Patterns",
+          "slug": "two-bossa-nova-patterns",
+          "description": "",
+          "howToPractice": "",
+          "thumbnail": "/pdfs/_thumbs/drumset/two-bossa-nova-patterns.webp"
+        },
+        {
+          "file": "/pdfs/drumset/6-8-backbeat-patterns.pdf",
+          "title": "6/8 Backbeat Patterns",
+          "slug": "6-8-backbeat-patterns",
+          "description": "",
+          "howToPractice": "",
+          "thumbnail": "/pdfs/_thumbs/drumset/6-8-backbeat-patterns.webp"
         }
       ]
     },
@@ -220,12 +236,12 @@
           "thumbnail": "/pdfs/_thumbs/transcriptions/chameleon.webp"
         },
         {
-          "file": "/pdfs/transcriptions/two-bossa-nova-patterns.pdf",
-          "title": "Two Bossa Nova Patterns",
-          "slug": "two-bossa-nova-patterns",
+          "file": "/pdfs/transcriptions/tadds-delight-philly-joe.pdf",
+          "title": "Tadd's Delight (Philly Joe Jones)",
+          "slug": "tadds-delight-philly-joe",
           "description": "",
           "howToPractice": "",
-          "thumbnail": "/pdfs/_thumbs/transcriptions/two-bossa-nova-patterns.webp"
+          "thumbnail": "/pdfs/_thumbs/transcriptions/tadds-delight-philly-joe.webp"
         }
       ]
     }
@@ -238,18 +254,6 @@
         "title": "Potluck",
         "description": "",
         "slug": "potluck"
-      },
-      {
-        "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
-        "title": "Grooves Worksheet 2",
-        "description": "",
-        "slug": "grooves-worksheet-2"
-      },
-      {
-        "file": "/pdfs/handwritten/tadds-delight-philly-joe.pdf",
-        "title": "Tadd's Delight (Philly Joe Jones)",
-        "description": "",
-        "slug": "tadds-delight-philly-joe"
       },
       {
         "file": "/pdfs/handwritten/philly-joe-jones-comping-bye-bye-blackbird.pdf",

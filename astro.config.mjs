@@ -86,6 +86,10 @@ const REDIRECTS = {
  '/pdfs/transcriptions/two-bossa-nova-patterns': '/pdfs/drumset/two-bossa-nova-patterns/',
  '/pdfs/transcriptions/6-8-backbeat-patterns.pdf': '/pdfs/drumset/6-8-backbeat-patterns/',
  '/pdfs/transcriptions/6-8-backbeat-patterns': '/pdfs/drumset/6-8-backbeat-patterns/',
+ // Tadd's Delight (Philly Joe Jones) transcription digitized — the handwritten
+ // PDF was replaced by the engraved version, now in Transcriptions.
+ '/pdfs/handwritten/tadds-delight-philly-joe.pdf': '/pdfs/transcriptions/tadds-delight-philly-joe/',
+ '/pdfs/handwritten/tadds-delight-philly-joe': '/pdfs/transcriptions/tadds-delight-philly-joe/',
  // Old Squarespace events index (Cloudflare also handles subpaths
  // like /upcoming-events/{slug} via a subpath-matching bulk redirect)
  '/upcoming-events': '/',
