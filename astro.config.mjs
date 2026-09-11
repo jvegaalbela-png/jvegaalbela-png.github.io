@@ -75,6 +75,11 @@ const REDIRECTS = {
  // engraved version now living in the Transcriptions category.
  '/pdfs/handwritten/oakland-beats.pdf': '/pdfs/transcriptions/oakland-beats/',
  '/pdfs/handwritten/oakland-beats': '/pdfs/transcriptions/oakland-beats/',
+ // Grooves Worksheet 2 (handwritten) was split into three engraved worksheets —
+ // Chameleon, Two Bossa Nova Patterns, 6/8 Backbeat Patterns — so there is no
+ // single successor page; send the old URL to the PDF library.
+ '/pdfs/handwritten/grooves-worksheet-2.pdf': '/pdfs/',
+ '/pdfs/handwritten/grooves-worksheet-2': '/pdfs/',
  // Old Squarespace events index (Cloudflare also handles subpaths
  // like /upcoming-events/{slug} via a subpath-matching bulk redirect)
  '/upcoming-events': '/',

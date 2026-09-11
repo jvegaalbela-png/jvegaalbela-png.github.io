@@ -220,6 +220,13 @@
           "title": "Two Bossa Nova Patterns",
           "description": "",
           "thumbnail": "/pdfs/_thumbs/transcriptions/two-bossa-nova-patterns.webp"
+        },
+        {
+          "file": "/pdfs/transcriptions/6-8-backbeat-patterns.pdf",
+          "slug": "6-8-backbeat-patterns",
+          "title": "6/8 Backbeat Patterns",
+          "description": "",
+          "thumbnail": "/pdfs/_thumbs/transcriptions/6-8-backbeat-patterns.webp"
         }
       ]
     }
@@ -231,12 +238,6 @@
         "file": "/pdfs/handwritten/potluck.pdf",
         "slug": "potluck",
         "title": "Potluck",
-        "description": ""
-      },
-      {
-        "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
-        "slug": "grooves-worksheet-2",
-        "title": "Grooves Worksheet 2",
         "description": ""
       },
       {
