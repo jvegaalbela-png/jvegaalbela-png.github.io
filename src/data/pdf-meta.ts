@@ -30,9 +30,9 @@ export const INDEXABLE_CATEGORIES = manifest.categories as PdfCategory[];
 // per-PDF page — mirrors the "Drum Lessons in <br/><em>Rochester, NY</em>"
 // rhythm on /drum-lessons (plain first line, em-italic second line).
 export const CATEGORY_LEAD_IN: Record<string, string> = {
-  'single-surface': 'Snare-drum exercise',
-  drumset: 'Drumset exercise',
-  transcriptions: 'Drum transcription',
+  'single-surface': 'Snare-Drum Exercise',
+  drumset: 'Drumset Exercise',
+  transcriptions: 'Drum Transcription',
 };
 
 // Educational level hint for LearningResource JSON-LD. These are intuitive
