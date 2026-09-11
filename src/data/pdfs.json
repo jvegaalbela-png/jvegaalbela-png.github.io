@@ -131,22 +131,6 @@
           "description": "This worksheet is geared towards beginner jazz drummers, and is meant to serve as a series of prompts for improvisation. Each line demonstrates a concept you can experiment with in order to generate compelling comping ideas without being limited by a lack of sophisticated four-way coordination.",
           "howToPractice": "",
           "thumbnail": "/pdfs/_thumbs/drumset/jazz-comping-exercise.webp"
-        },
-        {
-          "file": "/pdfs/drumset/two-bossa-nova-patterns.pdf",
-          "title": "Two Bossa Nova Patterns",
-          "slug": "two-bossa-nova-patterns",
-          "description": "",
-          "howToPractice": "",
-          "thumbnail": "/pdfs/_thumbs/drumset/two-bossa-nova-patterns.webp"
-        },
-        {
-          "file": "/pdfs/drumset/6-8-backbeat-patterns.pdf",
-          "title": "6/8 Backbeat Patterns",
-          "slug": "6-8-backbeat-patterns",
-          "description": "",
-          "howToPractice": "",
-          "thumbnail": "/pdfs/_thumbs/drumset/6-8-backbeat-patterns.webp"
         }
       ]
     },
@@ -181,7 +165,7 @@
         },
         {
           "file": "/pdfs/transcriptions/island-in-the-sun.pdf",
-          "title": "Weezer Island In The Sun Drum Sheet Music PDF",
+          "title": "Weezer: Island In The Sun Drum Sheet Music PDF",
           "slug": "island-in-the-sun",
           "description": "Drum part transcription for Weezer's \"Island in the Sun\", a clean, beginner-friendly modern rock groove study.",
           "howToPractice": "",
@@ -189,7 +173,7 @@
         },
         {
           "file": "/pdfs/transcriptions/undone-the-sweater-song.pdf",
-          "title": "Weezer Undone (The Sweater Song) Drum Sheet Music PDF",
+          "title": "Weezer: Undone (The Sweater Song) Drum Sheet Music PDF",
           "slug": "undone-the-sweater-song",
           "description": "Drum part transcription for Weezer's \"Undone (The Sweater Song)\", a song-form study perfect for early kit players.",
           "howToPractice": "",
@@ -197,7 +181,7 @@
         },
         {
           "file": "/pdfs/transcriptions/come-as-you-are.pdf",
-          "title": "Nirvana Come As You Are Drum Sheet Music PDF",
+          "title": "Nirvana: Come As You Are Drum Sheet Music PDF",
           "slug": "come-as-you-are",
           "description": "A transcription of Dave Grohl's drumming on Nirvanas \"Come As You Are\".",
           "howToPractice": "",
@@ -205,7 +189,7 @@
         },
         {
           "file": "/pdfs/transcriptions/there-will-never-be-another-you-alan-dawson-trades-and-solo.pdf",
-          "title": "There Will Never Be Another You: Alan Dawson Trades and Solo",
+          "title": "Alan Dawson: There Will Never Be Another You Trades and Solo",
           "slug": "there-will-never-be-another-you-alan-dawson-trades-and-solo",
           "description": "A truly masterful set of trade fours and a brilliant solo taken from a concert played by Sonny Rollins, Alan Dawson, and Niels Henning Ørsted Pedersen Live in Denmark 1965.",
           "howToPractice": "This is from one of my favorite bootlegs of all time. [You can find the video this material is taken from here](https://youtu.be/TGcsIaErFFw?list=RDTGcsIaErFFw). Alan Dawson was one of the great masters of the drumset, a formidable teacher, and arguably the father of modern drumset pedagogy. He chaired the Berklee drumset department from 1957-1975, and taught many legendary drummers including Tony Williams and Vinnie Colaiuta. \n\nTwo of Dawson's greatest pedagogical contributions are his [\"Rudimental Ritual\"](https://academics.ysu.edu/sites/default/files/percussion/adawson-rudritual.pdf), and his eight triplet ways: a set of orchestration devices for interpreting rhythms, often used in conjunction with Ted Reed's _Syncopation_ (these are outlined in John Ramsay's _A Drummer's Complete Vocabulary_ which is essentially a written codification of many of Dawson's methods).\n\nFor those who have spent time working on his pedagogy, this example will serve to show you  that he practiced what he preached. Lots of challenging four-way coordination, and brilliant applications of the ideas outlined in his eight triplet ways appear throughout. For those who have not spent time working on his pedagogy, perhaps this will inspire you to take the plunge!",
@@ -213,7 +197,7 @@
         },
         {
           "file": "/pdfs/transcriptions/in-bloom.pdf",
-          "title": "Nirvana In Bloom Drum Sheet Music PDF",
+          "title": "Nirvana: In Bloom Drum Sheet Music PDF",
           "slug": "in-bloom",
           "description": "A transcription of Dave Grohl's drumming on Nirvanas \"In Bloom\".",
           "howToPractice": "",
@@ -234,6 +218,14 @@
           "description": "A comping sample and some improvisational prompts from Harvey Mason's drumming on Herbie Hancock's \"Chameleon\".",
           "howToPractice": "Work through the A section transcription, then take the ideas and make them your own. The B section material is MUCH HARDER than the A, and is almost never played or addressed, despite (or maybe because of) the brilliance of the drumming. Work through the main groove, get the cells into your hands, work out some different bass drum patterns against the systems provided, and work to develop flow in the style.",
           "thumbnail": "/pdfs/_thumbs/transcriptions/chameleon.webp"
+        },
+        {
+          "file": "/pdfs/transcriptions/two-bossa-nova-patterns.pdf",
+          "title": "Two Bossa Nova Patterns",
+          "slug": "two-bossa-nova-patterns",
+          "description": "",
+          "howToPractice": "",
+          "thumbnail": "/pdfs/_thumbs/transcriptions/two-bossa-nova-patterns.webp"
         }
       ]
     }
@@ -246,6 +238,12 @@
         "title": "Potluck",
         "description": "",
         "slug": "potluck"
+      },
+      {
+        "file": "/pdfs/handwritten/grooves-worksheet-2.pdf",
+        "title": "Grooves Worksheet 2",
+        "description": "",
+        "slug": "grooves-worksheet-2"
       },
       {
         "file": "/pdfs/handwritten/tadds-delight-philly-joe.pdf",
