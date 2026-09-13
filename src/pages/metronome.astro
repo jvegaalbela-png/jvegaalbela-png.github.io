@@ -591,11 +591,6 @@ const graph = {
   </div><!-- /.metronome-carousel -->
 </div>
 
-<!-- Sentinel for return-to-top button: triggers once the practice guide
-     article enters the viewport (the metronome tool UI has been scrolled
-     past). -->
-<div id="top-of-content" style="height:1px;width:100%"></div>
-
 <!-- Reset-to-defaults confirmation. Fixed overlay, opened from the ↺
      button in the Tempo card header. -->
 <div class="reset-confirm-overlay" id="reset-confirm" hidden>
@@ -610,8 +605,9 @@ const graph = {
 </div>
 
   <!-- ─── Return-to-top pill ────────────────────────────────────────────
-       Appears after scrolling past the carousel. Sits top-right. -->
-<button class="return-top-pill is-hidden" id="return-top" type="button" aria-label="Return to top">
+       Hidden until the tool UI has been scrolled past — see the visibility
+       script below. Sits top-right, tucked under the fixed site header. -->
+<button class="return-top-pill" id="return-top" type="button" aria-label="Return to top">
   ▲
 </button>
 
@@ -4478,20 +4474,36 @@ const graph = {
 
 <script is:inline>
   // ─── Return-to-top pill ──────────────────────────────────────────────────────
-  // Watches a sentinel placed right before the practice guide article.
-  // The ▲ pill appears only when the sentinel is at least one full viewport
-  // above the viewport top (rootMargin), meaning the user has scrolled well
-  // past the metronome tool UI into the guide content.
+  // The ▲ pill appears ONLY once the whole metronome tool UI has scrolled
+  // above the viewport — i.e. the user is down in the practice guide and can
+  // no longer see the tool. It can therefore never sit on top of the tool UI.
+  //
+  // Why not a sentinel + IntersectionObserver (the previous approach): a
+  // sentinel counts as "not intersecting" BOTH when it is far above the
+  // viewport AND when it is still below the fold. Any rootMargin big enough to
+  // delay the reveal past the tool UI therefore also made the pill visible at
+  // page load on tall layouts (mobile), where it then popped into view over the
+  // tool UI the moment the site header auto-hid on scroll-down. Measuring the
+  // carousel itself has no such blind spot.
   (function(){
-    var sentinel = document.getElementById('top-of-content');
     var pill = document.getElementById('return-top');
-    if (!sentinel || !pill) return;
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(e) {
-        pill.classList.toggle('is-visible', !e.isIntersecting);
-      });
-    }, { threshold: 0, rootMargin: '300% 0px 0px 0px' });
-    observer.observe(sentinel);
+    var toolUi = document.querySelector('.metronome-carousel');
+    if (!pill || !toolUi) return;
+    var ticking = false;
+    function update() {
+      ticking = false;
+      // Past the tool UI = the carousel's bottom edge is above the viewport top.
+      pill.classList.toggle('is-visible', toolUi.getBoundingClientRect().bottom <= 0);
+    }
+    function schedule() {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    window.addEventListener('orientationchange', schedule);
+    // Run once on load too: a deep link (#odd-meters) or a restored scroll
+    // position lands mid-page without ever firing a scroll event.
+    update();
     // Scroll-to-top on click — uses the H1 anchor for reliable smooth
     // scroll on mobile without needing a user-gesture context.
     pill.addEventListener('click', function() {
@@ -4632,11 +4644,13 @@ const graph = {
   }
 
   /* ─── Return-to-top pill ──────────────────────────────────────────────
-       Floating ▲ button, top-right, appears after scrolling past the
-       metronome carousel. Same look as the sticky-cta trigger. */
+       Floating ▲ button, top-right, shown only once the tool UI has been
+       scrolled past (see the script above). Sits just BELOW the fixed site
+       header: at top:20px it occupied that header's own band, so it was
+       either hidden behind the header or ghosting through it. */
   .return-top-pill {
     position: fixed;
-    top: 20px;
+    top: calc(var(--header-h) + 12px);
     right: 20px;
     z-index: 90;
     width: 40px;
