@@ -1,0 +1,27 @@
+# Cloudflare Pages headers. public/ is copied into dist/ at build time, so this
+# lands at https://jva-music.com/_headers and Pages applies it at the edge.
+#
+# Why this file exists:
+# The raw PDF files under /pdfs/ were being indexed as search results in their
+# own right and were competing with their own landing pages. Measured in Search
+# Console over 90 days: /pdfs/drumset/three-basic-rock-beats.pdf took 5 clicks
+# at average position 11.7 while its landing page took 2 at 6.6, and
+# /pdfs/transcriptions/island-in-the-sun.pdf was ranking at 4.8. Eight raw-file
+# URLs carried 85 impressions and 11 clicks that all landed on a bare file:
+# no schema, no thumbnail, no "Download PDF" CTA, no route into the rest of the
+# site. The landing page should be the indexed URL for every one of them.
+#
+# noindex rather than a robots.txt Disallow, deliberately: Google has to be
+# able to fetch the file to read this header. A Disallow would hide the PDF
+# from the crawler and leave it indexed forever.
+#
+# Pattern note: keep these narrow. A previous wildcard _redirects rule broke
+# every CSS/JS/image request on the site (see astro.config.mjs history and
+# commit 86f9612). These two rules only ever match files ending in .pdf under
+# /pdfs/.
+
+/pdfs/*.pdf
+  X-Robots-Tag: noindex
+
+/pdfs/*/*.pdf
+  X-Robots-Tag: noindex
