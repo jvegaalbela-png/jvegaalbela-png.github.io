@@ -174,8 +174,8 @@ const graph = {
 ---
 
 <Layout
-  title="Free Online Metronome with Subdivisions, Gap Click & Custom Forms — JVA Music"
-  description="Free online metronome with subdivisions, gap click, and custom time signatures — a versatile practice tool for musicians. Adjust beat patterns, odd meters, and tempo with built-in practice guide."
+  title="Free Online Metronome: Subdivisions, Odd Meters, Gap Click"
+  description="Free online metronome with subdivisions, odd meters, gap click, and custom forms. Use it in your browser, or add it to your home screen to play offline."
   themeColor="#0d0d1a"
   bodyClass="metronome-page"
   image={metronomeOgImage}
@@ -202,6 +202,14 @@ const graph = {
     <h1 id="using-the-metronome">Free Online Metronome with Subdivisions</h1>
     <div class="beat-flash" id="beat-flash-2"></div>
   </div>
+
+  {/* Search-intent copy above the tool. Sits OUTSIDE .header — that wrapper
+      is a centred flex row holding the H1 between the two beat-flash dots,
+      so a <p> inside it would break the row. Covers the bare "metronome"
+      query and the browser-vs-installed-app choice. */}
+  <p class="metronome-intro">
+    This is a free online metronome for players who need more than a click. Use it right here in your browser, or install it to your home screen and it runs like an app, offline and with your screen off. Subdivisions, odd meters, gap click, random mute, and custom forms. The full guide is below.
+  </p>
 
   <div class="metronome-carousel">
     <nav class="carousel-tabs" role="tablist" aria-label="Metronome sections" id="metronome-tabs">
