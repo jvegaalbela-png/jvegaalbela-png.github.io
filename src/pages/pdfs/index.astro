@@ -153,13 +153,12 @@ const graph = {
   {manifest.categories.map((cat) => (
     <section class="pdf-section" id={cat.id}>
       <div class="pdf-section-head">
-        <button class="pdf-section-toggle" type="button" aria-controls={`${cat.id}-body`}>
+        {/* Static heading. The strip ⇄ grid control is the only
+            expand/collapse a section has, on every viewport. */}
+        <h2 class="pdf-section-heading">
           <span class="section-tag">{cat.title}</span>
           <span class="section-rule" aria-hidden="true"></span>
-          <svg class="pdf-section-chevron" aria-hidden="true" viewBox="0 0 12 8" fill="none">
-            <path d="M1 1.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-        </button>
+        </h2>
         {/* Strip ⇄ grid. Same list, same links — only the layout
             changes, so expanding never loads a second copy of the
             section into the DOM. */}
@@ -348,10 +347,9 @@ const graph = {
     border-top: 0;
   }
 
-  /* Section header is a button so it can act as a disclosure
-     widget on mobile. On desktop it looks identical to the old
-     <div class="section-header"> — chevron hidden, body always
-     visible, no pointer cursor. */
+  /* Section heading. Static text on every viewport: the strip ⇄ grid
+     control is the only expand/collapse a section has, so there is no
+     disclosure here and nothing to focus. */
   .pdf-section-head {
     display: flex;
     align-items: baseline;
@@ -359,38 +357,15 @@ const graph = {
     margin: 0 0 44px;
   }
 
-  .pdf-section-toggle {
-    appearance: none;
-    background: transparent;
-    border: 0;
+  .pdf-section-heading {
     padding: 0;
     margin: 0;
     width: 100%;
     display: flex;
     align-items: baseline;
     gap: 20px;
-    cursor: default;
-    text-align: left;
     font: inherit;
     color: inherit;
-  }
-
-  .pdf-section-toggle:focus { outline: none; }
-  .pdf-section-toggle:focus-visible {
-    outline: 2px solid var(--orange-lt);
-    outline-offset: 6px;
-    border-radius: 2px;
-  }
-
-  .pdf-section-chevron {
-    display: none;
-    width: 12px;
-    height: 8px;
-    color: var(--muted);
-    transition: transform 0.22s ease;
-    flex-shrink: 0;
-    align-self: center;
-    margin-left: auto;
   }
 
   .pdf-section-blurb {
@@ -800,11 +775,10 @@ const graph = {
     .pdf-strip .pdf-card-cta { font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; }
     .pdf-card-title { font-size: 16px; }
 
-    /* The view control drops to its own line under the section
-       header, and only exists once the section is open. */
-    .pdf-section-head { flex-wrap: wrap; gap: 10px; margin: 0; }
+    /* Every section is open on phones too, so the head is a plain
+       heading with the view control on its own line under it. */
+    .pdf-section-head { flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
     .pdf-strip-toggle { margin-left: auto; font-size: 10px; }
-    .pdf-section-toggle[aria-expanded='false'] ~ .pdf-strip-toggle { display: none; }
 
     /* Grid mode reuses the old phone grid. */
     .pdf-strip-shell[data-view='grid'] .pdf-strip {
@@ -813,54 +787,18 @@ const graph = {
     }
     .pdf-strip-shell[data-view='grid'] .pdf-card-title { font-size: 16px; }
 
-    /* Section becomes a stacked accordion. The toggle button is the
-       full-width tap target; the body collapses with an animated
-       grid-template-rows trick (1fr → 0fr) for a smooth height
-       transition without needing to know the body's actual height. */
+    /* Sections stack, all open. The strip is a section's collapsed
+       view and the grid is its expanded one, so there is no second
+       layer of disclosure above it. */
     .pdf-section {
-      padding: 0;
-      border-top: 0;
-    }
-    .pdf-section + .pdf-section .pdf-section-toggle {
-      border-top: 0;
-    }
-    .pdf-section:first-of-type .pdf-section-toggle {
+      padding: 34px 0 0;
       border-top: 1px solid var(--rule);
     }
-
-    .pdf-section-toggle {
-      cursor: pointer;
-      margin: 0;
-      padding: 18px 0;
-      border-bottom: 1px solid var(--rule);
-      align-items: center;
+    .pdf-section:first-of-type {
+      border-top: 0;
+      padding-top: 0;
     }
-
-    .pdf-section-toggle .section-rule { display: none; }
-    .pdf-section-chevron { display: inline-block; }
-
-    .pdf-section-toggle[aria-expanded="true"] .pdf-section-chevron {
-      transform: rotate(180deg);
-    }
-
-    .pdf-section-body {
-      display: grid;
-      grid-template-rows: 0fr;
-      transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    /* Section expands with a state flag on the section itself, not an
-       adjacent-sibling match off the button — the button now sits
-       inside .pdf-section-head, so + no longer reaches the body. */
-    .pdf-section[data-open="true"] .pdf-section-body {
-      grid-template-rows: 1fr;
-    }
-    .pdf-section-body-inner {
-      overflow: hidden;
-      min-height: 0;
-    }
-    .pdf-section[data-open="true"] .pdf-section-body-inner {
-      padding: 22px 0 32px;
-    }
+    .pdf-section-heading .section-rule { display: none; }
   }
 
   /* Dark mode — matches the site's existing prefers-color-scheme treatment:
@@ -901,66 +839,6 @@ const graph = {
     }
   }
 </style>
-
-<script is:inline>
-  // Mobile collapsibles for the PDF category sections.
-  // Each .pdf-section-toggle is a disclosure button on viewports
-  // <= 760px and a no-op heading on desktop. We toggle aria-expanded
-  // on click; CSS handles the height animation. On resize we sync
-  // aria state — added on mobile (default collapsed), removed on
-  // desktop so the role of the heading is correctly announced.
-  (function () {
-    const toggles = document.querySelectorAll(".pdf-section-toggle");
-    if (!toggles.length) return;
-
-    const mq = window.matchMedia("(max-width: 760px)");
-
-    function syncForViewport() {
-      const isMobile = mq.matches;
-      toggles.forEach(function (t, i) {
-        if (isMobile) {
-          // Open the first section by default so the page doesn't read
-          // as empty on first load. Subsequent toggles persist via the
-          // !hasAttribute guard until the viewport flips back.
-          if (!t.hasAttribute("aria-expanded")) {
-            t.setAttribute("aria-expanded", i === 0 ? "true" : "false");
-          }
-        } else {
-          t.removeAttribute("aria-expanded");
-        }
-        // Mirror the disclosure state onto the section: the CSS that
-        // opens the body keys off the section, because the button now
-        // lives inside .pdf-section-head and has no adjacent body.
-        const sec = t.closest(".pdf-section");
-        if (sec) {
-          if (isMobile) {
-            sec.setAttribute("data-open", t.getAttribute("aria-expanded") === "true" ? "true" : "false");
-          } else {
-            sec.removeAttribute("data-open");
-          }
-        }
-      });
-    }
-
-    toggles.forEach(function (t) {
-      t.addEventListener("click", function () {
-        // Click is a no-op on desktop where there is no aria-expanded.
-        if (!t.hasAttribute("aria-expanded")) return;
-        const expanded = t.getAttribute("aria-expanded") === "true";
-        t.setAttribute("aria-expanded", expanded ? "false" : "true");
-        const sec = t.closest(".pdf-section");
-        if (sec) sec.setAttribute("data-open", expanded ? "false" : "true");
-      });
-    });
-
-    syncForViewport();
-    if (mq.addEventListener) {
-      mq.addEventListener("change", syncForViewport);
-    } else if (mq.addListener) {
-      mq.addListener(syncForViewport);
-    }
-  })();
-</script>
 
 <script is:inline>
   // Section strips: page the thumbnails a screenful at a time, keep the
@@ -1019,12 +897,6 @@ const graph = {
           update();
         });
       }
-
-      // A collapsed mobile accordion measures 0 until it opens, so
-      // re-measure after each disclosure toggle finishes animating.
-      document.querySelectorAll(".pdf-section-toggle").forEach(function (t) {
-        t.addEventListener("click", function () { setTimeout(update, 380); });
-      });
 
       update();
       setTimeout(update, 400);
