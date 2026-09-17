@@ -162,14 +162,31 @@ const graph = {
       <div class="pdf-section-body" id={`${cat.id}-body`}>
         <div class="pdf-section-body-inner">
           {cat.blurb && <p class="pdf-section-blurb">{cat.blurb}</p>}
-          <div class="pdf-grid">
-            {cat.items.map((item) => {
+          {/* Each category renders as one horizontal strip: every sheet is
+              still in the DOM (all internal links + copy stay crawlable),
+              but the section reads as a single line of thumbnails so the
+              three-section structure of the library is obvious at a glance.
+              Buttons page the strip on hover-capable devices; touch
+              devices swipe (buttons are hidden there via @media hover). */}
+          <div class="pdf-strip-shell">
+            <button
+              class="pdf-strip-nav pdf-strip-nav--prev"
+              type="button"
+              aria-controls={`${cat.id}-strip`}
+              aria-label={`Show earlier ${cat.title} sheets`}
+            >
+              <svg aria-hidden="true" viewBox="0 0 10 16" fill="none" focusable="false">
+                <path d="M8 1.5 2 8l6 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+            <ul class="pdf-strip" id={`${cat.id}-strip`} aria-label={`${cat.title} sheets`}>
+              {cat.items.map((item) => {
               const landing = landingPathFor(cat.id, item);
               const thumb = item.thumbnail ?? '';
               const dims = thumbDims.get(thumb);
               const isLcp = thumb && thumb === firstThumb;
               return (
-                <div class="pdf-card-wrap">
+                <li class="pdf-card-wrap">
                   <a class="pdf-card" href={landing} aria-label={`View details for ${item.title}`}>
                     <div class="pdf-thumb">
                       {/*
@@ -201,9 +218,20 @@ const graph = {
                   <a class="pdf-card-pdf-link" href={item.file} target="_blank" rel="noopener" aria-label={`Download ${item.title} PDF directly`}>
                     PDF ↗
                   </a>
-                </div>
+                </li>
               );
             })}
+            </ul>
+            <button
+              class="pdf-strip-nav pdf-strip-nav--next"
+              type="button"
+              aria-controls={`${cat.id}-strip`}
+              aria-label={`Show more ${cat.title} sheets`}
+            >
+              <svg aria-hidden="true" viewBox="0 0 10 16" fill="none" focusable="false">
+                <path d="M2 1.5 8 8l-6 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -336,11 +364,116 @@ const graph = {
     margin: 0 0 36px;
   }
 
-  .pdf-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 28px;
+  /* ── Section strips ─────────────────────────────────
+     Each category is one horizontal line of thumbnails
+     rather than a tall grid, so the three sections of the
+     library read as a set at a glance. Every item still
+     renders in the DOM (internal links and copy stay
+     crawlable); the strip just scrolls. */
+  .pdf-strip-shell {
+    position: relative;
   }
+
+  .pdf-strip {
+    --strip-fade: 44px;
+    list-style: none;
+    margin: 0;
+    padding: 20px 0 34px;
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .pdf-strip::-webkit-scrollbar { display: none; }
+
+  /* The edge fade is driven by data-scroll, which the inline
+     script keeps in sync, so it never claims there's more
+     content in a direction the user has already reached. */
+  .pdf-strip[data-scroll='start'] {
+    mask-image: linear-gradient(to right, #000 calc(100% - var(--strip-fade)), transparent 100%);
+  }
+  .pdf-strip[data-scroll='mid'] {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--strip-fade),
+      #000 calc(100% - var(--strip-fade)),
+      transparent 100%
+    );
+  }
+  .pdf-strip[data-scroll='end'] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--strip-fade));
+  }
+
+  .pdf-strip > .pdf-card-wrap {
+    flex: 0 0 178px;
+    scroll-snap-align: start;
+  }
+
+  /* In the strip the card's height is driven by its contents: the base
+     rule's fixed 3/4 aspect-ratio is a grid affordance (it makes tiles
+     uniform), and left in place here it clips the title/CTA. */
+  .pdf-strip .pdf-card {
+    width: 100%;
+    aspect-ratio: auto;
+  }
+
+  /* In the strip the card holds a fixed shape: a growing hover
+     aspect-ratio would be clipped by the scroll container. */
+  .pdf-strip .pdf-card:hover,
+  .pdf-strip .pdf-card:focus-visible {
+    transform: translateY(-4px);
+    aspect-ratio: auto;
+    border-color: var(--cobalt);
+    box-shadow: 0 12px 26px rgba(9, 21, 40, 0.16);
+  }
+
+  .pdf-strip .pdf-thumb {
+    flex: none;
+    aspect-ratio: 8.5 / 11;
+  }
+
+  .pdf-strip .pdf-meta { padding: 12px 13px 13px; }
+  .pdf-strip .pdf-card-title { font-size: 15px; }
+  .pdf-strip .pdf-card-desc { font-size: 11.5px; }
+  .pdf-strip .pdf-card-cta { font-size: 9.5px; letter-spacing: 0.14em; }
+
+  /* Strip nav. Pointer-only affordance: touch devices swipe,
+     so the buttons never appear there. */
+  .pdf-strip-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 7;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    color: var(--cobalt);
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(9, 21, 40, 0.1);
+    transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease,
+      border-color 0.18s ease;
+  }
+
+  .pdf-strip-nav svg { width: 10px; height: 16px; }
+  .pdf-strip-nav--prev { left: -19px; }
+  .pdf-strip-nav--next { right: -19px; }
+  .pdf-strip-nav:hover:not(:disabled) { border-color: var(--cobalt); color: var(--ink); }
+  .pdf-strip-nav:focus-visible { outline: 2px solid var(--orange-lt); outline-offset: 2px; }
+  .pdf-strip-nav:disabled { opacity: 0; pointer-events: none; }
+
+  /* Nothing to scroll (or no pointer): no nav at all. */
+  .pdf-strip-shell[data-scrollable='no'] .pdf-strip-nav { display: none; }
+  @media (hover: none) { .pdf-strip-nav { display: none; } }
 
   /* Wrapper holds the primary card link plus a small secondary "PDF"
      direct-download chip so users can grab the file without bouncing
@@ -530,7 +663,9 @@ const graph = {
   @media (max-width: 760px) {
     .pdfs-hero { padding: calc(var(--header-h) + 40px) 28px 48px; }
     .pdfs-wrap { padding: 0 28px; }
-    .pdf-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
+    .pdf-strip { gap: 14px; padding: 16px 0 26px; --strip-fade: 30px; }
+    .pdf-strip > .pdf-card-wrap { flex: 0 0 148px; }
+    .pdf-strip .pdf-card-title { font-size: 14.5px; }
     .pdf-card-title { font-size: 16px; }
 
     /* Section becomes a stacked accordion. The toggle button is the
@@ -596,6 +731,13 @@ const graph = {
       background: #142544;
       border-bottom-color: rgba(91, 141, 232, 0.16);
     }
+    .pdf-strip-nav {
+      background: #142544;
+      border-color: rgba(91, 141, 232, 0.22);
+      color: var(--blue-lt);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+    .pdf-strip-nav:hover:not(:disabled) { color: #fff; border-color: var(--blue-lt); }
     .pdf-card-cta { color: var(--blue-lt); }
     .pdf-card:hover .pdf-card-cta,
     .pdf-card:focus-visible .pdf-card-cta { color: var(--orange-lt); }
@@ -654,6 +796,62 @@ const graph = {
     } else if (mq.addListener) {
       mq.addListener(syncForViewport);
     }
+  })();
+</script>
+
+<script is:inline>
+  // Section strips: page the thumbnails a screenful at a time, keep the
+  // edge fade honest about which directions still hold content, and hide
+  // the nav where there's nothing to scroll. Touch devices swipe instead
+  // (the buttons are display:none under @media (hover: none)).
+  (function () {
+    var shells = document.querySelectorAll(".pdf-strip-shell");
+    if (!shells.length) return;
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    shells.forEach(function (shell) {
+      var strip = shell.querySelector(".pdf-strip");
+      var prev = shell.querySelector(".pdf-strip-nav--prev");
+      var next = shell.querySelector(".pdf-strip-nav--next");
+      if (!strip || !prev || !next) return;
+
+      function metrics() {
+        var card = strip.querySelector(".pdf-card-wrap");
+        if (!card) return { step: strip.clientWidth, max: 0 };
+        var gap = parseFloat(getComputedStyle(strip).columnGap) || 0;
+        var cardW = card.getBoundingClientRect().width + gap;
+        var perScreen = Math.max(1, Math.floor((strip.clientWidth + gap) / cardW));
+        return { step: cardW * perScreen, max: strip.scrollWidth - strip.clientWidth };
+      }
+
+      function update() {
+        var m = metrics();
+        var x = strip.scrollLeft;
+        shell.dataset.scrollable = m.max > 2 ? "yes" : "no";
+        prev.disabled = x <= 2;
+        next.disabled = x >= m.max - 2;
+        strip.dataset.scroll = x <= 2 ? "start" : x >= m.max - 2 ? "end" : "mid";
+      }
+
+      function page(dir) {
+        strip.scrollBy({ left: dir * metrics().step, behavior: reduce ? "auto" : "smooth" });
+      }
+
+      prev.addEventListener("click", function () { page(-1); });
+      next.addEventListener("click", function () { page(1); });
+      strip.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update);
+      window.addEventListener("load", update);
+
+      // A collapsed mobile accordion measures 0 until it opens, so
+      // re-measure after each disclosure toggle finishes animating.
+      document.querySelectorAll(".pdf-section-toggle").forEach(function (t) {
+        t.addEventListener("click", function () { setTimeout(update, 380); });
+      });
+
+      update();
+      setTimeout(update, 400);
+    });
   })();
 </script>
 
