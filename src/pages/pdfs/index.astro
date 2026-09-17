@@ -476,7 +476,10 @@ const graph = {
 
   .pdf-strip .pdf-meta { padding: 12px 13px 13px; }
   .pdf-strip .pdf-card-title { font-size: 15px; }
-  .pdf-strip .pdf-card-desc { font-size: 11.5px; }
+  /* Strip cards carry title + CTA only. The description stays in the
+     markup (and in the JSON-LD) and shows the moment the section is
+     expanded into the grid. */
+  .pdf-strip .pdf-card-desc { display: none; }
   .pdf-strip .pdf-card-cta { font-size: 9.5px; letter-spacing: 0.14em; }
 
   /* Strip nav. Pointer-only affordance: touch devices swipe,
@@ -589,7 +592,10 @@ const graph = {
 
   .pdf-strip-shell[data-view='grid'] .pdf-meta { padding: 14px 16px 16px; gap: 6px; }
   .pdf-strip-shell[data-view='grid'] .pdf-card-title { font-size: 19px; }
-  .pdf-strip-shell[data-view='grid'] .pdf-card-desc { font-size: 13px; }
+  .pdf-strip-shell[data-view='grid'] .pdf-card-desc {
+    display: -webkit-box;
+    font-size: 13px;
+  }
   .pdf-strip-shell[data-view='grid'] .pdf-card-cta {
     font-size: 10.5px;
     letter-spacing: 0.16em;
