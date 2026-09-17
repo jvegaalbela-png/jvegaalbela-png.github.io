@@ -152,13 +152,43 @@ const graph = {
 <div class="pdfs-wrap">
   {manifest.categories.map((cat) => (
     <section class="pdf-section" id={cat.id}>
-      <button class="pdf-section-toggle" type="button" aria-controls={`${cat.id}-body`}>
-        <span class="section-tag">{cat.title}</span>
-        <span class="section-rule" aria-hidden="true"></span>
-        <svg class="pdf-section-chevron" aria-hidden="true" viewBox="0 0 12 8" fill="none">
-          <path d="M1 1.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </button>
+      <div class="pdf-section-head">
+        <button class="pdf-section-toggle" type="button" aria-controls={`${cat.id}-body`}>
+          <span class="section-tag">{cat.title}</span>
+          <span class="section-rule" aria-hidden="true"></span>
+          <svg class="pdf-section-chevron" aria-hidden="true" viewBox="0 0 12 8" fill="none">
+            <path d="M1 1.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+        {/* Strip ⇄ grid. Same list, same links — only the layout
+            changes, so expanding never loads a second copy of the
+            section into the DOM. */}
+        <button
+          class="pdf-strip-toggle"
+          type="button"
+          aria-controls={`${cat.id}-strip`}
+          aria-expanded="false"
+          data-strip-toggle={cat.id}
+        >
+          <span class="pdf-strip-toggle-icon pdf-strip-toggle-icon--grid" aria-hidden="true">
+            <svg viewBox="0 0 12 12" fill="none">
+              <rect x="0.75" y="0.75" width="4" height="4" stroke="currentColor" stroke-width="1.3"></rect>
+              <rect x="7.25" y="0.75" width="4" height="4" stroke="currentColor" stroke-width="1.3"></rect>
+              <rect x="0.75" y="7.25" width="4" height="4" stroke="currentColor" stroke-width="1.3"></rect>
+              <rect x="7.25" y="7.25" width="4" height="4" stroke="currentColor" stroke-width="1.3"></rect>
+            </svg>
+          </span>
+          <span class="pdf-strip-toggle-icon pdf-strip-toggle-icon--row" aria-hidden="true">
+            <svg viewBox="0 0 12 12" fill="none">
+              <rect x="0.75" y="3.5" width="3" height="5" stroke="currentColor" stroke-width="1.3"></rect>
+              <rect x="4.75" y="3.5" width="3" height="5" stroke="currentColor" stroke-width="1.3"></rect>
+              <rect x="8.75" y="3.5" width="2.5" height="5" stroke="currentColor" stroke-width="1.3"></rect>
+            </svg>
+          </span>
+          <span class="pdf-strip-toggle-label pdf-strip-toggle-label--open">View all {cat.items.length}</span>
+          <span class="pdf-strip-toggle-label pdf-strip-toggle-label--close">Show as strip</span>
+        </button>
+      </div>
       <div class="pdf-section-body" id={`${cat.id}-body`}>
         <div class="pdf-section-body-inner">
           {cat.blurb && <p class="pdf-section-blurb">{cat.blurb}</p>}
@@ -322,12 +352,19 @@ const graph = {
      widget on mobile. On desktop it looks identical to the old
      <div class="section-header"> — chevron hidden, body always
      visible, no pointer cursor. */
+  .pdf-section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin: 0 0 44px;
+  }
+
   .pdf-section-toggle {
     appearance: none;
     background: transparent;
     border: 0;
     padding: 0;
-    margin: 0 0 44px;
+    margin: 0;
     width: 100%;
     display: flex;
     align-items: baseline;
@@ -475,6 +512,90 @@ const graph = {
   .pdf-strip-shell[data-scrollable='no'] .pdf-strip-nav { display: none; }
   @media (hover: none) { .pdf-strip-nav { display: none; } }
 
+  /* ── Strip ⇄ grid toggle ────────────────────────────
+     The strip is how a section reads by default; "View all N"
+     lays the same list out as the full card grid. Only the layout
+     swaps — one set of markup, one set of links. */
+  .pdf-strip-toggle {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cobalt);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color 0.18s ease;
+  }
+
+  .pdf-strip-toggle:hover { color: var(--ink); }
+  .pdf-strip-toggle:focus { outline: none; }
+  .pdf-strip-toggle:focus-visible {
+    outline: 2px solid var(--orange-lt);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .pdf-strip-toggle svg { width: 12px; height: 12px; display: block; }
+  .pdf-strip-toggle-label--close,
+  .pdf-strip-toggle-icon--row { display: none; }
+  .pdf-strip-toggle[aria-expanded='true'] .pdf-strip-toggle-label--open,
+  .pdf-strip-toggle[aria-expanded='true'] .pdf-strip-toggle-icon--grid { display: none; }
+  .pdf-strip-toggle[aria-expanded='true'] .pdf-strip-toggle-label--close,
+  .pdf-strip-toggle[aria-expanded='true'] .pdf-strip-toggle-icon--row { display: inline-block; }
+
+  /* ── Grid mode: the original library view ─────────── */
+  .pdf-strip-shell[data-view='grid'] .pdf-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 28px;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+    mask-image: none;
+  }
+
+  .pdf-strip-shell[data-view='grid'] .pdf-strip > .pdf-card-wrap {
+    display: flex;
+    scroll-snap-align: none;
+  }
+
+  .pdf-strip-shell[data-view='grid'] .pdf-card {
+    aspect-ratio: 3 / 4;
+  }
+
+  @media (hover: hover) {
+    .pdf-strip-shell[data-view='grid'] .pdf-card:hover,
+    .pdf-strip-shell[data-view='grid'] .pdf-card:focus-visible {
+      aspect-ratio: 8.5 / 14;
+      transform: translateY(-4px) scale(1.1);
+      box-shadow: 0 18px 40px rgba(9, 21, 40, 0.18);
+    }
+  }
+
+  .pdf-strip-shell[data-view='grid'] .pdf-thumb {
+    flex: 1;
+    aspect-ratio: auto;
+  }
+
+  .pdf-strip-shell[data-view='grid'] .pdf-meta { padding: 14px 16px 16px; gap: 6px; }
+  .pdf-strip-shell[data-view='grid'] .pdf-card-title { font-size: 19px; }
+  .pdf-strip-shell[data-view='grid'] .pdf-card-desc { font-size: 13px; }
+  .pdf-strip-shell[data-view='grid'] .pdf-card-cta {
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    white-space: normal;
+  }
+  .pdf-strip-shell[data-view='grid'] .pdf-strip-nav { display: none; }
   /* Wrapper holds the primary card link plus a small secondary "PDF"
      direct-download chip so users can grab the file without bouncing
      through the landing page. The chip floats over the card top-right;
@@ -666,7 +787,25 @@ const graph = {
     .pdf-strip { gap: 14px; padding: 16px 0 26px; --strip-fade: 30px; }
     .pdf-strip > .pdf-card-wrap { flex: 0 0 148px; }
     .pdf-strip .pdf-card-title { font-size: 14.5px; }
+    /* Phones swipe: no paging arrows even where a hybrid device
+       reports a hover-capable pointer. */
+    .pdf-strip-nav { display: none; }
+    /* The CTA must stay on one line in a 148px card. */
+    .pdf-strip .pdf-card-cta { font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; }
     .pdf-card-title { font-size: 16px; }
+
+    /* The view control drops to its own line under the section
+       header, and only exists once the section is open. */
+    .pdf-section-head { flex-wrap: wrap; gap: 10px; margin: 0; }
+    .pdf-strip-toggle { margin-left: auto; font-size: 10px; }
+    .pdf-section-toggle[aria-expanded='false'] ~ .pdf-strip-toggle { display: none; }
+
+    /* Grid mode reuses the old phone grid. */
+    .pdf-strip-shell[data-view='grid'] .pdf-strip {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 18px;
+    }
+    .pdf-strip-shell[data-view='grid'] .pdf-card-title { font-size: 16px; }
 
     /* Section becomes a stacked accordion. The toggle button is the
        full-width tap target; the body collapses with an animated
@@ -703,14 +842,17 @@ const graph = {
       grid-template-rows: 0fr;
       transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .pdf-section-toggle[aria-expanded="true"] + .pdf-section-body {
+    /* Section expands with a state flag on the section itself, not an
+       adjacent-sibling match off the button — the button now sits
+       inside .pdf-section-head, so + no longer reaches the body. */
+    .pdf-section[data-open="true"] .pdf-section-body {
       grid-template-rows: 1fr;
     }
     .pdf-section-body-inner {
       overflow: hidden;
       min-height: 0;
     }
-    .pdf-section-toggle[aria-expanded="true"] + .pdf-section-body .pdf-section-body-inner {
+    .pdf-section[data-open="true"] .pdf-section-body-inner {
       padding: 22px 0 32px;
     }
   }
@@ -738,6 +880,8 @@ const graph = {
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
     }
     .pdf-strip-nav:hover:not(:disabled) { color: #fff; border-color: var(--blue-lt); }
+    .pdf-strip-toggle { color: var(--blue-lt); }
+    .pdf-strip-toggle:hover { color: #fff; }
     .pdf-card-cta { color: var(--blue-lt); }
     .pdf-card:hover .pdf-card-cta,
     .pdf-card:focus-visible .pdf-card-cta { color: var(--orange-lt); }
@@ -778,6 +922,17 @@ const graph = {
         } else {
           t.removeAttribute("aria-expanded");
         }
+        // Mirror the disclosure state onto the section: the CSS that
+        // opens the body keys off the section, because the button now
+        // lives inside .pdf-section-head and has no adjacent body.
+        const sec = t.closest(".pdf-section");
+        if (sec) {
+          if (isMobile) {
+            sec.setAttribute("data-open", t.getAttribute("aria-expanded") === "true" ? "true" : "false");
+          } else {
+            sec.removeAttribute("data-open");
+          }
+        }
       });
     }
 
@@ -787,6 +942,8 @@ const graph = {
         if (!t.hasAttribute("aria-expanded")) return;
         const expanded = t.getAttribute("aria-expanded") === "true";
         t.setAttribute("aria-expanded", expanded ? "false" : "true");
+        const sec = t.closest(".pdf-section");
+        if (sec) sec.setAttribute("data-open", expanded ? "false" : "true");
       });
     });
 
@@ -842,6 +999,20 @@ const graph = {
       strip.addEventListener("scroll", update, { passive: true });
       window.addEventListener("resize", update);
       window.addEventListener("load", update);
+
+      // "View all N" ⇄ "Show as strip": the same list re-laid out as the
+      // full grid, then back to the one-line strip.
+      var viewSection = shell.closest(".pdf-section");
+      var viewBtn = viewSection ? viewSection.querySelector(".pdf-strip-toggle") : null;
+      if (viewBtn) {
+        viewBtn.addEventListener("click", function () {
+          var toGrid = shell.dataset.view !== "grid";
+          shell.dataset.view = toGrid ? "grid" : "strip";
+          viewBtn.setAttribute("aria-expanded", toGrid ? "true" : "false");
+          if (!toGrid) strip.scrollLeft = 0;
+          update();
+        });
+      }
 
       // A collapsed mobile accordion measures 0 until it opens, so
       // re-measure after each disclosure toggle finishes animating.
