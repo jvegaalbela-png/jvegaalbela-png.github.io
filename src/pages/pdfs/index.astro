@@ -186,7 +186,7 @@ const graph = {
             </svg>
           </span>
           <span class="pdf-strip-toggle-label pdf-strip-toggle-label--open">View all {cat.items.length}</span>
-          <span class="pdf-strip-toggle-label pdf-strip-toggle-label--close">Show as strip</span>
+          <span class="pdf-strip-toggle-label pdf-strip-toggle-label--close">Collapse</span>
         </button>
       </div>
       <div class="pdf-section-body" id={`${cat.id}-body`}>
@@ -1006,7 +1006,7 @@ const graph = {
       window.addEventListener("resize", update);
       window.addEventListener("load", update);
 
-      // "View all N" ⇄ "Show as strip": the same list re-laid out as the
+      // "View all N" ⇄ "Collapse": the same list re-laid out as the
       // full grid, then back to the one-line strip.
       var viewSection = shell.closest(".pdf-section");
       var viewBtn = viewSection ? viewSection.querySelector(".pdf-strip-toggle") : null;
