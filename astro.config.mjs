@@ -63,13 +63,10 @@ const REDIRECTS = {
  // Old Squarespace contact-form variants
  '/contact-1': '/',
  '/contact-6': '/',
- // Come As You Are transcription taken down at Jacobo's request — remove the
- // engraving, the page and the thumbnail, and send both the older handwritten
- // URL and the page it replaced to the PDF library (no 404s for old links).
- '/pdfs/handwritten/come-as-you-are.pdf': '/pdfs/',
- '/pdfs/handwritten/come-as-you-are': '/pdfs/',
- '/pdfs/transcriptions/come-as-you-are.pdf': '/pdfs/',
- '/pdfs/transcriptions/come-as-you-are': '/pdfs/',
+ // Come As You Are transcription digitized — handwritten PDF replaced by the
+ // engraved version now living in the Transcriptions category.
+ '/pdfs/handwritten/come-as-you-are.pdf': '/pdfs/transcriptions/come-as-you-are/',
+ '/pdfs/handwritten/come-as-you-are': '/pdfs/transcriptions/come-as-you-are/',
  // In Bloom transcription digitized — handwritten PDF replaced by the
  // engraved version now living in the Transcriptions category.
  '/pdfs/handwritten/in-bloom.pdf': '/pdfs/transcriptions/in-bloom/',
