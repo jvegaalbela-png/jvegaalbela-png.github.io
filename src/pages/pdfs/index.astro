@@ -796,7 +796,10 @@ const graph = {
     }
     .pdf-section:first-of-type {
       border-top: 0;
-      padding-top: 0;
+      /* No rule above the first section, so it takes the 34px the others
+         sit below plus the 1px their rule adds: the space under the hero
+         then reads the same as the space under a rule. */
+      padding-top: 35px;
     }
     .pdf-section-heading .section-rule { display: none; }
   }
